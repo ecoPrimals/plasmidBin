@@ -1,0 +1,21 @@
+# plasmidBin — binaries live in GitHub Releases, not in git.
+# Only metadata.toml files and scripts are tracked.
+
+# Exclude all primal binaries (they are downloaded via fetch.sh)
+beardog/beardog
+songbird/songbird
+squirrel/squirrel
+rhizocrypt/rhizocrypt
+loamspine/loamspine
+sweetgrass/sweetgrass
+biomeos/biomeos
+toadstool/toadstool
+barracuda/barracuda
+coralreef/coralreef
+nestgate/nestgate
+petaltongue/petaltongue
+ludospring/ludospring
+
+# Catch any other binaries not yet listed
+# (binaries have no extension on Linux)
+**/target/

@@ -1,0 +1,26 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+[primal]
+name = "rhizocrypt"
+version = "0.14.0-dev"
+architecture = "x86_64-linux"
+checksum_sha256 = "97a82478c22645ad33f4248e88c915245b452dc33014191e0dd9c3c072cbbf5d"
+license = "AGPL-3.0-or-later"
+description = "Ephemeral content-addressed DAG engine for session-scoped working memory"
+
+[capabilities]
+domain = "dag"
+methods = [
+    "dag.session.create", "dag.session.get", "dag.session.list", "dag.session.discard",
+    "dag.event.append", "dag.event.append_batch",
+    "dag.vertex.get", "dag.vertex.query", "dag.vertex.children",
+    "dag.frontier.get", "dag.genesis.get",
+    "dag.merkle.root", "dag.merkle.proof", "dag.merkle.verify",
+    "dag.slice.checkout", "dag.slice.get", "dag.slice.list", "dag.slice.resolve",
+    "dag.dehydration.trigger", "dag.dehydration.status",
+    "health.check", "health.metrics", "capabilities.list",
+]
+
+[provenance]
+built_from = "phase2/rhizoCrypt"
+built_at = "2026-03-24T10:48:00Z"
