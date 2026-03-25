@@ -1,0 +1,17 @@
+# coralreef — Shader compiler & GPU pipeline primal
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+[primal]
+name = "coralreef"
+version = "0.1.0"
+domain = "shaders"
+description = "Shader compiler, GPU pipeline management, and visual effects"
+
+[provenance]
+built_from = "coralReef"
+built_at = "2026-03-25T12:36:55Z"
+checksum_sha256 = "d0827ae5b357ff8782fee7c78879bc4e7d63d0b0ff824f759b0e4dbbe70f03ad"
+
+[compatibility]
+min_ipc_version = "1.0"
+capabilities = ["shader.compile", "shader.pipeline", "gpu.render"]

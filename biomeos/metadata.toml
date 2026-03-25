@@ -1,0 +1,17 @@
+# biomeos — Orchestration & federation primal
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+[primal]
+name = "biomeos"
+version = "0.1.0"
+domain = "orchestration"
+description = "Ecosystem orchestration, federation, atomic deployment, and genome management"
+
+[provenance]
+built_from = "phase2/biomeOS"
+built_at = "2026-03-25T12:36:55Z"
+checksum_sha256 = "43c46ef76fbc649ff69dbff6eb52e2b1b310206e5305168e4f90159243df994a"
+
+[compatibility]
+min_ipc_version = "1.0"
+capabilities = ["orchestration.deploy", "orchestration.federation", "genome.manage", "lifecycle.atomic"]

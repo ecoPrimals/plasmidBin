@@ -1,0 +1,17 @@
+# toadstool — Hardware abstraction & compute primal
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+[primal]
+name = "toadstool"
+version = "0.1.0"
+domain = "compute"
+description = "Hardware abstraction, distributed compute, and runtime management"
+
+[provenance]
+built_from = "phase1/toadstool"
+built_at = "2026-03-25T12:36:45Z"
+checksum_sha256 = "5a38bbd9cf6a8a44a8c1b6da0910f69cf3ebef86a1bc39bcee406a378cee2312"
+
+[compatibility]
+min_ipc_version = "1.0"
+capabilities = ["compute.dispatch", "compute.hardware", "runtime.python", "runtime.wasm"]
