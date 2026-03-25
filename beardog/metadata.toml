@@ -1,0 +1,17 @@
+# beardog — Cryptographic identity & key management primal
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+[primal]
+name = "beardog"
+version = "0.9.0"
+domain = "crypto"
+description = "Cryptographic identity, key management, and secure communications"
+
+[provenance]
+built_from = "phase1/beardog"
+built_at = "2026-03-25T12:36:45Z"
+checksum_sha256 = "34f2f6db420f7a372f179008154837ab1184d659889e7c3218c98af36d0fa3b5"
+
+[compatibility]
+min_ipc_version = "1.0"
+capabilities = ["crypto.identity", "crypto.keys", "crypto.sign", "crypto.verify"]

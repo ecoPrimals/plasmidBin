@@ -1,0 +1,17 @@
+# petaltongue — UI / visualization primal
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+[primal]
+name = "petaltongue"
+version = "1.6.6"
+domain = "visualization"
+description = "Terminal UI, grammar compilation, and visual rendering"
+
+[provenance]
+built_from = "petalTongue"
+built_at = "2026-03-25T12:36:55Z"
+checksum_sha256 = "6aac05b339ff8e04810308dd3649a06c6233f9ef815edae86c7617e617dbe08a"
+
+[compatibility]
+min_ipc_version = "1.0"
+capabilities = ["ui.render", "ui.tui", "grammar.compile", "visualization.scene"]

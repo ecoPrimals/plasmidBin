@@ -1,0 +1,17 @@
+# songbird — Discovery & mesh networking primal
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+[primal]
+name = "songbird"
+version = "0.2.1"
+domain = "discovery"
+description = "Service discovery, mesh networking, and onion relay"
+
+[provenance]
+built_from = "phase1/songbird"
+built_at = "2026-03-25T12:36:45Z"
+checksum_sha256 = "514cb9dfd3ecbb01ada47e013cd6d81cae38314613a8b6ed5ce73bfc1b9f6bcc"
+
+[compatibility]
+min_ipc_version = "1.0"
+capabilities = ["discovery.announce", "discovery.resolve", "mesh.relay", "mesh.onion"]

@@ -1,0 +1,18 @@
+# squirrel — Universal AI / MCP primal
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+[primal]
+name = "squirrel"
+version = "0.1.0"
+domain = "ai"
+description = "Universal AI coordination, MCP tools, and model integration"
+
+[provenance]
+built_from = "phase1/squirrel"
+built_at = "2026-03-25T12:36:45Z"
+checksum_sha256 = "e6671c290d56426e6c8242c973c1a0c5b9ed74476426df302d4b55517b62198d"
+target = "x86_64-unknown-linux-musl"
+
+[compatibility]
+min_ipc_version = "1.0"
+capabilities = ["ai.complete", "ai.embed", "ai.tools", "mcp.serve"]
