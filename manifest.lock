@@ -1,0 +1,29 @@
+# plasmidBin manifest.lock — Resolved primal versions for this deployment
+# Generated: 2026-03-24T10:50:00Z
+# Source: local builds from phase2/
+
+[meta]
+generated = "2026-03-24T10:50:00Z"
+registry_version = "2.0.0"
+status = "provenance_trio"
+
+[primals.rhizocrypt]
+version = "0.14.0-dev"
+architecture = "x86_64-linux"
+checksum_sha256 = "97a82478c22645ad33f4248e88c915245b452dc33014191e0dd9c3c072cbbf5d"
+path = "rhizocrypt/rhizocrypt"
+domain = "dag"
+
+[primals.loamspine]
+version = "0.9.13"
+architecture = "x86_64-linux"
+checksum_sha256 = "186174f86dce98731d6614928f235955052edbf241562c513bb868d2c17e888f"
+path = "loamspine/loamspine"
+domain = "lineage"
+
+[primals.sweetgrass]
+version = "0.7.27"
+architecture = "x86_64-linux"
+checksum_sha256 = "ce44859d8b0c668e69c8d18d249820643c812074b87da1ccc555fa89918bbf99"
+path = "sweetgrass/sweetgrass"
+domain = "provenance"

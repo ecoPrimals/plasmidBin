@@ -1,0 +1,23 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+[primal]
+name = "loamspine"
+version = "0.9.13"
+architecture = "x86_64-linux"
+checksum_sha256 = "186174f86dce98731d6614928f235955052edbf241562c513bb868d2c17e888f"
+license = "AGPL-3.0-or-later"
+description = "Lineage tracking — causal chains, spine-based certificates, session commits"
+
+[capabilities]
+domain = "lineage"
+methods = [
+    "spine.create", "spine.get", "spine.seal",
+    "entry.append", "entry.get",
+    "certificate.mint", "certificate.transfer",
+    "session.commit", "braid.commit",
+    "health.check", "capabilities.list",
+]
+
+[provenance]
+built_from = "phase2/loamSpine"
+built_at = "2026-03-24T10:49:00Z"
