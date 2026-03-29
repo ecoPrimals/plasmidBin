@@ -1,0 +1,16 @@
+# neuralspring — Neural science primal (from neuralSpring)
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+[primal]
+name = "neuralspring"
+version = "0.7.0"
+domain = "ml"
+description = "ML primitives, spectral analysis, neural network validation"
+
+[provenance]
+built_from = "springs/neuralSpring"
+built_at = "2026-03-28T00:00:00Z"
+
+[compatibility]
+min_ipc_version = "1.0"
+capabilities = ["ml.validate", "ml.spectral"]

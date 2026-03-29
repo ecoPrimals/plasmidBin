@@ -89,3 +89,41 @@ architecture = "x86_64-linux"
 checksum_sha256 = "d0827ae5b357ff8782fee7c78879bc4e7d63d0b0ff824f759b0e4dbbe70f03ad"
 path = "coralreef/coralreef"
 domain = "shaders"
+
+# ── Springs (science validation primals) ─────────────────────────────
+
+[springs.ludospring]
+version = "0.7.0"
+architecture = "x86_64-linux"
+path = "ludospring/ludospring"
+domain = "game"
+
+[springs.groundspring]
+version = "0.7.0"
+architecture = "x86_64-linux"
+path = "groundspring/groundspring"
+domain = "measurement"
+
+[springs.healthspring]
+version = "0.7.0"
+architecture = "x86_64-linux"
+path = "healthspring/healthspring_primal"
+domain = "health"
+
+[springs.neuralspring]
+version = "0.7.0"
+architecture = "x86_64-linux"
+path = "neuralspring/neuralspring"
+domain = "ml"
+
+[springs.wetspring]
+version = "0.7.0"
+architecture = "x86_64-linux"
+path = "wetspring/wetspring"
+domain = "metagenomics"
+
+[springs.primalspring]
+version = "0.7.0"
+architecture = "x86_64-linux"
+path = "primalspring/primalspring_primal"
+domain = "coordination"

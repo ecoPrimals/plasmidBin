@@ -1,0 +1,16 @@
+# ludospring — Game science primal (from ludoSpring)
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+[primal]
+name = "ludospring"
+version = "0.7.0"
+domain = "game"
+description = "Game science: flow analysis, DDA, WFC, Fitts, engagement metrics"
+
+[provenance]
+built_from = "springs/ludoSpring"
+built_at = "2026-03-28T00:00:00Z"
+
+[compatibility]
+min_ipc_version = "1.0"
+capabilities = ["game.evaluate_flow", "game.difficulty_adjustment", "game.wfc_step", "game.fitts_cost", "game.engagement"]

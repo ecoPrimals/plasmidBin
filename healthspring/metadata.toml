@@ -1,0 +1,16 @@
+# healthspring — Health science primal (from healthSpring)
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+[primal]
+name = "healthspring_primal"
+version = "0.7.0"
+domain = "health"
+description = "PK/PD modeling, microbiome analysis, biosignal processing"
+
+[provenance]
+built_from = "springs/healthSpring"
+built_at = "2026-03-28T00:00:00Z"
+
+[compatibility]
+min_ipc_version = "1.0"
+capabilities = ["health.pkpd", "health.microbiome", "health.biosignal"]
