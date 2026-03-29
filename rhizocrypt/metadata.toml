@@ -3,24 +3,53 @@
 [primal]
 name = "rhizocrypt"
 version = "0.14.0-dev"
-architecture = "x86_64-linux"
-checksum_sha256 = "97a82478c22645ad33f4248e88c915245b452dc33014191e0dd9c3c072cbbf5d"
-license = "AGPL-3.0-or-later"
-description = "Ephemeral content-addressed DAG engine for session-scoped working memory"
-
-[capabilities]
 domain = "dag"
-methods = [
-    "dag.session.create", "dag.session.get", "dag.session.list", "dag.session.discard",
-    "dag.event.append", "dag.event.append_batch",
-    "dag.vertex.get", "dag.vertex.query", "dag.vertex.children",
-    "dag.frontier.get", "dag.genesis.get",
-    "dag.merkle.root", "dag.merkle.proof", "dag.merkle.verify",
-    "dag.slice.checkout", "dag.slice.get", "dag.slice.list", "dag.slice.resolve",
-    "dag.dehydration.trigger", "dag.dehydration.status",
-    "health.check", "health.metrics", "capabilities.list",
-]
+description = "Ephemeral content-addressed DAG engine for session-scoped working memory"
+license = "AGPL-3.0-or-later"
 
 [provenance]
-built_from = "phase2/rhizoCrypt"
+built_from = "primals/rhizoCrypt"
 built_at = "2026-03-24T10:48:00Z"
+
+[compatibility]
+min_ipc_version = "1.0"
+capabilities = [
+    "dag.session",
+    "dag.merkle",
+    "dag.dehydration",
+    "dag.slice",
+]
+
+# ── ecoBin: per-architecture builds ─────────────────────────────────
+
+[builds.x86_64-linux]
+binary = "rhizocrypt"
+checksum_sha256 = "97a82478c22645ad33f4248e88c915245b452dc33014191e0dd9c3c072cbbf5d"
+target = "x86_64-unknown-linux-musl"
+pie_verified = true
+static_linked = true
+
+[builds.aarch64-linux]
+binary = "rhizocrypt"
+target = "aarch64-unknown-linux-musl"
+pie_verified = true
+static_linked = true
+# checksum_sha256 = ""  # populated on first aarch64 harvest
+
+# ── genomeBin: deployment intelligence ──────────────────────────────
+
+[genomeBin]
+tier = "genomeBin"
+unibin_modes = ["server", "status", "version", "doctor", "client"]
+default_mode = "server"
+
+[genomeBin.server]
+tcp_port_env = "RHIZOCRYPT_PORT"
+tcp_port_default = 9700
+port_flag = "--port"
+socket_flag = "--socket"
+
+[genomeBin.service]
+restart_policy = "always"
+after = ["beardog"]
+wants = ["nestgate"]

@@ -6,12 +6,58 @@ name = "toadstool"
 version = "0.1.0"
 domain = "compute"
 description = "Hardware abstraction, distributed compute, and runtime management"
+license = "AGPL-3.0-or-later"
 
 [provenance]
-built_from = "phase1/toadstool"
+built_from = "primals/toadStool"
 built_at = "2026-03-25T12:36:45Z"
-checksum_sha256 = "5a38bbd9cf6a8a44a8c1b6da0910f69cf3ebef86a1bc39bcee406a378cee2312"
 
 [compatibility]
 min_ipc_version = "1.0"
-capabilities = ["compute.dispatch", "compute.hardware", "runtime.python", "runtime.wasm"]
+capabilities = [
+    "compute.dispatch",
+    "compute.gpu",
+    "compute.cpu",
+    "compute.wasm",
+    "hardware.discover",
+    "hardware.probe",
+]
+
+# ── ecoBin: per-architecture builds ─────────────────────────────────
+
+[builds.x86_64-linux]
+binary = "toadstool"
+checksum_sha256 = "5a38bbd9cf6a8a44a8c1b6da0910f69cf3ebef86a1bc39bcee406a378cee2312"
+target = "x86_64-unknown-linux-musl"
+pie_verified = true
+static_linked = true
+
+[builds.aarch64-linux]
+binary = "toadstool"
+target = "aarch64-unknown-linux-musl"
+pie_verified = true
+static_linked = true
+# checksum_sha256 = ""  # populated on first aarch64 harvest
+
+# ── genomeBin: deployment intelligence ──────────────────────────────
+
+[genomeBin]
+tier = "genomeBin"
+unibin_modes = ["server", "capabilities", "version", "doctor"]
+default_mode = "server"
+
+[genomeBin.server]
+tcp_port_env = "TOADSTOOL_PORT"
+tcp_port_default = 9400
+port_flag = "--port"
+socket_flag = "--socket"
+family_id_flag = "--family-id"
+
+[genomeBin.environment]
+TOADSTOOL_SECURITY_WARNING_ACKNOWLEDGED = "1"
+# TOADSTOOL_FAMILY_ID — set by deployer / gate config
+
+[genomeBin.service]
+restart_policy = "always"
+after = ["beardog"]
+wants = []

@@ -3,21 +3,53 @@
 [primal]
 name = "sweetgrass"
 version = "0.7.27"
-architecture = "x86_64-linux"
-checksum_sha256 = "ce44859d8b0c668e69c8d18d249820643c812074b87da1ccc555fa89918bbf99"
-license = "AGPL-3.0-only"
-description = "Attribution layer — braid provenance graphs, anchoring, reward calculation"
-
-[capabilities]
 domain = "provenance"
-methods = [
-    "braid.create", "braid.get", "braid.commit",
-    "anchoring.anchor", "anchoring.verify",
-    "provenance.graph", "provenance.export_provo",
-    "attribution.chain", "attribution.calculate_rewards",
-    "health.check", "capabilities.list",
-]
+description = "Attribution layer — braid provenance graphs, anchoring, reward calculation"
+license = "AGPL-3.0-only"
 
 [provenance]
-built_from = "phase2/sweetGrass"
+built_from = "primals/sweetGrass"
 built_at = "2026-03-24T10:50:00Z"
+
+[compatibility]
+min_ipc_version = "1.0"
+capabilities = [
+    "attribution.create",
+    "attribution.braid",
+    "provenance.anchor",
+    "provenance.compress",
+]
+
+# ── ecoBin: per-architecture builds ─────────────────────────────────
+
+[builds.x86_64-linux]
+binary = "sweetgrass"
+checksum_sha256 = "ce44859d8b0c668e69c8d18d249820643c812074b87da1ccc555fa89918bbf99"
+target = "x86_64-unknown-linux-musl"
+pie_verified = true
+static_linked = true
+
+[builds.aarch64-linux]
+binary = "sweetgrass"
+target = "aarch64-unknown-linux-musl"
+pie_verified = true
+static_linked = true
+# checksum_sha256 = ""  # populated on first aarch64 harvest
+
+# ── genomeBin: deployment intelligence ──────────────────────────────
+
+[genomeBin]
+tier = "genomeBin"
+unibin_modes = ["server", "version"]
+default_mode = "server"
+
+[genomeBin.server]
+tcp_port_env = "SWEETGRASS_PORT"
+tcp_port_default = 9720
+port_flag = "--port"
+socket_flag = "--socket"
+
+[genomeBin.service]
+restart_policy = "always"
+after = ["beardog"]
+wants = ["rhizocrypt", "loamspine"]

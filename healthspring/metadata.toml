@@ -6,6 +6,7 @@ name = "healthspring_primal"
 version = "0.7.0"
 domain = "health"
 description = "PK/PD modeling, microbiome analysis, biosignal processing"
+license = "AGPL-3.0-or-later"
 
 [provenance]
 built_from = "springs/healthSpring"
@@ -13,4 +14,40 @@ built_at = "2026-03-28T00:00:00Z"
 
 [compatibility]
 min_ipc_version = "1.0"
-capabilities = ["health.pkpd", "health.microbiome", "health.biosignal"]
+capabilities = [
+    "health.pkpd",
+    "health.microbiome",
+    "health.biosignal",
+]
+
+# ── ecoBin: per-architecture builds ─────────────────────────────────
+
+[builds.x86_64-linux]
+binary = "healthspring_primal"
+target = "x86_64-unknown-linux-musl"
+pie_verified = true
+static_linked = true
+# checksum_sha256 = ""  # populated on harvest
+
+[builds.aarch64-linux]
+binary = "healthspring_primal"
+target = "aarch64-unknown-linux-musl"
+pie_verified = true
+static_linked = true
+# checksum_sha256 = ""  # populated on harvest
+
+# ── genomeBin: deployment intelligence ──────────────────────────────
+
+[genomeBin]
+tier = "ecoBin"
+unibin_modes = ["server", "version"]
+default_mode = "server"
+
+[genomeBin.server]
+tcp_port_env = "HEALTHSPRING_PORT"
+tcp_port_default = 9860
+
+[genomeBin.service]
+restart_policy = "always"
+after = ["beardog", "songbird"]
+wants = []

@@ -3,21 +3,55 @@
 [primal]
 name = "loamspine"
 version = "0.9.13"
-architecture = "x86_64-linux"
-checksum_sha256 = "186174f86dce98731d6614928f235955052edbf241562c513bb868d2c17e888f"
-license = "AGPL-3.0-or-later"
-description = "Lineage tracking — causal chains, spine-based certificates, session commits"
-
-[capabilities]
 domain = "lineage"
-methods = [
-    "spine.create", "spine.get", "spine.seal",
-    "entry.append", "entry.get",
-    "certificate.mint", "certificate.transfer",
-    "session.commit", "braid.commit",
-    "health.check", "capabilities.list",
-]
+description = "Lineage tracking — causal chains, spine-based certificates, session commits"
+license = "AGPL-3.0-or-later"
 
 [provenance]
-built_from = "phase2/loamSpine"
+built_from = "primals/loamSpine"
 built_at = "2026-03-24T10:49:00Z"
+
+[compatibility]
+min_ipc_version = "1.0"
+capabilities = [
+    "commit.create",
+    "commit.verify",
+    "certificate.issue",
+    "certificate.verify",
+    "spine.append",
+    "anchor.temporal",
+]
+
+# ── ecoBin: per-architecture builds ─────────────────────────────────
+
+[builds.x86_64-linux]
+binary = "loamspine"
+checksum_sha256 = "186174f86dce98731d6614928f235955052edbf241562c513bb868d2c17e888f"
+target = "x86_64-unknown-linux-musl"
+pie_verified = true
+static_linked = true
+
+[builds.aarch64-linux]
+binary = "loamspine"
+target = "aarch64-unknown-linux-musl"
+pie_verified = true
+static_linked = true
+# checksum_sha256 = ""  # populated on first aarch64 harvest
+
+# ── genomeBin: deployment intelligence ──────────────────────────────
+
+[genomeBin]
+tier = "genomeBin"
+unibin_modes = ["server", "version", "doctor"]
+default_mode = "server"
+
+[genomeBin.server]
+tcp_port_env = "LOAMSPINE_PORT"
+tcp_port_default = 9710
+port_flag = "--port"
+socket_flag = "--socket"
+
+[genomeBin.service]
+restart_policy = "always"
+after = ["beardog"]
+wants = ["nestgate"]

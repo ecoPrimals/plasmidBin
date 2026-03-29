@@ -1,17 +1,61 @@
-# songbird — Discovery & mesh networking primal
+# songbird — Network orchestration & discovery primal
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 [primal]
 name = "songbird"
 version = "0.2.1"
 domain = "discovery"
-description = "Service discovery, mesh networking, and onion relay"
+description = "Network orchestration: TLS 1.3, service discovery, NAT traversal, BirdSong protocol, Pure Rust Tor"
+license = "AGPL-3.0-or-later"
 
 [provenance]
-built_from = "phase1/songbird"
+built_from = "primals/songBird"
 built_at = "2026-03-25T12:36:45Z"
-checksum_sha256 = "514cb9dfd3ecbb01ada47e013cd6d81cae38314613a8b6ed5ce73bfc1b9f6bcc"
 
 [compatibility]
 min_ipc_version = "1.0"
-capabilities = ["discovery.announce", "discovery.resolve", "mesh.relay", "mesh.onion"]
+capabilities = [
+    "discovery.announce",
+    "discovery.resolve",
+    "mesh.relay",
+    "mesh.onion",
+    "tls.handshake",
+    "birdsong.multicast",
+    "federation.route",
+]
+
+[builds.x86_64-linux]
+binary = "songbird"
+checksum_sha256 = "514cb9dfd3ecbb01ada47e013cd6d81cae38314613a8b6ed5ce73bfc1b9f6bcc"
+target = "x86_64-unknown-linux-musl"
+pie_verified = true
+static_linked = true
+
+[builds.aarch64-linux]
+binary = "songbird"
+target = "aarch64-unknown-linux-musl"
+pie_verified = true
+static_linked = true
+
+[genomeBin]
+tier = "genomeBin"
+unibin_modes = ["server", "relay", "stun", "version", "doctor"]
+default_mode = "server"
+
+[genomeBin.server]
+tcp_port_env = "SONGBIRD_PORT"
+tcp_port_default = 9200
+port_flag = "--port"
+socket_flag = "--socket"
+health_probe = "health.liveness"
+
+[genomeBin.dependencies]
+beardog_socket_env = "BEARDOG_SOCKET"
+beardog_mode_env = "BEARDOG_MODE"
+security_provider_env = "SONGBIRD_SECURITY_PROVIDER"
+dark_forest_env = "SONGBIRD_DARK_FOREST"
+
+[genomeBin.service]
+restart_policy = "always"
+after = ["beardog"]
+wants = []

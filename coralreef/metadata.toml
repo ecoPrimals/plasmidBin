@@ -6,12 +6,52 @@ name = "coralreef"
 version = "0.1.0"
 domain = "shaders"
 description = "Shader compiler, GPU pipeline management, and visual effects"
+license = "AGPL-3.0-or-later"
 
 [provenance]
-built_from = "coralReef"
+built_from = "primals/coralReef"
 built_at = "2026-03-25T12:36:55Z"
-checksum_sha256 = "d0827ae5b357ff8782fee7c78879bc4e7d63d0b0ff824f759b0e4dbbe70f03ad"
 
 [compatibility]
 min_ipc_version = "1.0"
-capabilities = ["shader.compile", "shader.pipeline", "gpu.render"]
+capabilities = [
+    "shader.compile",
+    "shader.spirv",
+    "shader.wgsl",
+    "shader.naga",
+]
+
+# ── ecoBin: per-architecture builds ─────────────────────────────────
+# x86_64 only for now (no aarch64 builds yet).
+
+[builds.x86_64-linux]
+binary = "coralreef"
+checksum_sha256 = "d0827ae5b357ff8782fee7c78879bc4e7d63d0b0ff824f759b0e4dbbe70f03ad"
+target = "x86_64-unknown-linux-musl"
+pie_verified = true
+static_linked = true
+
+[builds.aarch64-linux]
+binary = "coralreef"
+target = "aarch64-unknown-linux-musl"
+pie_verified = true
+static_linked = true
+# checksum_sha256 = ""  # no aarch64 build yet
+
+# ── genomeBin: deployment intelligence ──────────────────────────────
+
+[genomeBin]
+tier = "genomeBin"
+unibin_modes = ["server", "compile", "version"]
+default_mode = "server"
+
+[genomeBin.server]
+tcp_port_env = "CORALREEF_PORT"
+tcp_port_default = 9730
+port_flag = "--port"
+socket_flag = "--socket"
+
+[genomeBin.service]
+restart_policy = "always"
+after = []
+wants = ["toadstool"]

@@ -1,129 +1,156 @@
 # plasmidBin manifest.lock — Resolved primal versions for this deployment
-# Generated: 2026-03-25T08:36:00Z
-# Source: local builds from phase1/, phase2/, and standalone primals
+# Generated: 2026-03-29T00:00:00Z
+# Source: local builds from primals/ and springs/
 
 [meta]
-generated = "2026-03-25T08:36:00Z"
-registry_version = "2.0.0"
+generated = "2026-03-29T00:00:00Z"
+registry_version = "3.0.0"
 status = "full_ecosystem"
+architectures = ["x86_64-linux", "aarch64-linux"]
 
-# ── Phase 1: Foundation ──────────────────────────────────────────────
+# ── Foundation primals (NUCLEUS) ─────────────────────────────────────
 
 [primals.beardog]
 version = "0.9.0"
-architecture = "x86_64-linux"
-checksum_sha256 = "34f2f6db420f7a372f179008154837ab1184d659889e7c3218c98af36d0fa3b5"
-path = "beardog/beardog"
 domain = "crypto"
+tier = "genomeBin"
+default_port = 9100
+builds = ["x86_64-linux", "aarch64-linux"]
 
 [primals.songbird]
 version = "0.2.1"
-architecture = "x86_64-linux"
-checksum_sha256 = "514cb9dfd3ecbb01ada47e013cd6d81cae38314613a8b6ed5ce73bfc1b9f6bcc"
-path = "songbird/songbird"
 domain = "discovery"
-
-[primals.squirrel]
-version = "0.1.0"
-architecture = "x86_64-linux-musl"
-checksum_sha256 = "e6671c290d56426e6c8242c973c1a0c5b9ed74476426df302d4b55517b62198d"
-path = "squirrel/squirrel"
-domain = "ai"
-
-[primals.toadstool]
-version = "0.1.0"
-architecture = "x86_64-linux"
-checksum_sha256 = "5a38bbd9cf6a8a44a8c1b6da0910f69cf3ebef86a1bc39bcee406a378cee2312"
-path = "toadstool/toadstool"
-domain = "compute"
+tier = "genomeBin"
+default_port = 9200
+builds = ["x86_64-linux", "aarch64-linux"]
 
 [primals.nestgate]
 version = "2.1.0"
-architecture = "x86_64-linux"
-checksum_sha256 = "c1f6b28217d00f618c84839bf7743dd4de966537a7e656790eb1e0042a00c086"
-path = "nestgate/nestgate"
 domain = "storage"
+tier = "genomeBin"
+default_port = 9300
+builds = ["x86_64-linux", "aarch64-linux"]
 
-# ── Phase 2: Post-NUCLEUS ────────────────────────────────────────────
-
-[primals.rhizocrypt]
-version = "0.14.0-dev"
-architecture = "x86_64-linux"
-checksum_sha256 = "97a82478c22645ad33f4248e88c915245b452dc33014191e0dd9c3c072cbbf5d"
-path = "rhizocrypt/rhizocrypt"
-domain = "dag"
-
-[primals.loamspine]
-version = "0.9.13"
-architecture = "x86_64-linux"
-checksum_sha256 = "186174f86dce98731d6614928f235955052edbf241562c513bb868d2c17e888f"
-path = "loamspine/loamspine"
-domain = "lineage"
-
-[primals.sweetgrass]
-version = "0.7.27"
-architecture = "x86_64-linux"
-checksum_sha256 = "ce44859d8b0c668e69c8d18d249820643c812074b87da1ccc555fa89918bbf99"
-path = "sweetgrass/sweetgrass"
-domain = "provenance"
-
-[primals.biomeos]
+[primals.toadstool]
 version = "0.1.0"
-architecture = "x86_64-linux"
-checksum_sha256 = "43c46ef76fbc649ff69dbff6eb52e2b1b310206e5305168e4f90159243df994a"
-path = "biomeos/biomeos"
-domain = "orchestration"
+domain = "compute"
+tier = "genomeBin"
+default_port = 9400
+builds = ["x86_64-linux", "aarch64-linux"]
 
-# ── Standalone ───────────────────────────────────────────────────────
+[primals.squirrel]
+version = "0.1.0"
+domain = "ai"
+tier = "genomeBin"
+default_port = 9500
+builds = ["x86_64-linux", "aarch64-linux"]
 
 [primals.petaltongue]
 version = "1.6.6"
-architecture = "x86_64-linux"
-checksum_sha256 = "6aac05b339ff8e04810308dd3649a06c6233f9ef815edae86c7617e617dbe08a"
-path = "petaltongue/petaltongue"
 domain = "visualization"
+tier = "genomeBin"
+default_port = 9600
+builds = ["x86_64-linux", "aarch64-linux"]
+
+[primals.biomeos]
+version = "0.1.0"
+domain = "orchestration"
+tier = "genomeBin"
+default_port = 9800
+builds = ["x86_64-linux"]
+
+# ── Post-NUCLEUS primals ─────────────────────────────────────────────
+
+[primals.rhizocrypt]
+version = "0.14.0-dev"
+domain = "dag"
+tier = "genomeBin"
+default_port = 9700
+builds = ["x86_64-linux", "aarch64-linux"]
+
+[primals.loamspine]
+version = "0.9.13"
+domain = "lineage"
+tier = "genomeBin"
+default_port = 9710
+builds = ["x86_64-linux", "aarch64-linux"]
+
+[primals.sweetgrass]
+version = "0.7.27"
+domain = "provenance"
+tier = "genomeBin"
+default_port = 9720
+builds = ["x86_64-linux", "aarch64-linux"]
 
 [primals.coralreef]
 version = "0.1.0"
-architecture = "x86_64-linux"
-checksum_sha256 = "d0827ae5b357ff8782fee7c78879bc4e7d63d0b0ff824f759b0e4dbbe70f03ad"
-path = "coralreef/coralreef"
 domain = "shaders"
+tier = "genomeBin"
+default_port = 9730
+builds = ["x86_64-linux"]
 
 # ── Springs (science validation primals) ─────────────────────────────
 
 [springs.ludospring]
 version = "0.7.0"
-architecture = "x86_64-linux"
-path = "ludospring/ludospring"
 domain = "game"
+tier = "ecoBin"
+default_port = 9650
 
 [springs.groundspring]
 version = "0.7.0"
-architecture = "x86_64-linux"
-path = "groundspring/groundspring"
 domain = "measurement"
+tier = "ecoBin"
+default_port = 9850
 
 [springs.healthspring]
 version = "0.7.0"
-architecture = "x86_64-linux"
-path = "healthspring/healthspring_primal"
 domain = "health"
+tier = "ecoBin"
+default_port = 9860
+binary = "healthspring_primal"
 
 [springs.neuralspring]
 version = "0.7.0"
-architecture = "x86_64-linux"
-path = "neuralspring/neuralspring"
 domain = "ml"
+tier = "ecoBin"
+default_port = 9870
 
 [springs.wetspring]
 version = "0.7.0"
-architecture = "x86_64-linux"
-path = "wetspring/wetspring"
 domain = "metagenomics"
+tier = "ecoBin"
+default_port = 9880
 
 [springs.primalspring]
 version = "0.7.0"
-architecture = "x86_64-linux"
-path = "primalspring/primalspring_primal"
 domain = "coordination"
+tier = "ecoBin"
+default_port = 9890
+binary = "primalspring_primal"
+
+# ── Compositions ─────────────────────────────────────────────────────
+
+[compositions.tower]
+primals = ["beardog", "songbird"]
+
+[compositions.compute]
+primals = ["beardog", "songbird", "toadstool"]
+
+[compositions.node]
+primals = ["beardog", "songbird", "toadstool", "squirrel"]
+
+[compositions.nest]
+primals = ["beardog", "songbird", "nestgate"]
+
+[compositions.full]
+primals = ["beardog", "songbird", "nestgate", "toadstool", "squirrel", "biomeos", "petaltongue"]
+
+[compositions.storytelling]
+primals = ["beardog", "songbird", "biomeos", "squirrel", "petaltongue", "ludospring"]
+
+[compositions.provenance]
+primals = ["beardog", "songbird", "rhizocrypt", "loamspine", "sweetgrass"]
+
+[compositions.science]
+primals = ["beardog", "songbird", "toadstool", "squirrel", "biomeos"]

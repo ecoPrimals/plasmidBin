@@ -1,11 +1,12 @@
-# ludospring — Game science primal (from ludoSpring)
+# ludospring — Game science spring primal (from ludoSpring)
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 [primal]
 name = "ludospring"
 version = "0.7.0"
 domain = "game"
-description = "Game science: flow analysis, DDA, WFC, Fitts, engagement metrics"
+description = "Game science: flow analysis, DDA, WFC, Fitts law, engagement metrics"
+license = "AGPL-3.0-or-later"
 
 [provenance]
 built_from = "springs/ludoSpring"
@@ -13,4 +14,37 @@ built_at = "2026-03-28T00:00:00Z"
 
 [compatibility]
 min_ipc_version = "1.0"
-capabilities = ["game.evaluate_flow", "game.difficulty_adjustment", "game.wfc_step", "game.fitts_cost", "game.engagement"]
+capabilities = [
+    "game.evaluate_flow",
+    "game.difficulty_adjustment",
+    "game.wfc_step",
+    "game.fitts_cost",
+    "game.engagement",
+]
+
+[builds.x86_64-linux]
+binary = "ludospring"
+target = "x86_64-unknown-linux-musl"
+pie_verified = true
+static_linked = true
+
+[builds.aarch64-linux]
+binary = "ludospring"
+target = "aarch64-unknown-linux-musl"
+pie_verified = true
+static_linked = true
+
+[genomeBin]
+tier = "ecoBin"
+unibin_modes = ["server", "version"]
+default_mode = "server"
+
+[genomeBin.server]
+tcp_port_env = "LUDOSPRING_PORT"
+tcp_port_default = 9650
+health_probe = "health.liveness"
+
+[genomeBin.service]
+restart_policy = "on-failure"
+after = ["beardog", "songbird"]
+wants = []

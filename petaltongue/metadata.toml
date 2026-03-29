@@ -1,17 +1,54 @@
-# petaltongue — UI / visualization primal
+# petaltongue — Visualization & rendering primal
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 [primal]
 name = "petaltongue"
 version = "1.6.6"
 domain = "visualization"
-description = "Terminal UI, grammar compilation, and visual rendering"
+description = "Universal UI: visual, audio, terminal, web, headless. Accessibility-first multi-modal rendering"
+license = "AGPL-3.0-or-later"
 
 [provenance]
-built_from = "petalTongue"
+built_from = "primals/petalTongue"
 built_at = "2026-03-25T12:36:55Z"
-checksum_sha256 = "6aac05b339ff8e04810308dd3649a06c6233f9ef815edae86c7617e617dbe08a"
 
 [compatibility]
 min_ipc_version = "1.0"
-capabilities = ["ui.render", "ui.tui", "grammar.compile", "visualization.scene"]
+capabilities = [
+    "ui.render",
+    "ui.tui",
+    "ui.web",
+    "grammar.compile",
+    "visualization.scene",
+    "visualization.dashboard",
+]
+
+[builds.x86_64-linux]
+binary = "petaltongue"
+checksum_sha256 = "6aac05b339ff8e04810308dd3649a06c6233f9ef815edae86c7617e617dbe08a"
+target = "x86_64-unknown-linux-musl"
+pie_verified = true
+static_linked = true
+
+[builds.aarch64-linux]
+binary = "petaltongue"
+target = "aarch64-unknown-linux-musl"
+pie_verified = true
+static_linked = true
+
+[genomeBin]
+tier = "genomeBin"
+unibin_modes = ["web", "server", "version"]
+default_mode = "web"
+
+[genomeBin.server]
+tcp_port_env = "PETALTONGUE_PORT"
+tcp_port_default = 9600
+bind_flag = "--bind"
+bind_format = "{bind}:{port}"
+health_probe = "health.liveness"
+
+[genomeBin.service]
+restart_policy = "always"
+after = []
+wants = []

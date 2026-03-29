@@ -6,6 +6,7 @@ name = "groundspring"
 version = "0.7.0"
 domain = "measurement"
 description = "Measurement noise validation, instrument calibration"
+license = "AGPL-3.0-or-later"
 
 [provenance]
 built_from = "springs/groundSpring"
@@ -13,4 +14,39 @@ built_at = "2026-03-28T00:00:00Z"
 
 [compatibility]
 min_ipc_version = "1.0"
-capabilities = ["measurement.validate", "measurement.calibrate"]
+capabilities = [
+    "measurement.validate",
+    "measurement.calibrate",
+]
+
+# ── ecoBin: per-architecture builds ─────────────────────────────────
+
+[builds.x86_64-linux]
+binary = "groundspring"
+target = "x86_64-unknown-linux-musl"
+pie_verified = true
+static_linked = true
+# checksum_sha256 = ""  # populated on harvest
+
+[builds.aarch64-linux]
+binary = "groundspring"
+target = "aarch64-unknown-linux-musl"
+pie_verified = true
+static_linked = true
+# checksum_sha256 = ""  # populated on harvest
+
+# ── genomeBin: deployment intelligence ──────────────────────────────
+
+[genomeBin]
+tier = "ecoBin"
+unibin_modes = ["server", "version"]
+default_mode = "server"
+
+[genomeBin.server]
+tcp_port_env = "GROUNDSPRING_PORT"
+tcp_port_default = 9850
+
+[genomeBin.service]
+restart_policy = "always"
+after = ["beardog", "songbird"]
+wants = []

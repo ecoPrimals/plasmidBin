@@ -6,12 +6,63 @@ name = "beardog"
 version = "0.9.0"
 domain = "crypto"
 description = "Cryptographic identity, key management, and secure communications"
+license = "AGPL-3.0-or-later"
 
 [provenance]
-built_from = "phase1/beardog"
+built_from = "primals/bearDog"
 built_at = "2026-03-25T12:36:45Z"
-checksum_sha256 = "34f2f6db420f7a372f179008154837ab1184d659889e7c3218c98af36d0fa3b5"
 
 [compatibility]
 min_ipc_version = "1.0"
-capabilities = ["crypto.identity", "crypto.keys", "crypto.sign", "crypto.verify"]
+capabilities = [
+    "crypto.identity",
+    "crypto.keys",
+    "crypto.sign",
+    "crypto.verify",
+    "crypto.hash",
+    "crypto.encrypt",
+    "birdsong.beacon",
+    "lineage.derive",
+]
+
+# ── ecoBin: per-architecture builds ─────────────────────────────────
+# Each [builds.*] entry is a musl-static PIE binary for one target.
+# fetch.sh downloads the entry matching the local arch.
+
+[builds.x86_64-linux]
+binary = "beardog"
+checksum_sha256 = "34f2f6db420f7a372f179008154837ab1184d659889e7c3218c98af36d0fa3b5"
+target = "x86_64-unknown-linux-musl"
+pie_verified = true
+static_linked = true
+
+[builds.aarch64-linux]
+binary = "beardog"
+target = "aarch64-unknown-linux-musl"
+pie_verified = true
+static_linked = true
+# checksum_sha256 = ""  # populated on first aarch64 harvest
+
+# ── genomeBin: deployment intelligence ──────────────────────────────
+# How this primal should be deployed on a gate. Used by start_primal.sh,
+# deploy_gate.sh, and future autonomous deployment tooling.
+
+[genomeBin]
+tier = "genomeBin"
+unibin_modes = ["server", "client", "version", "doctor"]
+default_mode = "server"
+
+[genomeBin.server]
+tcp_port_env = "BEARDOG_PORT"
+tcp_port_default = 9100
+socket_flag = "--socket"
+listen_flag = "--listen"
+listen_format = "{bind}:{port}"
+family_id_flag = "--family-id"
+abstract_flag = "--abstract"
+health_probe = "health.liveness"
+
+[genomeBin.service]
+restart_policy = "always"
+after = []
+wants = []
