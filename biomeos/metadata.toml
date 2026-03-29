@@ -1,17 +1,54 @@
-# biomeos — Orchestration & federation primal
+# biomeos — Neural API orchestrator
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 [primal]
 name = "biomeos"
 version = "0.1.0"
 domain = "orchestration"
-description = "Ecosystem orchestration, federation, atomic deployment, and genome management"
+description = "Neural API orchestrator — graph execution, primal composition, NUCLEUS deployment"
+license = "AGPL-3.0-or-later"
 
 [provenance]
-built_from = "phase2/biomeOS"
+built_from = "primals/biomeOS"
 built_at = "2026-03-25T12:36:55Z"
-checksum_sha256 = "43c46ef76fbc649ff69dbff6eb52e2b1b310206e5305168e4f90159243df994a"
 
 [compatibility]
 min_ipc_version = "1.0"
-capabilities = ["orchestration.deploy", "orchestration.federation", "genome.manage", "lifecycle.atomic"]
+capabilities = [
+    "orchestration.deploy",
+    "orchestration.federation",
+    "capability.call",
+    "capability.discover",
+    "graph.execute",
+    "nucleus.compose",
+]
+
+[builds.x86_64-linux]
+binary = "biomeos"
+checksum_sha256 = "43c46ef76fbc649ff69dbff6eb52e2b1b310206e5305168e4f90159243df994a"
+target = "x86_64-unknown-linux-musl"
+pie_verified = true
+static_linked = true
+
+[builds.aarch64-linux]
+binary = "biomeos"
+target = "aarch64-unknown-linux-musl"
+pie_verified = true
+static_linked = true
+
+[genomeBin]
+tier = "genomeBin"
+unibin_modes = ["api", "neural-api", "version", "doctor"]
+default_mode = "api"
+
+[genomeBin.server]
+tcp_port_env = "BIOMEOS_PORT"
+tcp_port_default = 9800
+port_flag = "--port"
+socket_flag = "--socket"
+health_probe = "health.liveness"
+
+[genomeBin.service]
+restart_policy = "always"
+after = ["beardog", "songbird"]
+wants = ["nestgate", "toadstool", "squirrel"]

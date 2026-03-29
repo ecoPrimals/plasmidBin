@@ -6,13 +6,51 @@ name = "squirrel"
 version = "0.1.0"
 domain = "ai"
 description = "Universal AI coordination, MCP tools, and model integration"
+license = "AGPL-3.0-or-later"
 
 [provenance]
-built_from = "phase1/squirrel"
+built_from = "primals/squirrel"
 built_at = "2026-03-25T12:36:45Z"
-checksum_sha256 = "e6671c290d56426e6c8242c973c1a0c5b9ed74476426df302d4b55517b62198d"
-target = "x86_64-unknown-linux-musl"
 
 [compatibility]
 min_ipc_version = "1.0"
-capabilities = ["ai.complete", "ai.embed", "ai.tools", "mcp.serve"]
+capabilities = [
+    "ai.inference",
+    "ai.mcp",
+    "ai.classify",
+]
+
+# ── ecoBin: per-architecture builds ─────────────────────────────────
+
+[builds.x86_64-linux]
+binary = "squirrel"
+checksum_sha256 = "e6671c290d56426e6c8242c973c1a0c5b9ed74476426df302d4b55517b62198d"
+target = "x86_64-unknown-linux-musl"
+pie_verified = true
+static_linked = true
+
+[builds.aarch64-linux]
+binary = "squirrel"
+target = "aarch64-unknown-linux-musl"
+pie_verified = true
+static_linked = true
+# checksum_sha256 = ""  # populated on first aarch64 harvest
+
+# ── genomeBin: deployment intelligence ──────────────────────────────
+
+[genomeBin]
+tier = "genomeBin"
+unibin_modes = ["server", "version"]
+default_mode = "server"
+
+[genomeBin.server]
+tcp_port_env = "SQUIRREL_PORT"
+tcp_port_default = 9500
+port_flag = "--port"
+bind_flag = "--bind"
+socket_flag = "--socket"
+
+[genomeBin.service]
+restart_policy = "always"
+after = ["beardog", "songbird"]
+wants = []

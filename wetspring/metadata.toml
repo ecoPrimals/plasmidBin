@@ -6,6 +6,7 @@ name = "wetspring"
 version = "0.7.0"
 domain = "metagenomics"
 description = "Metagenomics, analytical chemistry validation"
+license = "AGPL-3.0-or-later"
 
 [provenance]
 built_from = "springs/wetSpring"
@@ -13,4 +14,39 @@ built_at = "2026-03-28T00:00:00Z"
 
 [compatibility]
 min_ipc_version = "1.0"
-capabilities = ["metagenomics.validate", "chemistry.validate"]
+capabilities = [
+    "metagenomics.validate",
+    "chemistry.validate",
+]
+
+# ── ecoBin: per-architecture builds ─────────────────────────────────
+
+[builds.x86_64-linux]
+binary = "wetspring"
+target = "x86_64-unknown-linux-musl"
+pie_verified = true
+static_linked = true
+# checksum_sha256 = ""  # populated on harvest
+
+[builds.aarch64-linux]
+binary = "wetspring"
+target = "aarch64-unknown-linux-musl"
+pie_verified = true
+static_linked = true
+# checksum_sha256 = ""  # populated on harvest
+
+# ── genomeBin: deployment intelligence ──────────────────────────────
+
+[genomeBin]
+tier = "ecoBin"
+unibin_modes = ["server", "version"]
+default_mode = "server"
+
+[genomeBin.server]
+tcp_port_env = "WETSPRING_PORT"
+tcp_port_default = 9880
+
+[genomeBin.service]
+restart_policy = "always"
+after = ["beardog", "songbird"]
+wants = []

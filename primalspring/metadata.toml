@@ -6,6 +6,7 @@ name = "primalspring_primal"
 version = "0.7.0"
 domain = "coordination"
 description = "Composition validation, deploy graph execution, coordination"
+license = "AGPL-3.0-or-later"
 
 [provenance]
 built_from = "springs/primalSpring"
@@ -13,4 +14,40 @@ built_at = "2026-03-29T00:00:00Z"
 
 [compatibility]
 min_ipc_version = "1.0"
-capabilities = ["coordination.validate_composition", "coordination.probe_primal", "graph.validate"]
+capabilities = [
+    "coordination.validate_composition",
+    "coordination.probe_primal",
+    "graph.validate",
+]
+
+# ── ecoBin: per-architecture builds ─────────────────────────────────
+
+[builds.x86_64-linux]
+binary = "primalspring_primal"
+target = "x86_64-unknown-linux-musl"
+pie_verified = true
+static_linked = true
+# checksum_sha256 = ""  # populated on harvest
+
+[builds.aarch64-linux]
+binary = "primalspring_primal"
+target = "aarch64-unknown-linux-musl"
+pie_verified = true
+static_linked = true
+# checksum_sha256 = ""  # populated on harvest
+
+# ── genomeBin: deployment intelligence ──────────────────────────────
+
+[genomeBin]
+tier = "ecoBin"
+unibin_modes = ["server", "version"]
+default_mode = "server"
+
+[genomeBin.server]
+tcp_port_env = "PRIMALSPRING_PORT"
+tcp_port_default = 9890
+
+[genomeBin.service]
+restart_policy = "always"
+after = ["beardog", "songbird"]
+wants = []
