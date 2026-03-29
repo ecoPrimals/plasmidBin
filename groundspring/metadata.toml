@@ -1,0 +1,16 @@
+# groundspring — Measurement noise primal (from groundSpring)
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+[primal]
+name = "groundspring"
+version = "0.7.0"
+domain = "measurement"
+description = "Measurement noise validation, instrument calibration"
+
+[provenance]
+built_from = "springs/groundSpring"
+built_at = "2026-03-28T00:00:00Z"
+
+[compatibility]
+min_ipc_version = "1.0"
+capabilities = ["measurement.validate", "measurement.calibrate"]

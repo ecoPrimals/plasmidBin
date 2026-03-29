@@ -15,6 +15,11 @@ coralreef/coralreef
 nestgate/nestgate
 petaltongue/petaltongue
 ludospring/ludospring
+groundspring/groundspring
+healthspring/healthspring_primal
+neuralspring/neuralspring
+wetspring/wetspring
+primalspring/primalspring_primal
 
 # Catch any other binaries not yet listed
 # (binaries have no extension on Linux)

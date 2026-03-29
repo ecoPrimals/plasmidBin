@@ -1,0 +1,16 @@
+# wetspring — Metagenomics primal (from wetSpring)
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+[primal]
+name = "wetspring"
+version = "0.7.0"
+domain = "metagenomics"
+description = "Metagenomics, analytical chemistry validation"
+
+[provenance]
+built_from = "springs/wetSpring"
+built_at = "2026-03-28T00:00:00Z"
+
+[compatibility]
+min_ipc_version = "1.0"
+capabilities = ["metagenomics.validate", "chemistry.validate"]
