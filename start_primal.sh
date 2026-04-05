@@ -290,14 +290,12 @@ case "$PRIMAL" in
 
     loamspine)
         ARGS+=(server)
-        [[ -n "$TCP_PORT" ]] && ARGS+=(--port "$TCP_PORT")
-        [[ -n "$SOCKET_PATH" ]] && ARGS+=(--socket "$SOCKET_PATH")
+        [[ -n "$TCP_PORT" ]] && ARGS+=(--jsonrpc-port "$TCP_PORT" --bind-address "$TCP_BIND")
         ;;
 
     sweetgrass)
         ARGS+=(server)
-        [[ -n "$TCP_PORT" ]] && ARGS+=(--port "$TCP_PORT")
-        [[ -n "$SOCKET_PATH" ]] && ARGS+=(--socket "$SOCKET_PATH")
+        [[ -n "$TCP_PORT" ]] && ARGS+=(--http-address "$TCP_BIND:$TCP_PORT")
         ;;
 
     coralreef)
