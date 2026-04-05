@@ -49,8 +49,10 @@ PRIMAL_BIN=""
 usage() {
     echo "Usage: $0 <primal-name> [OPTIONS]"
     echo ""
-    echo "Primals: beardog, songbird, nestgate, toadstool, squirrel, biomeos, petaltongue, ludospring,"
-    echo "         groundspring, healthspring, neuralspring, wetspring, primalspring"
+    echo "Primals: beardog, songbird, nestgate, toadstool, squirrel, biomeos, petaltongue,"
+    echo "         rhizocrypt, loamspine, sweetgrass, coralreef, barracuda, skunkbat,"
+    echo "         ludospring, groundspring, healthspring, neuralspring, wetspring, primalspring"
+    echo "Tools:   sourdough (CLI only, not a server)"
     echo ""
     echo "Generic options (mapped to per-primal CLI):"
     echo "  --tcp-port PORT        TCP port"
@@ -278,6 +280,47 @@ case "$PRIMAL" in
     primalspring|primalspring_primal)
         ARGS+=(server)
         [[ -n "$TCP_PORT" ]] && export PRIMALSPRING_PORT="$TCP_PORT"
+        ;;
+
+    rhizocrypt)
+        ARGS+=(server)
+        [[ -n "$TCP_PORT" ]] && ARGS+=(--port "$TCP_PORT")
+        [[ -n "$SOCKET_PATH" ]] && ARGS+=(--socket "$SOCKET_PATH")
+        ;;
+
+    loamspine)
+        ARGS+=(server)
+        [[ -n "$TCP_PORT" ]] && ARGS+=(--port "$TCP_PORT")
+        [[ -n "$SOCKET_PATH" ]] && ARGS+=(--socket "$SOCKET_PATH")
+        ;;
+
+    sweetgrass)
+        ARGS+=(server)
+        [[ -n "$TCP_PORT" ]] && ARGS+=(--port "$TCP_PORT")
+        [[ -n "$SOCKET_PATH" ]] && ARGS+=(--socket "$SOCKET_PATH")
+        ;;
+
+    coralreef)
+        ARGS+=(server)
+        [[ -n "$TCP_PORT" ]] && ARGS+=(--port "$TCP_PORT")
+        [[ -n "$SOCKET_PATH" ]] && ARGS+=(--socket "$SOCKET_PATH")
+        ;;
+
+    barracuda)
+        ARGS+=(server)
+        [[ -n "$TCP_PORT" ]] && ARGS+=(--port "$TCP_PORT")
+        [[ -n "$SOCKET_PATH" ]] && ARGS+=(--socket "$SOCKET_PATH")
+        ;;
+
+    skunkbat)
+        ARGS+=(server)
+        [[ -n "$TCP_PORT" ]] && ARGS+=(--port "$TCP_PORT")
+        [[ -n "$SOCKET_PATH" ]] && ARGS+=(--socket "$SOCKET_PATH")
+        ;;
+
+    sourdough)
+        echo "sourDough is a CLI tool, not a server. Use: sourdough scaffold|package|help"
+        exit 0
         ;;
 
     *)

@@ -69,23 +69,46 @@ plasmidBin/                             →  "what is deployed here"
 ```
 plasmidBin/
   README.md              This file
+  CONTEXT.md             Machine-readable context for AI dev
+  SOURCE_AVAILABILITY.md AGPL compliance for binary distribution
   manifest.lock          Resolved versions for current deployment (generated)
-  beardog/               BearDog primal binary + metadata
-    beardog              The genomeBin binary
+  ports.env              Canonical TCP port assignments + composition defs
+  fetch.sh               Download binaries from GitHub Releases, verify checksums
+  harvest.sh             Build checksums, update metadata, create GitHub Release
+  start_primal.sh        Unified startup wrapper for all primals
+
+  # Foundation (NUCLEUS)
+  beardog/               Cryptographic identity & key management
     metadata.toml        Version, checksum, capabilities, ecoBin grade
-  songbird/              Songbird primal binary + metadata
-  squirrel/              Squirrel AI primal binary + metadata
-  rhizocrypt/            rhizoCrypt primal binary + metadata
-  loamspine/             loamSpine primal binary + metadata
-  sweetgrass/            sweetGrass primal binary + metadata
-  biomeos/               biomeOS orchestrator binary + metadata
-  toadstool/             ToadStool compute primal binary + metadata
-  barracuda/             barraCuda GPU primal binary + metadata
-  coralreef/             coralReef shader compiler binary + metadata
-  nestgate/              NestGate storage primal binary + metadata
-  petaltongue/           petalTongue visualization primal binary + metadata
-  ludospring/            ludoSpring game science primal binary + metadata
+  songbird/              Network discovery & birdsong mesh
+  nestgate/              Sovereign encrypted storage
+  toadstool/             Hardware discovery & compute orchestration
+  squirrel/              AI coordination & MCP bridge
+  biomeos/               Orchestrator — deploy graphs & composition engine
+  petaltongue/           Visualization & accessibility interface
+
+  # Post-NUCLEUS
+  rhizocrypt/            Ephemeral memory vault
+  loamspine/             Immutable append-only ledger
+  sweetgrass/            Semantic provenance & attribution braids
+  coralreef/             GPU shader compiler & dispatch
+  barracuda/             GPU math engine (CUDA/Vulkan)
+
+  # Meta / Tooling
+  sourdough/             Scaffolding & packaging CLI (not a server)
+
+  # Springs (science validation)
+  ludospring/            Game science experiments
+  groundspring/          Foundational integration tests
+  healthspring/          Immunology & health data
+  neuralspring/          Neural network experiments
+  wetspring/             Wet lab science validation
+  primalspring/          Composition validation
 ```
+
+Binaries are **not** tracked in git. They live on
+[GitHub Releases](https://github.com/ecoPrimals/plasmidBin/releases).
+Run `./fetch.sh` to download them after cloning.
 
 Each subdirectory is optional — deploy only the primals your niche needs.
 Capability-based discovery handles absent primals via graceful degradation.

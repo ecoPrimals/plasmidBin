@@ -27,8 +27,9 @@ binaries from GitHub Releases, and start compositions with `./start_primal.sh`.
   license metadata in `metadata.toml`.
 - **Binary format:** musl-static ELF, PIE-enabled, x86_64-linux (aarch64 planned)
 - **Integrity:** SHA-256 checksums in `metadata.toml`, verified by `fetch.sh`
-- **Primals tracked:** 11 (beardog, songbird, nestgate, toadstool, squirrel,
-  biomeos, rhizocrypt, loamspine, sweetgrass, petaltongue, coralreef)
+- **Primals tracked:** 13 (beardog, songbird, nestgate, toadstool, squirrel,
+  biomeos, petaltongue, rhizocrypt, loamspine, sweetgrass, coralreef,
+  barracuda, sourdough)
 - **Springs tracked:** 6 (ludospring, groundspring, healthspring, neuralspring,
   wetspring, primalspring)
 

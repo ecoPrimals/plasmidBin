@@ -5,7 +5,7 @@ name = "sweetgrass"
 version = "0.7.27"
 domain = "provenance"
 description = "Attribution layer — braid provenance graphs, anchoring, reward calculation"
-license = "AGPL-3.0-only"
+license = "AGPL-3.0-or-later"
 
 [provenance]
 built_from = "primals/sweetGrass"

@@ -1,0 +1,58 @@
+# barracuda — GPU compute math engine
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+[primal]
+name = "barracuda"
+version = "0.1.0"
+domain = "compute"
+description = "Universal GPU compute math — WGSL shaders, DF64 precision, NagaExecutor CPU validation, cross-vendor"
+license = "AGPL-3.0-or-later"
+
+[provenance]
+built_from = "primals/barraCuda"
+built_at = "2026-03-31T12:00:00Z"
+build_ref = "main (Iter 70e)"
+
+[compatibility]
+min_ipc_version = "1.0"
+capabilities = [
+    "math.shader.wgsl",
+    "math.df64",
+    "math.f64",
+    "math.precision.tiered",
+    "math.validate.cpu",
+    "math.validate.naga-executor",
+    "math.lattice.su3",
+    "math.lattice.hmc",
+    "math.lattice.cg",
+    "math.md.celllist",
+    "math.spectral.fft",
+    "math.linalg.matmul",
+    "health.check",
+    "identity.get",
+    "capabilities.list",
+]
+
+# ── ecoBin: per-architecture builds ─────────────────────────────────
+
+[builds.x86_64-linux]
+binary = "barracuda"
+target = "x86_64-unknown-linux-musl"
+pie_verified = true
+static_linked = true
+# checksum_sha256 = ""  # build pending
+
+[builds.aarch64-linux]
+binary = "barracuda"
+target = "aarch64-unknown-linux-musl"
+pie_verified = true
+static_linked = true
+# checksum_sha256 = ""  # build pending
+
+# ── validation artifact ─────────────────────────────────────────────
+
+[validation_artifact]
+cpu_only = true
+modes = ["cpu", "gpu", "dual"]
+reference_format = "json"
+tolerance_registry = true
