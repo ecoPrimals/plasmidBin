@@ -14,6 +14,10 @@ barracuda/barracuda
 coralreef/coralreef
 nestgate/nestgate
 petaltongue/petaltongue
+sourdough/sourdough
+skunkbat/skunkbat
+
+# Spring binaries
 ludospring/ludospring
 groundspring/groundspring
 healthspring/healthspring_primal
@@ -21,6 +25,9 @@ neuralspring/neuralspring
 wetspring/wetspring
 primalspring/primalspring_primal
 
-# Catch any other binaries not yet listed
-# (binaries have no extension on Linux)
+# Catch arch-suffixed assets left by harvest.sh
+*/*-x86_64
+*/*-aarch64
+
+# Build artifacts
 **/target/

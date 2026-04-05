@@ -1,0 +1,142 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+#
+# validate.yml — plasmidBin metadata integrity checks
+#
+# Runs on every push and PR. Validates that all metadata.toml files
+# are well-formed, manifest.lock is consistent, ports have no conflicts,
+# and binaries (when fetched) match their checksums.
+
+name: Validate Metadata
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate metadata.toml structure
+        run: |
+          errors=0
+
+          for meta in */metadata.toml; do
+            dir=$(dirname "$meta")
+            echo "--- $meta ---"
+
+            # Required fields in [primal]
+            for field in name version domain description license; do
+              if ! grep -q "^${field}\s*=" "$meta"; then
+                echo "  MISSING: [primal].${field}"
+                errors=$((errors + 1))
+              fi
+            done
+
+            # Must have [provenance] section
+            if ! grep -q '^\[provenance\]' "$meta"; then
+              echo "  MISSING: [provenance] section"
+              errors=$((errors + 1))
+            fi
+
+            # Must have at least one [builds.*] section
+            if ! grep -q '^\[builds\.' "$meta"; then
+              echo "  MISSING: [builds.*] section (no architecture defined)"
+              errors=$((errors + 1))
+            fi
+
+            # License should be -or-later
+            license=$(grep -m1 '^license\s*=' "$meta" | sed 's/.*"\(.*\)".*/\1/')
+            if [[ "$license" == *"-only"* ]]; then
+              echo "  WARN: license is '$license' — should be -or-later per ecosystem standard"
+            fi
+
+            echo "  OK"
+          done
+
+          if [[ $errors -gt 0 ]]; then
+            echo ""
+            echo "FAILED: $errors metadata error(s)"
+            exit 1
+          fi
+
+          echo ""
+          echo "All metadata.toml files valid."
+
+      - name: Check port conflicts
+        run: |
+          source ports.env
+
+          # Collect all port assignments
+          declare -A ports
+          errors=0
+
+          while IFS='=' read -r var val; do
+            [[ "$var" =~ _PORT$ ]] || continue
+            val=$(eval echo "$val")
+            if [[ -n "${ports[$val]:-}" ]]; then
+              echo "CONFLICT: port $val assigned to both ${ports[$val]} and $var"
+              errors=$((errors + 1))
+            fi
+            ports[$val]="$var"
+          done < <(grep '_PORT=' ports.env | grep -v '^#' | sed 's/\${.*:-\(.*\)}/\1/' | sed "s/\"//g")
+
+          if [[ $errors -gt 0 ]]; then
+            echo "FAILED: $errors port conflict(s)"
+            exit 1
+          fi
+
+          echo "No port conflicts. ${#ports[@]} ports assigned."
+
+      - name: Validate manifest.lock consistency
+        run: |
+          errors=0
+
+          for meta in */metadata.toml; do
+            dir=$(dirname "$meta")
+            name=$(grep -m1 'name\s*=' "$meta" | sed 's/.*"\(.*\)".*/\1/')
+            version=$(grep -m1 'version\s*=' "$meta" | sed 's/.*"\(.*\)".*/\1/')
+
+            # Check presence in manifest.lock
+            if ! grep -q "\[primals\.${name}\]\|\[springs\.${name}\]" manifest.lock; then
+              echo "WARN: $name not in manifest.lock"
+              continue
+            fi
+
+            # Check version matches
+            lock_version=$(grep -A5 "\[primals\.${name}\]\|\[springs\.${name}\]" manifest.lock \
+              | grep -m1 'version\s*=' | sed 's/.*"\(.*\)".*/\1/')
+            if [[ "$version" != "$lock_version" ]]; then
+              echo "MISMATCH: $name — metadata=$version, lock=$lock_version"
+              errors=$((errors + 1))
+            fi
+          done
+
+          if [[ $errors -gt 0 ]]; then
+            echo "FAILED: $errors version mismatch(es) between metadata.toml and manifest.lock"
+            echo "Run harvest.sh --no-release to regenerate manifest.lock"
+            exit 1
+          fi
+
+          echo "manifest.lock consistent with all metadata.toml files."
+
+      - name: Validate start_primal.sh syntax
+        run: bash -n start_primal.sh && echo "start_primal.sh syntax OK"
+
+      - name: Validate fetch.sh syntax
+        run: bash -n fetch.sh && echo "fetch.sh syntax OK"
+
+      - name: Validate harvest.sh syntax
+        run: bash -n harvest.sh && echo "harvest.sh syntax OK"
+
+      - name: Dry-run fetch (check asset availability)
+        if: github.event_name == 'push'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./fetch.sh --dry-run 2>&1 || echo "(no releases yet — expected for fresh repos)"

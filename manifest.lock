@@ -89,6 +89,19 @@ tier = "genomeBin"
 default_port = 9730
 builds = ["x86_64-linux"]
 
+[primals.barracuda]
+version = "0.1.0"
+domain = "compute"
+tier = "genomeBin"
+default_port = 9740
+builds = ["x86_64-linux"]
+
+[primals.sourdough]
+version = "0.3.0"
+domain = "scaffolding"
+tier = "meta"
+builds = ["x86_64-linux"]
+
 # ── Springs (science validation primals) ─────────────────────────────
 
 [springs.ludospring]

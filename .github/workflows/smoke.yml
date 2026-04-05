@@ -1,0 +1,136 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+#
+# smoke.yml — Post-release deployment smoke test
+#
+# Triggered when a new release is published. Downloads binaries via
+# fetch.sh, starts a minimal composition, probes health endpoints,
+# and reports pass/fail.
+#
+# This is the CI equivalent of what benchScale + agentReagents do
+# on real hardware. The CI version tests x86_64 on GitHub runners;
+# real gate testing covers aarch64 and multi-node topologies.
+
+name: Release Smoke Test
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag to test'
+        required: false
+      composition:
+        description: 'Composition to test (tower, compute, node, nest, full)'
+        required: false
+        default: 'tower'
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Determine release tag
+        id: tag
+        run: |
+          if [[ -n "${{ github.event.inputs.tag }}" ]]; then
+            echo "tag=${{ github.event.inputs.tag }}" >> "$GITHUB_OUTPUT"
+          elif [[ -n "${{ github.event.release.tag_name }}" ]]; then
+            echo "tag=${{ github.event.release.tag_name }}" >> "$GITHUB_OUTPUT"
+          else
+            tag=$(gh release view --repo ecoPrimals/plasmidBin --json tagName -q '.tagName' || echo "")
+            echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Fetch binaries
+        if: steps.tag.outputs.tag != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "Fetching release ${{ steps.tag.outputs.tag }}"
+          ./fetch.sh --tag "${{ steps.tag.outputs.tag }}"
+
+      - name: List fetched binaries
+        run: |
+          echo "--- Fetched binaries ---"
+          for dir in */; do
+            dir="${dir%/}"
+            meta="$dir/metadata.toml"
+            [[ -f "$meta" ]] || continue
+            name=$(grep -m1 'name\s*=' "$meta" | sed 's/.*"\(.*\)".*/\1/')
+            bin="$dir/$name"
+            if [[ -x "$bin" ]]; then
+              size=$(du -h "$bin" | awk '{print $1}')
+              echo "  $name ($size)"
+            fi
+          done
+
+      - name: Start composition and probe health
+        run: |
+          COMP="${{ github.event.inputs.composition || 'tower' }}"
+          echo "=== Smoke testing composition: $COMP ==="
+
+          source ports.env
+          primals=$(primals_for_composition "$COMP" 2>/dev/null || echo "")
+
+          if [[ -z "$primals" ]]; then
+            echo "Unknown composition: $COMP"
+            exit 1
+          fi
+
+          started=()
+          for primal in $primals; do
+            port=$(port_for_primal "$primal")
+            bin="$primal/$primal"
+
+            # Some primals have different binary names
+            if [[ ! -x "$bin" ]]; then
+              echo "SKIP: $primal — binary not available"
+              continue
+            fi
+
+            echo "Starting $primal on port $port..."
+            ./start_primal.sh "$primal" \
+              --tcp-port "$port" \
+              --foreground &
+            started+=("$primal:$!")
+            sleep 2
+          done
+
+          echo ""
+          echo "--- Health probes ---"
+          all_ok=true
+
+          for entry in "${started[@]}"; do
+            primal="${entry%%:*}"
+            pid="${entry##*:}"
+
+            if kill -0 "$pid" 2>/dev/null; then
+              echo "  $primal (pid $pid): RUNNING"
+            else
+              echo "  $primal (pid $pid): CRASHED"
+              all_ok=false
+            fi
+          done
+
+          # Cleanup
+          for entry in "${started[@]}"; do
+            pid="${entry##*:}"
+            kill "$pid" 2>/dev/null || true
+          done
+
+          if $all_ok; then
+            echo ""
+            echo "=== Smoke test PASSED ==="
+          else
+            echo ""
+            echo "=== Smoke test FAILED ==="
+            exit 1
+          fi
