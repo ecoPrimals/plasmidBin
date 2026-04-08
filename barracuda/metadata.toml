@@ -3,18 +3,19 @@
 
 [primal]
 name = "barracuda"
-version = "0.1.0"
-domain = "compute"
-description = "Universal GPU compute math — WGSL shaders, DF64 precision, NagaExecutor CPU validation, cross-vendor"
+version = "0.3.11"
+domain = "math"
+description = "Sovereign GPU compute math engine — 826 WGSL shaders, DF64 precision, NagaExecutor CPU validation, cross-vendor"
 license = "AGPL-3.0-or-later"
 
 [provenance]
 built_from = "primals/barraCuda"
-built_at = "2026-03-31T12:00:00Z"
-build_ref = "main (Iter 70e)"
+built_at = "2026-04-08T12:00:00Z"
+build_ref = "main (Sprint 34)"
 
 [compatibility]
 min_ipc_version = "1.0"
+wire_standard = "L2"
 capabilities = [
     "math.shader.wgsl",
     "math.df64",
@@ -28,7 +29,14 @@ capabilities = [
     "math.md.celllist",
     "math.spectral.fft",
     "math.linalg.matmul",
+    "math.fhe.ntt",
+    "math.fhe.pointwise_mul",
+    "math.noise.perlin",
+    "math.activation.fitts",
+    "math.activation.hick",
     "health.check",
+    "health.liveness",
+    "health.readiness",
     "identity.get",
     "capabilities.list",
 ]
