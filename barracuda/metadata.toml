@@ -10,8 +10,8 @@ license = "AGPL-3.0-or-later"
 
 [provenance]
 built_from = "primals/barraCuda"
-built_at = "2026-04-08T12:00:00Z"
-build_ref = "main (Sprint 34)"
+built_at = "2026-04-10T10:00:00Z"
+build_ref = "main (Sprint 39 — BTSP full handshake, GPU panic fix, SIGSEGV profiles)"
 
 [compatibility]
 min_ipc_version = "1.0"
@@ -48,14 +48,16 @@ binary = "barracuda"
 target = "x86_64-unknown-linux-musl"
 pie_verified = true
 static_linked = true
-# checksum_sha256 = ""  # build pending
+checksum_sha256 = "71003d8a3be1555b71c0849ee325e218a6d90c415c64338125b68fa77d0d33d2"
+size_bytes = 5_092_256
 
 [builds.aarch64-linux]
 binary = "barracuda"
 target = "aarch64-unknown-linux-musl"
 pie_verified = true
 static_linked = true
-# checksum_sha256 = ""  # build pending
+checksum_sha256 = "af77cf52796a1e74e776dc129f0edd007a2399a059fdf0333832357c4ae7ef09"
+size_bytes = 3_998_104
 
 # ── validation artifact ─────────────────────────────────────────────
 
