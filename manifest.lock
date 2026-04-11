@@ -3,7 +3,7 @@
 # Source: local builds from primals/ and springs/
 
 [meta]
-generated = "2026-03-29T00:00:00Z"
+generated = "2026-04-10T23:18:00Z"
 registry_version = "3.0.0"
 status = "full_ecosystem"
 architectures = ["x86_64-linux", "aarch64-linux"]
@@ -105,7 +105,7 @@ builds = ["x86_64-linux"]
 # ── Springs (science validation primals) ─────────────────────────────
 
 [springs.ludospring]
-version = "0.7.0"
+version = "0.8.0"
 domain = "game"
 tier = "ecoBin"
 default_port = 9650
