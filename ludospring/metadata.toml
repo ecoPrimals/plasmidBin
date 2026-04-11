@@ -3,15 +3,16 @@
 
 [primal]
 name = "ludospring"
-version = "0.8.0"
+version = "0.9.0"
 domain = "game"
-description = "Game science: flow analysis, DDA, WFC, Fitts law, engagement metrics, accessibility, noise generation, UI analysis"
+description = "Game science: flow analysis, DDA, WFC, Fitts law, engagement metrics, accessibility, noise generation, UI analysis, NUCLEUS composition validation"
 license = "AGPL-3.0-or-later"
 
 [provenance]
 built_from = "springs/ludoSpring"
-built_at = "2026-04-10T23:18:00Z"
-checksum_sha256 = "2f2ca987a7b57c10fe679b18f1b293b3d9c667cea3c35afe20897e5821472784"
+built_at = "2026-04-10T21:38:00Z"
+checksum_sha256 = "89d95ed03dbf8dfd1e1cf351aaf8743f8515251620961fc087d09e263bb6f5d5"
+session_version = "V41"
 
 [compatibility]
 min_ipc_version = "1.0"
@@ -36,10 +37,10 @@ capabilities = [
     "game.mint_certificate",
     "game.storage_put",
     "game.storage_get",
-    "game.gpu.sigmoid",
-    "game.gpu.dot_product",
-    "game.gpu.noise",
-    "game.gpu.engagement",
+    "game.gpu.fog_of_war",
+    "game.gpu.tile_lighting",
+    "game.gpu.pathfind",
+    "game.gpu.perlin_terrain",
     "game.gpu.batch_raycast",
     "health.liveness",
     "health.readiness",
