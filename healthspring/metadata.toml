@@ -3,14 +3,14 @@
 
 [primal]
 name = "healthspring_primal"
-version = "0.7.0"
+version = "0.8.0"
 domain = "health"
 description = "PK/PD modeling, microbiome analysis, biosignal processing"
 license = "AGPL-3.0-or-later"
 
 [provenance]
 built_from = "springs/healthSpring"
-built_at = "2026-03-28T00:00:00Z"
+built_at = "2026-04-10T00:00:00Z"
 
 [compatibility]
 min_ipc_version = "1.0"
@@ -18,6 +18,17 @@ capabilities = [
     "health.pkpd",
     "health.microbiome",
     "health.biosignal",
+    "health.endocrine",
+    "health.diagnostic",
+    "health.clinical",
+    "health.comparative",
+    "health.discovery",
+    "health.toxicology",
+    "health.simulation",
+    "health.liveness",
+    "health.readiness",
+    "inference.complete",
+    "inference.route",
 ]
 
 # ── ecoBin: per-architecture builds ─────────────────────────────────
@@ -27,7 +38,7 @@ binary = "healthspring_primal"
 target = "x86_64-unknown-linux-musl"
 pie_verified = true
 static_linked = true
-# checksum_sha256 = ""  # populated on harvest
+checksum_sha256 = "eb510065cf550030a4897294ae4336897cd706635affe3c7c5d62e222691b435"
 
 [builds.aarch64-linux]
 binary = "healthspring_primal"
