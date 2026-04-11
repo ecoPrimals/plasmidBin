@@ -3,20 +3,57 @@
 
 [primal]
 name = "wetspring"
-version = "0.7.0"
+version = "0.8.0"
 domain = "metagenomics"
-description = "Metagenomics, analytical chemistry validation"
+description = "Life science + PFAS analytical chemistry — IPC science primal via barraCuda"
 license = "AGPL-3.0-or-later"
 
 [provenance]
 built_from = "springs/wetSpring"
-built_at = "2026-03-28T00:00:00Z"
+built_at = "2026-04-10T00:00:00Z"
+barracuda_version = "0.3.7"
+tests = 1580
+validation_binaries = 356
+composition_model = "nucleated"
 
 [compatibility]
-min_ipc_version = "1.0"
+min_ipc_version = "2.0"
+proto_nucleate = "wetspring_lifescience_proto_nucleate"
 capabilities = [
-    "metagenomics.validate",
-    "chemistry.validate",
+    "science.diversity",
+    "science.qs_model",
+    "science.anderson",
+    "science.kinetics",
+    "science.alignment",
+    "science.taxonomy",
+    "science.phylogenetics",
+    "science.nmf",
+    "science.ncbi_fetch",
+    "science.full_pipeline",
+    "science.timeseries",
+    "science.gonzales.dose_response",
+    "science.gonzales.pk_decay",
+    "science.gonzales.tissue_lattice",
+    "science.anderson.biome_atlas",
+    "science.anderson.hormesis",
+    "provenance.begin",
+    "provenance.record",
+    "provenance.complete",
+    "brain.observe",
+    "brain.attention",
+    "brain.urgency",
+    "ai.ecology_interpret",
+    "composition.science_health",
+    "composition.nucleus_health",
+    "vault.store",
+    "vault.retrieve",
+    "data.fetch.chembl",
+    "data.fetch.pubchem",
+    "health.check",
+    "health.liveness",
+    "health.readiness",
+    "capability.list",
+    "metrics.snapshot",
 ]
 
 # ── ecoBin: per-architecture builds ─────────────────────────────────
@@ -49,4 +86,9 @@ tcp_port_default = 9880
 [genomeBin.service]
 restart_policy = "always"
 after = ["beardog", "songbird"]
-wants = []
+wants = ["nestgate", "toadstool", "rhizocrypt", "loamspine", "sweetgrass"]
+
+[genomeBin.composition]
+fragments = ["tower_atomic", "node_atomic", "nest_atomic", "meta_tier"]
+deploy_graph = "wetspring_science_nucleus.toml"
+bonding = ["Covalent", "Ionic"]
