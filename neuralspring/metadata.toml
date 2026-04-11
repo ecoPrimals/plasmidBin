@@ -3,20 +3,48 @@
 
 [primal]
 name = "neuralspring"
-version = "0.7.0"
-domain = "ml"
-description = "ML primitives, spectral analysis, neural network validation"
+version = "0.1.0"
+domain = "science.learning"
+description = "ML inference, spectral analysis, protein folding, and neural network validation — WGSL shader composition over barraCuda + coralReef + toadStool"
 license = "AGPL-3.0-or-later"
 
 [provenance]
 built_from = "springs/neuralSpring"
-built_at = "2026-03-28T00:00:00Z"
+built_at = "2026-04-11T00:00:00Z"
 
 [compatibility]
 min_ipc_version = "1.0"
 capabilities = [
-    "ml.validate",
-    "ml.spectral",
+    "science.spectral_analysis",
+    "science.anderson_localization",
+    "science.hessian_eigen",
+    "science.agent_coordination",
+    "science.ipr",
+    "science.disorder_sweep",
+    "science.training_trajectory",
+    "science.evoformer_block",
+    "science.structure_module",
+    "science.folding_health",
+    "science.gpu_dispatch",
+    "science.cross_spring_provenance",
+    "science.cross_spring_benchmark",
+    "science.precision_routing",
+    "health.liveness",
+    "health.readiness",
+    "health.check",
+    "inference.complete",
+    "inference.embed",
+    "inference.models",
+    "provenance.begin",
+    "provenance.record",
+    "provenance.complete",
+    "provenance.status",
+    "primal.forward",
+    "primal.discover",
+    "capability.list",
+    "identity.get",
+    "mcp.tools.list",
+    "compute.offload",
 ]
 
 # ── ecoBin: per-architecture builds ─────────────────────────────────
@@ -39,8 +67,8 @@ static_linked = true
 
 [genomeBin]
 tier = "ecoBin"
-unibin_modes = ["server", "version"]
-default_mode = "server"
+unibin_modes = ["serve", "health", "capabilities"]
+default_mode = "serve"
 
 [genomeBin.server]
 tcp_port_env = "NEURALSPRING_PORT"

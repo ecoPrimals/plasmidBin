@@ -124,8 +124,8 @@ default_port = 9860
 binary = "healthspring_primal"
 
 [springs.neuralspring]
-version = "0.7.0"
-domain = "ml"
+version = "0.1.0"
+domain = "science.learning"
 tier = "ecoBin"
 default_port = 9870
 
