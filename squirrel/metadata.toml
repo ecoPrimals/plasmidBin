@@ -10,7 +10,7 @@ license = "AGPL-3.0-or-later"
 
 [provenance]
 built_from = "primals/squirrel"
-built_at = "2026-03-25T12:36:45Z"
+built_at = "2026-04-09T15:47:00Z"
 
 [compatibility]
 min_ipc_version = "1.0"
@@ -24,7 +24,7 @@ capabilities = [
 
 [builds.x86_64-linux]
 binary = "squirrel"
-checksum_sha256 = "e6671c290d56426e6c8242c973c1a0c5b9ed74476426df302d4b55517b62198d"
+checksum_sha256 = "f53bfdf67bfced0351efa0abaff7bef99ed645323d4f023465ca7f7def62ae80"
 target = "x86_64-unknown-linux-musl"
 pie_verified = true
 static_linked = true

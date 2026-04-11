@@ -1,0 +1,58 @@
+# hotSpring — Computational physics spring primal (from hotSpring)
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+[primal]
+name = "hotspring"
+version = "0.6.32"
+domain = "physics"
+description = "Computational physics validation: nuclear EOS, lattice QCD, GPU MD, transport coefficients"
+license = "AGPL-3.0-or-later"
+
+[provenance]
+built_from = "springs/hotSpring"
+built_at = "2026-04-11T01:53:28Z"
+
+[compatibility]
+min_ipc_version = "1.0"
+capabilities = [
+    "physics.lattice_qcd",
+    "physics.lattice_gauge_update",
+    "physics.hmc_trajectory",
+    "physics.wilson_dirac",
+    "physics.molecular_dynamics",
+    "physics.fluid",
+    "physics.nuclear_eos",
+    "physics.thermal",
+    "physics.radiation",
+    "compute.df64",
+    "compute.cg_solver",
+    "compute.gradient_flow",
+    "compute.f64",
+    "composition.health",
+    "health.check",
+    "health.liveness",
+    "health.readiness",
+    "capabilities.list",
+    "mcp.tools.list",
+]
+
+[builds.x86_64-linux]
+binary = "hotspring_primal"
+target = "x86_64-unknown-linux-musl"
+pie_verified = true
+static_linked = true
+
+[genomeBin]
+tier = "ecoBin"
+unibin_modes = ["server", "version"]
+default_mode = "server"
+
+[genomeBin.server]
+tcp_port_env = "HOTSPRING_PORT"
+tcp_port_default = 9900
+health_probe = "health.liveness"
+
+[genomeBin.service]
+restart_policy = "on-failure"
+after = ["beardog", "songbird", "toadstool", "barracuda"]
+wants = ["coralreef", "nestgate"]

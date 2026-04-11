@@ -142,6 +142,13 @@ tier = "ecoBin"
 default_port = 9890
 binary = "primalspring_primal"
 
+[springs.hotspring]
+version = "0.6.32"
+domain = "physics"
+tier = "ecoBin"
+default_port = 9900
+binary = "hotspring_primal"
+
 # ── Compositions ─────────────────────────────────────────────────────
 
 [compositions.tower]
