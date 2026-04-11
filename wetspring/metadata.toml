@@ -11,8 +11,8 @@ license = "AGPL-3.0-or-later"
 [provenance]
 built_from = "springs/wetSpring"
 built_at = "2026-04-10T00:00:00Z"
-barracuda_version = "0.3.7"
-tests = 1580
+barracuda_version = "0.3.11"
+tests = 1946
 validation_binaries = 356
 composition_model = "nucleated"
 
@@ -20,6 +20,7 @@ composition_model = "nucleated"
 min_ipc_version = "2.0"
 proto_nucleate = "wetspring_lifescience_proto_nucleate"
 capabilities = [
+    "identity.get",
     "science.diversity",
     "science.qs_model",
     "science.anderson",

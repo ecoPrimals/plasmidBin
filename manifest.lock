@@ -117,7 +117,7 @@ tier = "ecoBin"
 default_port = 9850
 
 [springs.healthspring]
-version = "0.7.0"
+version = "0.8.0"
 domain = "health"
 tier = "ecoBin"
 default_port = 9860
@@ -130,7 +130,7 @@ tier = "ecoBin"
 default_port = 9870
 
 [springs.wetspring]
-version = "0.7.0"
+version = "0.8.0"
 domain = "metagenomics"
 tier = "ecoBin"
 default_port = 9880
