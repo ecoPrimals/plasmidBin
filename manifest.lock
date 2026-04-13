@@ -69,10 +69,11 @@ default_port = 9700
 builds = ["x86_64-linux", "aarch64-linux"]
 
 [primals.loamspine]
-version = "0.9.13"
-domain = "lineage"
+version = "0.9.16"
+domain = "permanence"
 tier = "genomeBin"
-default_port = 9710
+default_port = 0
+tcp_opt_in = true
 builds = ["x86_64-linux", "aarch64-linux"]
 
 [primals.sweetgrass]

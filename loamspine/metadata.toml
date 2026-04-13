@@ -2,24 +2,41 @@
 
 [primal]
 name = "loamspine"
-version = "0.9.13"
-domain = "lineage"
-description = "Lineage tracking — causal chains, spine-based certificates, session commits"
+version = "0.9.16"
+domain = "permanence"
+description = "Permanence primal — append-only ledger, spine lifecycle, provenance trio session commits"
 license = "AGPL-3.0-or-later"
 
 [provenance]
 built_from = "primals/loamSpine"
-built_at = "2026-03-24T10:49:00Z"
+built_at = "2026-04-12T00:00:00Z"
 
 [compatibility]
 min_ipc_version = "1.0"
+wire_standard = "L3"
 capabilities = [
-    "commit.create",
-    "commit.verify",
-    "certificate.issue",
+    "spine.create",
+    "spine.get",
+    "spine.seal",
+    "entry.append",
+    "entry.get",
+    "entry.get_tip",
+    "certificate.mint",
+    "certificate.transfer",
+    "certificate.loan",
+    "certificate.return",
+    "certificate.get",
     "certificate.verify",
-    "spine.append",
-    "anchor.temporal",
+    "certificate.lifecycle",
+    "proof.generate_inclusion",
+    "proof.verify_inclusion",
+    "session.commit",
+    "braid.commit",
+    "anchor.publish",
+    "anchor.verify",
+    "health.check",
+    "health.liveness",
+    "health.readiness",
 ]
 
 # ── ecoBin: per-architecture builds ─────────────────────────────────
@@ -47,9 +64,17 @@ default_mode = "server"
 
 [genomeBin.server]
 tcp_port_env = "LOAMSPINE_PORT"
-tcp_port_default = 9710
+tcp_port_default = 0
 port_flag = "--port"
+jsonrpc_port_flag = "--jsonrpc-port"
 socket_flag = "--socket"
+tcp_opt_in = true
+uds_unconditional = true
+
+[genomeBin.sockets]
+primary = "permanence.sock"
+capability_domain = "ledger.sock"
+legacy = "loamspine.sock"
 
 [genomeBin.service]
 restart_policy = "always"
