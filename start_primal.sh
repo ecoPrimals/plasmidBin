@@ -241,13 +241,15 @@ case "$PRIMAL" in
         ;;
 
     petaltongue)
-        # petalTongue `web` serves HTTP (with --bind), `server` is UDS-only.
+        # petalTongue `web` serves HTTP (with --bind), `server` is UDS+optional TCP.
         # For composition testing, prefer `web` with TCP.
         if [[ -n "$TCP_PORT" ]]; then
             ARGS+=(web --bind "$TCP_BIND:$TCP_PORT")
         else
             ARGS+=(server)
+            [[ -n "$SOCKET_PATH" ]] && ARGS+=(--socket "$SOCKET_PATH")
         fi
+        [[ -n "$TCP_PORT" && -z "$SOCKET_PATH" ]] || true
         ;;
 
     ludospring)

@@ -38,15 +38,21 @@ static_linked = true
 
 [genomeBin]
 tier = "genomeBin"
-unibin_modes = ["web", "server", "version"]
+unibin_modes = ["ui", "tui", "web", "headless", "server", "status"]
 default_mode = "web"
 
 [genomeBin.server]
 tcp_port_env = "PETALTONGUE_PORT"
 tcp_port_default = 9600
+tcp_protocol = "jsonrpc-newline"
+port_flag = "--port"
+socket_flag = "--socket"
+socket_env = "PETALTONGUE_SOCKET"
+health_probe = "health.liveness"
+
+[genomeBin.web]
 bind_flag = "--bind"
 bind_format = "{bind}:{port}"
-health_probe = "health.liveness"
 
 [genomeBin.service]
 restart_policy = "always"
