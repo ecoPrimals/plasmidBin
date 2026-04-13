@@ -10,17 +10,65 @@ license = "AGPL-3.0-or-later"
 
 [provenance]
 built_from = "primals/toadStool"
-built_at = "2026-03-25T12:36:45Z"
+built_at = "2026-04-12T00:00:00Z"
+tests = 21600
+wire_standard = "L3-partial"
 
 [compatibility]
-min_ipc_version = "1.0"
+min_ipc_version = "2.0"
 capabilities = [
-    "compute.dispatch",
-    "compute.gpu",
-    "compute.cpu",
-    "compute.wasm",
-    "hardware.discover",
-    "hardware.probe",
+    # Wire Standard
+    "capabilities.list",
+    "identity.get",
+    "health.liveness",
+    "health.readiness",
+    "health.check",
+    # Compute domain
+    "compute.submit",
+    "compute.execute",
+    "compute.status",
+    "compute.result",
+    "compute.cancel",
+    "compute.list",
+    "compute.dispatch.submit",
+    "compute.dispatch.status",
+    "compute.dispatch.result",
+    "compute.dispatch.forward",
+    "compute.dispatch.capabilities",
+    "compute.dispatch.pipeline.submit",
+    "compute.dispatch.pipeline.status",
+    "compute.capabilities",
+    "compute.discover_capabilities",
+    # GPU
+    "gpu.query_info",
+    "gpu.query_memory",
+    "gpu.query_telemetry",
+    # Hardware learning
+    "compute.hardware.observe",
+    "compute.hardware.distill",
+    "compute.hardware.apply",
+    "compute.hardware.status",
+    # Silicon / performance surface
+    "compute.performance_surface.report",
+    "compute.performance_surface.query",
+    "compute.performance_surface.list",
+    "compute.route.multi_unit",
+    # Transport
+    "transport.discover",
+    "transport.list",
+    "transport.route",
+    # Shader dispatch (sovereign pipeline)
+    "shader.dispatch",
+    # Distributed routing
+    "gate.update",
+    "gate.remove",
+    "gate.list",
+    "gate.route",
+    # Device lifecycle
+    "ember.list",
+    "ember.status",
+    # Provenance
+    "provenance.query",
 ]
 
 # ── ecoBin: per-architecture builds ─────────────────────────────────
