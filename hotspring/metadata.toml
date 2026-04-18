@@ -10,7 +10,8 @@ license = "AGPL-3.0-or-later"
 
 [provenance]
 built_from = "springs/hotSpring"
-built_at = "2026-04-11T01:53:28Z"
+built_at = "2026-04-18T00:00:00Z"
+barracuda_version = "0.3.11"
 
 [compatibility]
 min_ipc_version = "1.0"
@@ -36,11 +37,23 @@ capabilities = [
     "mcp.tools.list",
 ]
 
+# ── ecoBin: per-architecture builds ─────────────────────────────────
+
 [builds.x86_64-linux]
 binary = "hotspring_primal"
 target = "x86_64-unknown-linux-musl"
 pie_verified = true
 static_linked = true
+# checksum_sha256 = ""  # populated on harvest
+
+[builds.aarch64-linux]
+binary = "hotspring_primal"
+target = "aarch64-unknown-linux-musl"
+pie_verified = true
+static_linked = true
+# checksum_sha256 = ""  # populated on first aarch64 harvest
+
+# ── genomeBin: deployment intelligence ──────────────────────────────
 
 [genomeBin]
 tier = "ecoBin"
