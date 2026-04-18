@@ -3,16 +3,16 @@
 
 [primal]
 name = "ludospring"
-version = "0.9.0"
+version = "0.10.0"
 domain = "game"
-description = "Game science: flow analysis, DDA, WFC, Fitts law, engagement metrics, accessibility, noise generation, UI analysis, NUCLEUS composition validation"
+description = "Game science: flow analysis, DDA, WFC, Fitts law, engagement metrics, accessibility, noise generation, UI analysis, NUCLEUS composition validation, three-layer validation stack (Python→Rust→composition)"
 license = "AGPL-3.0-or-later"
 
 [provenance]
 built_from = "springs/ludoSpring"
-built_at = "2026-04-10T21:38:00Z"
-checksum_sha256 = "89d95ed03dbf8dfd1e1cf351aaf8743f8515251620961fc087d09e263bb6f5d5"
-session_version = "V41"
+built_at = "2026-04-17T00:00:00Z"
+checksum_sha256 = "4ab4dc43b42d63e7310e4a65805dac6e44e4e9406d7e787b70780dc70c27d95b"
+session_version = "V42"
 
 [compatibility]
 min_ipc_version = "1.0"
