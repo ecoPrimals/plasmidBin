@@ -10,11 +10,15 @@ license = "AGPL-3.0-or-later"
 
 [provenance]
 built_from = "springs/wetSpring"
-built_at = "2026-04-10T00:00:00Z"
-barracuda_version = "0.3.11"
-tests = 1946
-validation_binaries = 356
+built_at = "2026-04-18T00:00:00Z"
+barracuda_version = "0.3.12"
+tests = 1700
+validation_binaries = 342
 composition_model = "nucleated"
+composition_validation = "Exp400-403 + wetspring_guidestone (guideStone Level 3, bare certified, N2 v0.9.15)"
+consumed_barracuda_ipc = 48
+guidestone_binary = "wetspring_guidestone"
+guidestone_readiness = 3
 
 [compatibility]
 min_ipc_version = "2.0"
@@ -37,6 +41,10 @@ capabilities = [
     "science.gonzales.tissue_lattice",
     "science.anderson.biome_atlas",
     "science.anderson.hormesis",
+    "science.anderson.disorder_sweep",
+    "science.anderson.cross_species",
+    "science.timeseries_diversity",
+    "data.fetch.register_table",
     "provenance.begin",
     "provenance.record",
     "provenance.complete",
@@ -45,9 +53,9 @@ capabilities = [
     "brain.urgency",
     "ai.ecology_interpret",
     "composition.science_health",
-    "composition.nucleus_health",
     "vault.store",
     "vault.retrieve",
+    "vault.consent.verify",
     "data.fetch.chembl",
     "data.fetch.pubchem",
     "health.check",
