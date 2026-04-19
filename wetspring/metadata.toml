@@ -10,12 +10,13 @@ license = "AGPL-3.0-or-later"
 
 [provenance]
 built_from = "springs/wetSpring"
-built_at = "2026-04-18T00:00:00Z"
+built_at = "2026-04-20T00:00:00Z"
 barracuda_version = "0.3.12"
-tests = 1700
+primalspring_version = "0.9.16"
+tests = 1702
 validation_binaries = 342
 composition_model = "nucleated"
-composition_validation = "Exp400-403 + wetspring_guidestone (guideStone Level 3, bare certified, N2 v0.9.15)"
+composition_validation = "Exp400-403 + wetspring_guidestone (guideStone Level 3, bare certified 16/16, v0.9.16 manifest, BLAKE3 checksums)"
 consumed_barracuda_ipc = 48
 guidestone_binary = "wetspring_guidestone"
 guidestone_readiness = 3
