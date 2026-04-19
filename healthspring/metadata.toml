@@ -3,14 +3,14 @@
 
 [primal]
 name = "healthspring_primal"
-version = "0.8.0"
+version = "0.9.0"
 domain = "health"
 description = "PK/PD modeling, microbiome analysis, biosignal processing"
 license = "AGPL-3.0-or-later"
 
 [provenance]
 built_from = "springs/healthSpring"
-built_at = "2026-04-10T00:00:00Z"
+built_at = "2026-04-17T00:00:00Z"
 
 [compatibility]
 min_ipc_version = "1.0"
@@ -38,7 +38,7 @@ binary = "healthspring_primal"
 target = "x86_64-unknown-linux-musl"
 pie_verified = true
 static_linked = true
-checksum_sha256 = "eb510065cf550030a4897294ae4336897cd706635affe3c7c5d62e222691b435"
+checksum_sha256 = "ce71f129a36b0574d5ee417962762a2dae2d62141312ebc73b4292e59b599c22"
 
 [builds.aarch64-linux]
 binary = "healthspring_primal"

@@ -16,10 +16,10 @@ primalspring_version = "0.9.16"
 tests = 1702
 validation_binaries = 342
 composition_model = "nucleated"
-composition_validation = "Exp400-403 + wetspring_guidestone (guideStone Level 3, bare certified 16/16, v0.9.16 manifest, BLAKE3 checksums)"
+composition_validation = "Exp400-403 + wetspring_guidestone (guideStone Level 4, 31/31 NUCLEUS validated, v0.9.16 manifest, BLAKE3 checksums)"
 consumed_barracuda_ipc = 48
 guidestone_binary = "wetspring_guidestone"
-guidestone_readiness = 3
+guidestone_readiness = 4
 
 [compatibility]
 min_ipc_version = "2.0"
