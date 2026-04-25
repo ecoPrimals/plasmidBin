@@ -1,77 +1,87 @@
-# ludospring — Game science spring primal (from ludoSpring)
+# ludoSpring — Game science composition (from ludoSpring)
 # SPDX-License-Identifier: AGPL-3.0-or-later
+#
+# ludoSpring is a Spring, not a primal. Springs produce primals and define
+# compositions — they do not deploy as standalone binaries. The game science
+# capabilities are served by composing existing primals at runtime via the
+# NUCLEUS cell graph.
+#
+# The ludospring binary exists in the spring source tree as the Rust
+# validation target (tier 2 of the 3-tier ladder: Python → Rust → Composition).
+# It is NOT a deployable artifact.
 
-[primal]
+[composition]
 name = "ludospring"
-version = "0.10.0"
+version = "0.11.0"
 domain = "game"
-description = "Game science: flow analysis, DDA, WFC, Fitts law, engagement metrics, accessibility, noise generation, UI analysis, NUCLEUS composition validation, three-layer validation stack (Python→Rust→composition)"
+description = "Game science composition: flow analysis, DDA, WFC, Fitts law, engagement metrics, accessibility, noise generation, UI analysis — served by composing primals via NUCLEUS cell graph"
 license = "AGPL-3.0-or-later"
+cell_graph = "ludospring_cell.toml"
+deploy_graph = "ludospring_gaming_niche.toml"
+continuous_graph = "game_loop_continuous.toml"
 
 [provenance]
 built_from = "springs/ludoSpring"
-built_at = "2026-04-17T00:00:00Z"
-checksum_sha256 = "4ab4dc43b42d63e7310e4a65805dac6e44e4e9406d7e787b70780dc70c27d95b"
-session_version = "V42"
+session_version = "V53"
 
 [compatibility]
 min_ipc_version = "1.0"
-capabilities = [
-    "game.evaluate_flow",
-    "game.fitts_cost",
-    "game.engagement",
-    "game.generate_noise",
-    "game.analyze_ui",
-    "game.accessibility",
-    "game.wfc_step",
-    "game.difficulty_adjustment",
-    "game.begin_session",
-    "game.record_action",
-    "game.complete_session",
-    "game.poll_telemetry",
-    "game.npc_dialogue",
-    "game.narrate_action",
-    "game.voice_check",
-    "game.push_scene",
-    "game.query_vertices",
-    "game.mint_certificate",
-    "game.storage_put",
-    "game.storage_get",
-    "game.gpu.fog_of_war",
-    "game.gpu.tile_lighting",
-    "game.gpu.pathfind",
-    "game.gpu.perlin_terrain",
-    "game.gpu.batch_raycast",
-    "health.liveness",
-    "health.readiness",
-    "capability.list",
-    "tools.list",
-    "tools.call",
-]
 
-[builds.x86_64-linux]
-binary = "ludospring"
-target = "x86_64-unknown-linux-gnu"
-pie_verified = true
-static_linked = false
+# Capabilities are served by composed primals, not by a ludospring binary.
+# The cell graph routes each capability to its primal provider.
+[compatibility.capability_routing]
+"activation.fitts" = "barracuda"
+"activation.hick" = "barracuda"
+"math.sigmoid" = "barracuda"
+"math.log2" = "barracuda"
+"stats.mean" = "barracuda"
+"stats.std_dev" = "barracuda"
+"stats.variance" = "barracuda"
+"noise.perlin2d" = "barracuda"
+"rng.uniform" = "barracuda"
+"tensor.create" = "barracuda"
+"tensor.matmul" = "barracuda"
+"visualization.render.scene" = "petaltongue"
+"visualization.render.stream" = "petaltongue"
+"visualization.render.dashboard" = "petaltongue"
+"visualization.export" = "petaltongue"
+"interaction.poll" = "petaltongue"
+"interaction.subscribe" = "petaltongue"
+"ai.inference" = "squirrel"
+"ai.query" = "squirrel"
+"compute.dispatch" = "toadstool"
+"compute.capabilities" = "toadstool"
+"shader.compile" = "coralreef"
+"shader.execute" = "coralreef"
+"crypto.sign" = "beardog"
+"crypto.hash" = "beardog"
+"crypto.verify" = "beardog"
+"discovery.announce" = "songbird"
+"discovery.query" = "songbird"
+"storage.store" = "nestgate"
+"storage.retrieve" = "nestgate"
+"dag.session.create" = "rhizocrypt"
+"dag.event.append" = "rhizocrypt"
+"certificate.mint" = "loamspine"
+"attribution.record" = "sweetgrass"
 
-[builds.aarch64-linux]
-binary = "ludospring"
-target = "aarch64-unknown-linux-musl"
-pie_verified = true
-static_linked = true
+[composition.primals]
+beardog = { role = "security", required = true }
+songbird = { role = "discovery", required = true }
+barracuda = { role = "tensor", required = false, fallback = "skip" }
+coralreef = { role = "shader", required = false, fallback = "skip" }
+toadstool = { role = "compute", required = false, fallback = "skip" }
+squirrel = { role = "ai", required = false, fallback = "skip" }
+petaltongue = { role = "visualization", required = true }
+nestgate = { role = "storage", required = false, fallback = "skip" }
+rhizocrypt = { role = "dag", required = false, fallback = "skip" }
+loamspine = { role = "ledger", required = false, fallback = "skip" }
+sweetgrass = { role = "attribution", required = false, fallback = "skip" }
 
-[genomeBin]
-tier = "ecoBin"
-unibin_modes = ["server", "status", "version"]
-default_mode = "server"
-
-[genomeBin.server]
-tcp_port_env = "LUDOSPRING_PORT"
-tcp_port_default = 9650
-health_probe = "health.liveness"
-
-[genomeBin.service]
-restart_policy = "on-failure"
-after = ["beardog", "songbird"]
-wants = ["toadstool", "squirrel"]
+[composition.validation]
+spring = "springs/ludoSpring"
+validation_binary = "ludospring"
+validation_tier = "rust"
+test_count = 817
+guidestone_binary = "ludospring_guidestone"
+guidestone_readiness = 4

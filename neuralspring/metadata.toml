@@ -5,12 +5,12 @@
 name = "neuralspring"
 version = "0.1.0"
 domain = "science.learning"
-description = "ML inference, spectral analysis, protein folding, and neural network validation — WGSL shader composition over barraCuda + coralReef + toadStool"
+description = "ML inference, spectral analysis, protein folding, and neural network validation — WGSL shader composition over barraCuda + coralReef + toadStool. 3-tier validation: Python→Rust→IPC composition parity."
 license = "AGPL-3.0-or-later"
 
 [provenance]
 built_from = "springs/neuralSpring"
-built_at = "2026-04-11T00:00:00Z"
+built_at = "2026-04-17T00:00:00Z"
 
 [compatibility]
 min_ipc_version = "1.0"

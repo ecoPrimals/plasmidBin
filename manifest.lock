@@ -3,8 +3,8 @@
 # Source: local builds from primals/ and springs/
 
 [meta]
-generated = "2026-04-10T23:18:00Z"
-registry_version = "3.0.0"
+generated = "2026-04-25T20:20:00Z"
+registry_version = "3.1.0"
 status = "full_ecosystem"
 architectures = ["x86_64-linux", "aarch64-linux"]
 
@@ -103,14 +103,7 @@ domain = "scaffolding"
 tier = "meta"
 builds = ["x86_64-linux"]
 
-# ── Springs (science validation primals) ─────────────────────────────
-
-[springs.ludospring]
-version = "0.10.0"
-domain = "game"
-tier = "ecoBin"
-builds = ["x86_64-linux", "aarch64-linux"]
-default_port = 9650
+# ── Springs (science validation — no deployed binaries) ──────────────
 
 [springs.groundspring]
 version = "0.7.0"
@@ -169,7 +162,13 @@ primals = ["beardog", "songbird", "nestgate"]
 primals = ["beardog", "songbird", "nestgate", "toadstool", "squirrel", "biomeos", "petaltongue"]
 
 [compositions.storytelling]
-primals = ["beardog", "songbird", "biomeos", "squirrel", "petaltongue", "ludospring"]
+primals = ["beardog", "songbird", "biomeos", "squirrel", "petaltongue", "barracuda"]
+
+[compositions.ludospring_game]
+cell_graph = "ludospring_cell.toml"
+primals = ["beardog", "songbird", "barracuda", "coralreef", "toadstool", "squirrel", "petaltongue", "nestgate", "rhizocrypt", "loamspine", "sweetgrass"]
+domain = "game"
+spring = "ludoSpring"
 
 [compositions.provenance]
 primals = ["beardog", "songbird", "rhizocrypt", "loamspine", "sweetgrass"]

@@ -1,0 +1,322 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+#
+# ludoSpring Cell Graph — game science via pure primal composition
+#
+# Defines the complete NUCLEUS cell for ludoSpring desktop gameplay.
+# This is the composition that esotericWebb activates: a live game loop
+# where petalTongue renders, the player interacts, barraCuda computes
+# science (flow, engagement, DDA), and the provenance trio records.
+#
+# Architecture: No ludoSpring binary. Game science capabilities are served
+# by composing existing primals. The spring validates in Rust (tier 2);
+# the composition IS the deployment (tier 3).
+#
+# Game tick loop (60 Hz target):
+#   1. dag.session.create → session_id (rhizoCrypt)
+#   2. Per tick:
+#      a. math.sigmoid / activation.fitts (barraCuda) → flow + DDA
+#      b. ai.query (Squirrel) → narration
+#      c. visualization.render.scene (petalTongue) → render
+#      d. interaction.poll (petalTongue) → player input
+#      e. dag.event.append (rhizoCrypt) → provenance stamp
+#   3. certificate.mint (loamSpine) → session certificate
+#
+# Primals (12 nodes):
+#   Tower:  BearDog (BTSP), Songbird (discovery)
+#   Node:   barraCuda (tensor/math/game science), coralReef (shader),
+#           ToadStool (compute)
+#   Nest:   rhizoCrypt (DAG), loamSpine (ledger), sweetGrass (attribution)
+#   Viz:    petalTongue (live GUI + interaction)
+#   AI:     Squirrel (NPC dialogue, narration)
+#   Store:  NestGate (game state persistence)
+#
+# STATUS: Active (Apr 25, 2026) — V53 pure composition, no spring binary
+
+[graph]
+id = "ludospring_cell"
+description = "ludoSpring game cell — pure primal composition, no spring binary"
+coordination = "Sequential"
+
+[graph.metadata]
+resolve = true
+fragments = ["tower_atomic", "node_atomic", "nest_atomic", "meta_tier"]
+composition_model = "pure"
+owner = "ludoSpring"
+domain = "game_science"
+transport = "uds_only"
+btsp_enforced = true
+tick_hz = 60
+
+# ── Tower Atomic ─────────────────────────────────────────────────────
+
+[[nodes]]
+id = "beardog"
+output = "beardog_genesis"
+capabilities = ["security", "crypto"]
+
+[nodes.primal]
+by_capability = "security"
+
+[nodes.operation]
+name = "start"
+
+[nodes.operation.params]
+mode = "server"
+family_id = "${FAMILY_ID}"
+
+[nodes.constraints]
+timeout_ms = 30000
+
+[[nodes]]
+id = "songbird"
+depends_on = ["beardog"]
+output = "songbird_genesis"
+capabilities = ["discovery", "network"]
+
+[nodes.primal]
+by_capability = "discovery"
+
+[nodes.operation]
+name = "start"
+
+[nodes.operation.params]
+mode = "server"
+family_id = "${FAMILY_ID}"
+
+[nodes.constraints]
+timeout_ms = 30000
+
+# ── Node Atomic ──────────────────────────────────────────────────────
+
+[[nodes]]
+id = "barracuda"
+depends_on = ["beardog", "songbird"]
+output = "barracuda_genesis"
+capabilities = ["tensor", "math", "activation", "stats", "noise", "rng"]
+fallback = "skip"
+
+[nodes.primal]
+by_capability = "tensor"
+
+[nodes.operation]
+name = "start"
+
+[nodes.operation.params]
+mode = "server"
+family_id = "${FAMILY_ID}"
+
+[nodes.constraints]
+timeout_ms = 30000
+
+[nodes.capabilities_provided]
+"math.sigmoid" = "math.sigmoid"
+"math.log2" = "math.log2"
+"activation.fitts" = "activation.fitts"
+"activation.hick" = "activation.hick"
+"stats.mean" = "stats.mean"
+"stats.std_dev" = "stats.std_dev"
+"stats.variance" = "stats.variance"
+"noise.perlin2d" = "noise.perlin2d"
+"rng.uniform" = "rng.uniform"
+"tensor.create" = "tensor.create"
+"tensor.matmul" = "tensor.matmul"
+
+[[nodes]]
+id = "coralreef"
+depends_on = ["beardog", "songbird"]
+output = "coralreef_genesis"
+capabilities = ["shader"]
+fallback = "skip"
+
+[nodes.primal]
+by_capability = "shader"
+
+[nodes.operation]
+name = "start"
+
+[nodes.operation.params]
+mode = "server"
+family_id = "${FAMILY_ID}"
+
+[nodes.constraints]
+timeout_ms = 30000
+
+[[nodes]]
+id = "toadstool"
+depends_on = ["beardog", "songbird"]
+output = "toadstool_genesis"
+capabilities = ["compute"]
+fallback = "skip"
+
+[nodes.primal]
+by_capability = "compute"
+
+[nodes.operation]
+name = "start"
+
+[nodes.operation.params]
+mode = "server"
+family_id = "${FAMILY_ID}"
+
+[nodes.constraints]
+timeout_ms = 45000
+
+# ── Nest Atomic ──────────────────────────────────────────────────────
+
+[[nodes]]
+id = "rhizocrypt"
+depends_on = ["beardog", "songbird"]
+output = "rhizocrypt_genesis"
+capabilities = ["dag", "provenance"]
+fallback = "skip"
+
+[nodes.primal]
+by_capability = "dag"
+
+[nodes.operation]
+name = "start"
+
+[nodes.operation.params]
+mode = "server"
+family_id = "${FAMILY_ID}"
+
+[nodes.constraints]
+timeout_ms = 30000
+
+[[nodes]]
+id = "loamspine"
+depends_on = ["beardog", "songbird"]
+output = "loamspine_genesis"
+capabilities = ["ledger", "spine"]
+fallback = "skip"
+
+[nodes.primal]
+by_capability = "ledger"
+
+[nodes.operation]
+name = "start"
+
+[nodes.operation.params]
+mode = "server"
+family_id = "${FAMILY_ID}"
+
+[nodes.constraints]
+timeout_ms = 30000
+
+[[nodes]]
+id = "sweetgrass"
+depends_on = ["beardog", "songbird"]
+output = "sweetgrass_genesis"
+capabilities = ["commit", "attribution"]
+fallback = "skip"
+
+[nodes.primal]
+by_capability = "commit"
+
+[nodes.operation]
+name = "start"
+
+[nodes.operation.params]
+mode = "server"
+family_id = "${FAMILY_ID}"
+
+[nodes.constraints]
+timeout_ms = 30000
+
+[[nodes]]
+id = "nestgate"
+depends_on = ["beardog", "songbird"]
+output = "nestgate_genesis"
+capabilities = ["storage"]
+fallback = "skip"
+
+[nodes.primal]
+by_capability = "storage"
+
+[nodes.operation]
+name = "start"
+
+[nodes.operation.params]
+mode = "server"
+family_id = "${FAMILY_ID}"
+
+[nodes.constraints]
+timeout_ms = 30000
+
+# ── AI ───────────────────────────────────────────────────────────────
+
+[[nodes]]
+id = "squirrel"
+depends_on = ["beardog", "songbird"]
+output = "squirrel_genesis"
+capabilities = ["ai", "inference"]
+fallback = "skip"
+
+[nodes.primal]
+by_capability = "ai"
+
+[nodes.operation]
+name = "start"
+
+[nodes.operation.params]
+mode = "server"
+family_id = "${FAMILY_ID}"
+
+[nodes.constraints]
+timeout_ms = 30000
+
+# ── Visualization + Interaction ───────────────────────────────────────
+
+[[nodes]]
+id = "petaltongue"
+depends_on = ["beardog", "songbird"]
+output = "petaltongue_genesis"
+capabilities = ["visualization", "interaction"]
+
+[nodes.primal]
+by_capability = "visualization"
+
+[nodes.operation]
+name = "start"
+
+[nodes.operation.params]
+mode = "server"
+family_id = "${FAMILY_ID}"
+
+[nodes.constraints]
+timeout_ms = 20000
+
+[nodes.capabilities_provided]
+"visualization.render" = "visualization.render"
+"visualization.render.scene" = "visualization.render.scene"
+"visualization.render.stream" = "visualization.render.stream"
+"visualization.render.dashboard" = "visualization.render.dashboard"
+"visualization.export" = "visualization.export"
+"visualization.validate" = "visualization.validate"
+"interaction.subscribe" = "interaction.subscribe"
+"interaction.poll" = "interaction.poll"
+
+# ── Validation ───────────────────────────────────────────────────────
+# No ludospring node — game science is served by the composition of
+# barraCuda (math/activation/stats/noise), Squirrel (AI), petalTongue
+# (visualization/interaction), and the provenance trio. The ludoSpring
+# spring validates this composition in Rust (tier 2 of the validation
+# ladder); it does not deploy as a primal.
+
+[[nodes]]
+id = "validate_cell"
+depends_on = ["beardog", "songbird", "barracuda", "petaltongue"]
+output = "cell_validated"
+
+[nodes.operation]
+name = "health_check"
+
+[nodes.operation.params]
+check_beardog = true
+check_songbird = true
+check_barracuda = true
+check_petaltongue = true
+timeout_seconds = 20
+
+[nodes.constraints]
+timeout_ms = 30000
