@@ -5,16 +5,15 @@
 # barraCuda provides math/stats/activation; petalTongue renders + receives
 # interaction; the provenance trio records sessions.
 #
-# Synced from primalSpring v2.0 (commit 8bb90fb), adapted for biomeOS
-# deploy parser (id-based [[nodes]] format, hyphenated IDs).
+# Architecture: springs validate science (tier 2 Rust), compositions
+# deploy via cell graph (tier 3). This is the cell esotericWebb activates.
 #
-# Deploy: biomeos deploy --graph graphs/ludospring_cell.toml
+# Deploy: biomeos deploy --graph graphs/cells/ludospring_cell.toml
 
 [graph]
-id = "ludospring-cell"
-name = "ludospring-cell"
-version = "2.0.0"
+name = "ludospring_cell"
 description = "ludoSpring — pure primal composition for game science + live viz"
+version = "2.0.0"
 coordination = "sequential"
 
 [graph.metadata]
@@ -26,268 +25,171 @@ composition_model = "pure"
 petaltongue_mode = "live"
 tick_hz = 60
 
-# ── Tower Atomic ─────────────────────────────────────────────────────
+# ── NUCLEUS Base ─────────────────────────────────────────────────────
 
-[[nodes]]
-id = "beardog"
-output = "beardog-ready"
-capabilities = ["crypto", "security"]
+[[graph.nodes]]
+name = "biomeos_neural_api"
+security_model = "btsp"
+binary = "biomeos"
+order = 0
+required = true
+spawn = false
+health_method = "health.liveness"
+by_capability = "orchestration"
+capabilities = ["graph.deploy", "capability.discover", "topology.rescan"]
 
-[nodes.primal]
+[[graph.nodes]]
+name = "beardog"
+security_model = "btsp"
+binary = "beardog"
+order = 1
+required = true
+spawn = false
+depends_on = ["biomeos_neural_api"]
+health_method = "health.liveness"
 by_capability = "security"
+capabilities = ["crypto.sign", "crypto.verify", "crypto.hash"]
 
-[nodes.operation]
-name = "start"
-
-[nodes.operation.params]
-mode = "server"
-family_id = "${FAMILY_ID}"
-
-[nodes.constraints]
-timeout_ms = 30000
-
-[[nodes]]
-id = "songbird"
-depends_on = ["beardog"]
-output = "songbird-ready"
-capabilities = ["discovery", "network"]
-
-[nodes.primal]
+[[graph.nodes]]
+name = "songbird"
+security_model = "btsp"
+binary = "songbird"
+order = 2
+required = true
+spawn = false
+depends_on = ["biomeos_neural_api"]
+health_method = "health.liveness"
 by_capability = "discovery"
+capabilities = ["ipc.resolve", "ipc.register", "discovery.peers"]
 
-[nodes.operation]
-name = "start"
-
-[nodes.operation.params]
-mode = "server"
-family_id = "${FAMILY_ID}"
-
-[nodes.constraints]
-timeout_ms = 30000
-
-# ── Node Atomic ──────────────────────────────────────────────────────
-
-[[nodes]]
-id = "barracuda"
-depends_on = ["beardog"]
-output = "barracuda-ready"
-capabilities = ["tensor", "math", "activation", "stats", "noise", "rng"]
-
-[nodes.primal]
-by_capability = "tensor"
-
-[nodes.operation]
-name = "start"
-
-[nodes.operation.params]
-mode = "server"
-family_id = "${FAMILY_ID}"
-
-[nodes.constraints]
-timeout_ms = 30000
-
-[nodes.capabilities_provided]
-"math.sigmoid" = "math.sigmoid"
-"math.log2" = "math.log2"
-"activation.fitts" = "activation.fitts"
-"activation.hick" = "activation.hick"
-"stats.mean" = "stats.mean"
-"stats.std_dev" = "stats.std_dev"
-"stats.variance" = "stats.variance"
-"noise.perlin2d" = "noise.perlin2d"
-"rng.uniform" = "rng.uniform"
-"tensor.create" = "tensor.create"
-"tensor.matmul" = "tensor.matmul"
-
-[[nodes]]
-id = "toadstool"
+[[graph.nodes]]
+name = "toadstool"
+security_model = "btsp"
+binary = "toadstool"
+order = 3
+required = true
+spawn = false
 depends_on = ["beardog", "songbird"]
-output = "toadstool-ready"
-capabilities = ["compute"]
-fallback = "skip"
-
-[nodes.primal]
+health_method = "health.liveness"
 by_capability = "compute"
+capabilities = ["compute.dispatch", "compute.execute", "compute.capabilities"]
 
-[nodes.operation]
-name = "start"
+[[graph.nodes]]
+name = "barracuda"
+security_model = "btsp"
+binary = "barracuda"
+order = 4
+required = true
+spawn = false
+depends_on = ["beardog"]
+health_method = "health.liveness"
+by_capability = "tensor"
+capabilities = ["tensor.matmul", "tensor.create", "stats.mean", "stats.std_dev", "stats.variance", "activation.fitts", "activation.hick", "math.sigmoid", "math.log2", "noise.perlin2d", "rng.uniform"]
 
-[nodes.operation.params]
-mode = "server"
-family_id = "${FAMILY_ID}"
+[[graph.nodes]]
+name = "coralreef"
+security_model = "btsp"
+binary = "coralreef"
+order = 5
+required = false
+spawn = false
+depends_on = ["toadstool"]
+health_method = "health.liveness"
+by_capability = "shader_compile"
+capabilities = ["shader.compile.wgsl", "shader.compile.spirv"]
 
-[nodes.constraints]
-timeout_ms = 45000
-
-[[nodes]]
-id = "coralreef"
-depends_on = ["beardog", "songbird"]
-output = "coralreef-ready"
-capabilities = ["shader"]
-fallback = "skip"
-
-[nodes.primal]
-by_capability = "shader"
-
-[nodes.operation]
-name = "start"
-
-[nodes.operation.params]
-mode = "server"
-family_id = "${FAMILY_ID}"
-
-[nodes.constraints]
-timeout_ms = 30000
-
-# ── Nest Atomic ──────────────────────────────────────────────────────
-
-[[nodes]]
-id = "nestgate"
-depends_on = ["beardog", "songbird"]
-output = "nestgate-ready"
-capabilities = ["storage"]
-
-[nodes.primal]
+[[graph.nodes]]
+name = "nestgate"
+security_model = "btsp"
+binary = "nestgate"
+order = 6
+required = true
+spawn = false
+depends_on = ["beardog"]
+health_method = "health.liveness"
 by_capability = "storage"
+capabilities = ["storage.store", "storage.retrieve", "storage.list"]
 
-[nodes.operation]
-name = "start"
-
-[nodes.operation.params]
-mode = "server"
-family_id = "${FAMILY_ID}"
-
-[nodes.constraints]
-timeout_ms = 30000
-
-[[nodes]]
-id = "rhizocrypt"
-depends_on = ["beardog", "songbird"]
-output = "rhizocrypt-ready"
-capabilities = ["dag", "provenance"]
-fallback = "skip"
-
-[nodes.primal]
+[[graph.nodes]]
+name = "rhizocrypt"
+security_model = "btsp"
+binary = "rhizocrypt"
+order = 7
+required = false
+spawn = false
+depends_on = ["beardog"]
+health_method = "health.liveness"
 by_capability = "dag"
+capabilities = ["dag.session.create", "dag.event.append", "dag.event.append_batch", "dag.vertex.get", "dag.vertex.query", "dag.merkle.root", "dag.merkle.proof", "dag.merkle.verify", "dag.dehydration.trigger"]
 
-[nodes.operation]
-name = "start"
-
-[nodes.operation.params]
-mode = "server"
-family_id = "${FAMILY_ID}"
-
-[nodes.constraints]
-timeout_ms = 30000
-
-[[nodes]]
-id = "loamspine"
-depends_on = ["beardog", "songbird"]
-output = "loamspine-ready"
-capabilities = ["ledger", "spine"]
-fallback = "skip"
-
-[nodes.primal]
+[[graph.nodes]]
+name = "loamspine"
+security_model = "btsp"
+binary = "loamspine"
+order = 8
+required = false
+spawn = false
+depends_on = ["beardog", "rhizocrypt"]
+health_method = "health.liveness"
 by_capability = "ledger"
+capabilities = ["spine.create", "entry.append", "entry.get", "certificate.mint", "certificate.transfer", "certificate.loan", "certificate.return", "certificate.get", "proof.generate_inclusion", "anchor.publish", "permanence.commit_session"]
 
-[nodes.operation]
-name = "start"
+[[graph.nodes]]
+name = "sweetgrass"
+security_model = "btsp"
+binary = "sweetgrass"
+order = 9
+required = false
+spawn = false
+depends_on = ["beardog", "loamspine"]
+health_method = "health.liveness"
+by_capability = "attribution"
+capabilities = ["braid.create", "braid.commit", "anchoring.anchor", "anchoring.verify", "provenance.graph", "provenance.export_provo", "attribution.chain", "contribution.record", "pipeline.attribute"]
 
-[nodes.operation.params]
-mode = "server"
-family_id = "${FAMILY_ID}"
+# ── Meta Tier ────────────────────────────────────────────────────────
 
-[nodes.constraints]
-timeout_ms = 30000
-
-[[nodes]]
-id = "sweetgrass"
-depends_on = ["beardog", "songbird"]
-output = "sweetgrass-ready"
-capabilities = ["commit", "attribution"]
-fallback = "skip"
-
-[nodes.primal]
-by_capability = "commit"
-
-[nodes.operation]
-name = "start"
-
-[nodes.operation.params]
-mode = "server"
-family_id = "${FAMILY_ID}"
-
-[nodes.constraints]
-timeout_ms = 30000
-
-# ── AI + Visualization ───────────────────────────────────────────────
-
-[[nodes]]
-id = "squirrel"
-depends_on = ["beardog", "songbird"]
-output = "squirrel-ready"
-capabilities = ["ai", "inference"]
-fallback = "skip"
-
-[nodes.primal]
+[[graph.nodes]]
+name = "squirrel"
+security_model = "btsp"
+binary = "squirrel"
+order = 10
+required = false
+spawn = false
+depends_on = ["songbird"]
+health_method = "health.liveness"
 by_capability = "ai"
+capabilities = ["ai.chat", "ai.inference", "inference.complete"]
 
-[nodes.operation]
-name = "start"
-
-[nodes.operation.params]
-mode = "server"
-family_id = "${FAMILY_ID}"
-
-[nodes.constraints]
-timeout_ms = 30000
-
-[[nodes]]
-id = "petaltongue"
-depends_on = ["beardog", "songbird"]
-output = "petaltongue-ready"
-capabilities = ["visualization", "interaction"]
-
-[nodes.primal]
+[[graph.nodes]]
+name = "petaltongue"
+security_model = "btsp"
+binary = "petaltongue"
+order = 11
+required = true
+spawn = false
+depends_on = ["songbird"]
+health_method = "health.liveness"
 by_capability = "visualization"
+capabilities = ["visualization.render", "visualization.render.scene", "visualization.render.stream", "visualization.render.dashboard", "visualization.render.grammar", "interaction.subscribe", "interaction.poll"]
 
-[nodes.operation]
-name = "start"
-
-[nodes.operation.params]
-mode = "server"
-family_id = "${FAMILY_ID}"
-
-[nodes.constraints]
-timeout_ms = 20000
-
-[nodes.capabilities_provided]
-"visualization.render" = "visualization.render"
-"visualization.render.scene" = "visualization.render.scene"
-"visualization.render.stream" = "visualization.render.stream"
-"visualization.render.dashboard" = "visualization.render.dashboard"
-"interaction.subscribe" = "interaction.subscribe"
-"interaction.poll" = "interaction.poll"
+[graph.nodes.params]
+mode = "live"
 
 # ── Validation ───────────────────────────────────────────────────────
-# No ludospring node — game science is served by the composition of
-# barraCuda (math/activation/stats/noise), Squirrel (AI), petalTongue
-# (visualization/interaction), and the provenance trio.
+# No spring binary node — game science is served by composing the primals
+# above. barraCuda provides activation.fitts, math.sigmoid, stats.mean,
+# noise.perlin2d, etc. petalTongue provides visualization.render.scene +
+# interaction.poll. The spring validates in Rust (tier 2); the composition
+# IS the deployment (tier 3).
 
-[[nodes]]
-id = "validate-cell"
-depends_on = ["beardog", "songbird", "barracuda", "petaltongue"]
-output = "cell-validated"
+[[graph.nodes]]
+name = "validate_cell"
+security_model = "btsp"
+order = 99
+depends_on = ["barracuda", "petaltongue"]
 
-[nodes.operation]
+[graph.nodes.operation]
 name = "health_check"
 
-[nodes.operation.params]
-check_beardog = true
-check_songbird = true
-check_barracuda = true
-check_petaltongue = true
-timeout_seconds = 20
-
-[nodes.constraints]
-timeout_ms = 30000
+[graph.nodes.operation.params]
+targets = ["beardog", "songbird", "toadstool", "barracuda", "nestgate", "petaltongue"]

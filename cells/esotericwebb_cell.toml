@@ -109,7 +109,7 @@ spawn = false
 depends_on = ["beardog"]
 health_method = "health.liveness"
 by_capability = "dag"
-capabilities = ["dag.session.create", "dag.event.append", "dag.merkle.root"]
+capabilities = ["dag.session.create", "dag.event.append", "dag.event.append_batch", "dag.vertex.get", "dag.vertex.query", "dag.merkle.root", "dag.merkle.proof", "dag.merkle.verify", "dag.dehydration.trigger"]
 
 [[graph.nodes]]
 name = "loamspine"
@@ -121,7 +121,7 @@ spawn = false
 depends_on = ["beardog", "rhizocrypt"]
 health_method = "health.liveness"
 by_capability = "ledger"
-capabilities = ["spine.create", "entry.append", "certificate.mint"]
+capabilities = ["spine.create", "entry.append", "entry.get", "certificate.mint", "certificate.transfer", "certificate.loan", "certificate.return", "certificate.get", "proof.generate_inclusion", "anchor.publish", "permanence.commit_session"]
 
 [[graph.nodes]]
 name = "sweetgrass"
@@ -133,7 +133,7 @@ spawn = false
 depends_on = ["beardog", "loamspine"]
 health_method = "health.liveness"
 by_capability = "attribution"
-capabilities = ["braid.create", "braid.commit", "anchoring.anchor"]
+capabilities = ["braid.create", "braid.commit", "anchoring.anchor", "anchoring.verify", "provenance.graph", "provenance.export_provo", "attribution.chain", "contribution.record", "pipeline.attribute"]
 
 # ── Meta Tier ────────────────────────────────────────────────────────
 
