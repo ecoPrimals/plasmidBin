@@ -1,0 +1,148 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Cellular deployment graph: airSpring
+#
+# NUCLEUS base + weather/ecology domain + petalTongue live mode.
+# Deploy: biomeos deploy --graph graphs/cells/airspring_cell.toml
+
+[graph]
+name = "airspring_cell"
+description = "airSpring — NUCLEUS + weather/ecology + live visualization"
+version = "1.0.0"
+coordination = "sequential"
+
+[graph.metadata]
+cell_type = "spring"
+domain = "weather"
+security_model = "btsp_enforced"
+transport = "uds_only"
+composition_model = "nucleated"
+petaltongue_mode = "live"
+
+# ── NUCLEUS Base ─────────────────────────────────────────────────────
+
+[[graph.nodes]]
+name = "biomeos_neural_api"
+security_model = "btsp"
+binary = "biomeos"
+order = 0
+required = true
+spawn = false
+health_method = "health.liveness"
+by_capability = "orchestration"
+capabilities = ["graph.deploy", "capability.discover", "topology.rescan"]
+
+[[graph.nodes]]
+name = "beardog"
+security_model = "btsp"
+binary = "beardog"
+order = 1
+required = true
+spawn = false
+depends_on = ["biomeos_neural_api"]
+health_method = "health.liveness"
+by_capability = "security"
+capabilities = ["crypto.sign", "crypto.verify", "crypto.hash"]
+
+[[graph.nodes]]
+name = "songbird"
+security_model = "btsp"
+binary = "songbird"
+order = 2
+required = true
+spawn = false
+depends_on = ["biomeos_neural_api"]
+health_method = "health.liveness"
+by_capability = "discovery"
+capabilities = ["ipc.resolve", "ipc.register", "discovery.peers"]
+
+[[graph.nodes]]
+name = "toadstool"
+security_model = "btsp"
+binary = "toadstool"
+order = 3
+required = true
+spawn = false
+depends_on = ["beardog", "songbird"]
+health_method = "health.liveness"
+by_capability = "compute"
+capabilities = ["compute.dispatch", "compute.execute", "compute.capabilities"]
+
+[[graph.nodes]]
+name = "barracuda"
+security_model = "btsp"
+binary = "barracuda"
+order = 4
+required = false
+spawn = false
+depends_on = ["beardog"]
+health_method = "health.liveness"
+by_capability = "tensor"
+capabilities = ["tensor.matmul", "stats.mean"]
+
+[[graph.nodes]]
+name = "nestgate"
+security_model = "btsp"
+binary = "nestgate"
+order = 6
+required = true
+spawn = false
+depends_on = ["beardog"]
+health_method = "health.liveness"
+by_capability = "storage"
+capabilities = ["storage.store", "storage.retrieve", "storage.list"]
+
+# ── Meta Tier ────────────────────────────────────────────────────────
+
+[[graph.nodes]]
+name = "squirrel"
+security_model = "btsp"
+binary = "squirrel"
+order = 10
+required = false
+spawn = false
+depends_on = ["songbird"]
+health_method = "health.liveness"
+by_capability = "ai"
+capabilities = ["ai.chat", "ai.inference"]
+
+[[graph.nodes]]
+name = "petaltongue"
+security_model = "btsp"
+binary = "petaltongue"
+order = 11
+required = true
+spawn = false
+depends_on = ["songbird"]
+health_method = "health.liveness"
+by_capability = "visualization"
+capabilities = ["visualization.render", "visualization.render.scene", "visualization.render.stream", "interaction.subscribe", "interaction.poll"]
+
+[graph.nodes.params]
+mode = "live"
+
+# ── Domain Overlay ───────────────────────────────────────────────────
+
+[[graph.nodes]]
+name = "airspring"
+security_model = "btsp"
+binary = "airspring_primal"
+order = 12
+required = true
+depends_on = ["beardog", "songbird"]
+health_method = "health.liveness"
+by_capability = "weather"
+capabilities = ["data.weather", "data.cross_spring_weather", "ecology.experiment", "compute.offload"]
+
+# ── Validation ───────────────────────────────────────────────────────
+
+[[graph.nodes]]
+name = "validate_cell"
+security_model = "btsp"
+order = 99
+depends_on = ["airspring", "petaltongue"]
+
+[graph.nodes.operation]
+name = "health_check"
+
+[graph.nodes.operation.params]
+targets = ["beardog", "songbird", "toadstool", "petaltongue", "airspring"]

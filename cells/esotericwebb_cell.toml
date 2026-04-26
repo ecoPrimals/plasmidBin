@@ -1,0 +1,184 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Cellular deployment graph: esotericWebb (garden) — pure primal composition
+#
+# Full NUCLEUS + CRPG narrative domain + petalTongue live mode.
+# This is the garden cell — the playable interactive product.
+#
+# Architecture: No spring binaries deploy. Game science (ludoSpring validated)
+# is served by barraCuda (math/activation/stats) and petalTongue (viz + interaction).
+# Narrative intelligence is served by Squirrel (inference) and NestGate (storage).
+# The provenance trio (rhizoCrypt → loamSpine → sweetGrass) records sessions.
+#
+# Deploy: biomeos deploy --graph graphs/cells/esotericwebb_cell.toml
+
+[graph]
+name = "esotericwebb_cell"
+description = "esotericWebb — pure primal CRPG garden + live visualization"
+version = "2.0.0"
+coordination = "sequential"
+
+[graph.metadata]
+cell_type = "garden"
+domain = "crpg"
+security_model = "btsp_enforced"
+transport = "uds_only"
+composition_model = "pure"
+petaltongue_mode = "live"
+tick_hz = 60
+
+# ── NUCLEUS Base ─────────────────────────────────────────────────────
+
+[[graph.nodes]]
+name = "biomeos_neural_api"
+security_model = "btsp"
+binary = "biomeos"
+order = 0
+required = true
+spawn = false
+health_method = "health.liveness"
+by_capability = "orchestration"
+capabilities = ["graph.deploy", "capability.discover", "topology.rescan"]
+
+[[graph.nodes]]
+name = "beardog"
+security_model = "btsp"
+binary = "beardog"
+order = 1
+required = true
+spawn = false
+depends_on = ["biomeos_neural_api"]
+health_method = "health.liveness"
+by_capability = "security"
+capabilities = ["crypto.sign", "crypto.verify", "crypto.hash"]
+
+[[graph.nodes]]
+name = "songbird"
+security_model = "btsp"
+binary = "songbird"
+order = 2
+required = true
+spawn = false
+depends_on = ["biomeos_neural_api"]
+health_method = "health.liveness"
+by_capability = "discovery"
+capabilities = ["ipc.resolve", "ipc.register", "discovery.peers"]
+
+[[graph.nodes]]
+name = "toadstool"
+security_model = "btsp"
+binary = "toadstool"
+order = 3
+required = true
+spawn = false
+depends_on = ["beardog", "songbird"]
+health_method = "health.liveness"
+by_capability = "compute"
+capabilities = ["compute.dispatch", "compute.execute", "compute.capabilities", "compute.dispatch.submit"]
+
+[[graph.nodes]]
+name = "barracuda"
+security_model = "btsp"
+binary = "barracuda"
+order = 4
+required = true
+spawn = false
+depends_on = ["beardog"]
+health_method = "health.liveness"
+by_capability = "tensor"
+capabilities = ["tensor.matmul", "tensor.create", "stats.mean", "stats.std_dev", "stats.variance", "activation.fitts", "activation.hick", "math.sigmoid", "math.log2", "noise.perlin2d", "rng.uniform"]
+
+[[graph.nodes]]
+name = "nestgate"
+security_model = "btsp"
+binary = "nestgate"
+order = 6
+required = true
+spawn = false
+depends_on = ["beardog"]
+health_method = "health.liveness"
+by_capability = "storage"
+capabilities = ["storage.store", "storage.retrieve", "storage.list"]
+
+[[graph.nodes]]
+name = "rhizocrypt"
+security_model = "btsp"
+binary = "rhizocrypt"
+order = 7
+required = false
+spawn = false
+depends_on = ["beardog"]
+health_method = "health.liveness"
+by_capability = "dag"
+capabilities = ["dag.session.create", "dag.event.append", "dag.merkle.root"]
+
+[[graph.nodes]]
+name = "loamspine"
+security_model = "btsp"
+binary = "loamspine"
+order = 8
+required = false
+spawn = false
+depends_on = ["beardog", "rhizocrypt"]
+health_method = "health.liveness"
+by_capability = "ledger"
+capabilities = ["spine.create", "entry.append", "certificate.mint"]
+
+[[graph.nodes]]
+name = "sweetgrass"
+security_model = "btsp"
+binary = "sweetgrass"
+order = 9
+required = false
+spawn = false
+depends_on = ["beardog", "loamspine"]
+health_method = "health.liveness"
+by_capability = "attribution"
+capabilities = ["braid.create", "braid.commit", "anchoring.anchor"]
+
+# ── Meta Tier ────────────────────────────────────────────────────────
+
+[[graph.nodes]]
+name = "squirrel"
+security_model = "btsp"
+binary = "squirrel"
+order = 10
+required = false
+spawn = false
+depends_on = ["songbird"]
+health_method = "health.liveness"
+by_capability = "ai"
+capabilities = ["ai.chat", "ai.inference", "inference.complete", "inference.embed"]
+
+[[graph.nodes]]
+name = "petaltongue"
+security_model = "btsp"
+binary = "petaltongue"
+order = 11
+required = true
+spawn = false
+depends_on = ["songbird"]
+health_method = "health.liveness"
+by_capability = "visualization"
+capabilities = ["visualization.render", "visualization.render.scene", "visualization.render.stream", "visualization.render.dashboard", "visualization.render.grammar", "interaction.subscribe", "interaction.poll"]
+
+[graph.nodes.params]
+mode = "live"
+
+# ── Validation ───────────────────────────────────────────────────────
+# No spring or garden binary nodes deploy. Game science is served by
+# barraCuda (activation, stats, noise, tensor). Narrative intelligence
+# by Squirrel (inference) + NestGate (storage). petalTongue renders
+# scenes and receives user interaction. The provenance trio records
+# immutable session DAGs and mints certificates.
+
+[[graph.nodes]]
+name = "validate_cell"
+security_model = "btsp"
+order = 99
+depends_on = ["barracuda", "petaltongue", "squirrel"]
+
+[graph.nodes.operation]
+name = "health_check"
+
+[graph.nodes.operation.params]
+targets = ["beardog", "songbird", "toadstool", "barracuda", "nestgate", "petaltongue", "squirrel"]

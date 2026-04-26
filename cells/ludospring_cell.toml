@@ -12,6 +12,7 @@
 
 [graph]
 id = "ludospring-cell"
+name = "ludospring-cell"
 version = "2.0.0"
 description = "ludoSpring — pure primal composition for game science + live viz"
 coordination = "sequential"
