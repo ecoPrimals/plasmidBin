@@ -1,0 +1,661 @@
+# Ecosystem Genome Manifest
+# =========================
+#
+# Root-level source of truth for stable primal binaries.
+# biomeOS and gen4 consumers (sporeGarden) discover and spawn primals from here.
+#
+# Three-org architecture:
+#   syntheticChemistry/  — Springs (science validation, private repos)
+#   ecoPrimals/          — Primals (sovereign infrastructure, public)
+#   sporeGarden/         — Products (creative surface, public)
+#
+# Flow: Primals → validated in Springs → composed by sporeGarden products
+#       Springs are NOT primals. They validate primals and produce science.
+#       gen4 consumers compose primals from plasmidBin/ via JSON-RPC IPC.
+#
+# Relationship to other manifests:
+#   wateringHole/genomeBin/manifest.toml  — distribution metadata + checksums
+#   phase2/biomeOS/plasmidBin/            — biomeOS-local cache (spore creation)
+#   plasmidBin/                           — THIS: ecosystem-wide stable genomes
+#
+# Discovery order (biomeOS primal_spawner / PrimalLauncher):
+#   1. $ECOPRIMALS_PLASMID_BIN  (explicit override)
+#   2. $BIOMEOS_PLASMID_BIN_DIR (biomeOS-specific)
+#   3. ./plasmidBin             (cwd)
+#   4. ../plasmidBin            (parent)
+#   5. ../../plasmidBin         (grandparent — reaches here from phase2/biomeOS/)
+#
+# Updated: 2026-04-26
+# Version: 5.2.0 (Phase 45c — pure composition cells, ludoSpring V53, BTSP everywhere, graphics node)
+
+[manifest]
+version = "5.2.0"
+format = "genomeBin"
+generated = "2026-04-26T00:00:00Z"
+checksum_algorithm = "blake3"
+# mirror_url = "https://bins.ecoprimals.dev/latest/"
+
+# genomeBin target matrix (ecoBin Architecture Standard):
+#   Tier 1 MUST:   x86_64-unknown-linux-musl, aarch64-unknown-linux-musl, armv7-unknown-linux-musleabihf
+#   Tier 2 SHOULD: x86_64-pc-windows-gnu, aarch64-linux-android, x86_64-apple-darwin (check-only), aarch64-apple-darwin (check-only)
+#   Tier 3 NICE:   riscv64gc-unknown-linux-musl, wasm32-wasip1 (check-only)
+#
+# "check-only" = cargo check passes (proves pure Rust), but no linker available for cross-build from Linux.
+# Layout: primals/{target-triple}/{binary}
+# Backward-compat symlinks: primals/{binary} -> x86_64-unknown-linux-musl/{binary}
+
+# =============================================================================
+# PRIMALS — Foundation layer (Phase 1 + Phase 2)
+# =============================================================================
+
+[primals.beardog]
+name = "BearDog"
+description = "Cryptographic spine — signing, encryption, identity, Dark Forest Gate"
+latest = "0.9.0"
+phase = 1
+capabilities = ["crypto", "birdsong", "lineage", "hsm", "entropy", "jwt"]
+seed_fingerprint = "6ca141176cab1d864bc507b9e257826125db8c5497245176e28d9e6dee7fa2c3"
+ecobin_grade = "A++"
+stripped = true
+arch = ["x86_64-unknown-linux-musl", "aarch64-unknown-linux-musl", "armv7-unknown-linux-musleabihf"]
+check_pass = ["x86_64-apple-darwin", "aarch64-apple-darwin"]
+
+[primals.nestgate]
+name = "NestGate"
+description = "Storage primal — persistence, provenance, compression"
+latest = "0.1.0"
+phase = 1
+capabilities = ["storage", "provenance", "compression"]
+seed_fingerprint = "cd8050f186fd2027413675bec68c5f94d04c34dc30711a9372c66f818eb07148"
+ecobin_grade = "A++"
+stripped = true
+arch = ["x86_64-unknown-linux-musl", "aarch64-unknown-linux-musl", "armv7-unknown-linux-musleabihf"]
+check_pass = ["x86_64-apple-darwin", "aarch64-apple-darwin", "aarch64-linux-android", "riscv64gc-unknown-linux-musl"]
+# Session 43y: nestgate-bin now in default-members, cross-arch binary gap closed
+
+[primals.songbird]
+name = "Songbird"
+description = "Network primal — HTTP/TLS, federation, mesh, NAT traversal"
+latest = "0.2.1"
+phase = 1
+capabilities = ["http", "tls", "mesh", "stun", "relay", "birdsong", "discovery", "onion"]
+seed_fingerprint = "b89c8eae9c9bbf2029e08949ba946fd0dafc586eb4bc2837bbe846084ff56ad9"
+ecobin_grade = "A++"
+stripped = true
+arch = ["x86_64-unknown-linux-musl", "aarch64-unknown-linux-musl", "armv7-unknown-linux-musleabihf", "aarch64-linux-android"]
+check_pass = ["x86_64-apple-darwin", "aarch64-apple-darwin"]
+
+[primals.squirrel]
+name = "Squirrel"
+description = "AI coordination — model inference, MCP, local/cloud AI bridge"
+latest = "0.1.0"
+phase = 1
+capabilities = ["ai", "inference", "mcp"]
+seed_fingerprint = "fc46542e6a76d863daa022d23f76ac2a5cf32fde4e407ec8e875c2dde8bc6ab3"
+ecobin_grade = "A++"
+stripped = true
+arch = ["x86_64-unknown-linux-musl", "aarch64-unknown-linux-musl", "armv7-unknown-linux-musleabihf"]
+
+[primals.toadstool]
+name = "ToadStool"
+description = "Compute dispatch — GPU/CPU/NPU orchestration, hardware discovery"
+latest = "0.1.0"
+phase = 1
+capabilities = ["compute", "cpu", "gpu", "npu", "wasm", "orchestration"]
+seed_fingerprint = "01e0971af32a65252e8f00edfaa531824a778c9016611fd73934769ebcec4479"
+ecobin_grade = "A++"
+stripped = true
+arch = ["x86_64-unknown-linux-musl", "aarch64-unknown-linux-musl", "armv7-unknown-linux-musleabihf"]
+# armv7 gap closed: cfg(target_pointer_width) gating on allocation constants
+
+[primals.barracuda]
+name = "barraCuda"
+description = "GPU math engine — 826 WGSL shaders, DF64, FFT/NTT, tensor, scientific compute"
+latest = "0.3.12"
+phase = 1
+capabilities = ["compute", "gpu", "tensor", "fhe", "linalg", "spectral", "stats", "wgsl"]
+seed_fingerprint = "5fd6fb7017cc5a3d2c0deddd8b65cf034c3849c583c2a5a9caa1924c64fc53c9"
+ecobin_grade = "A++"
+arch = ["x86_64-unknown-linux-musl", "aarch64-unknown-linux-musl", "armv7-unknown-linux-musleabihf", "x86_64-pc-windows-gnu", "aarch64-linux-android"]
+check_pass = ["x86_64-apple-darwin", "aarch64-apple-darwin"]
+build_from_source = true
+
+[primals.coralreef]
+name = "coralReef"
+description = "Sovereign shader compiler — WGSL/SPIR-V/GLSL to native GPU binary, VFIO dispatch, coral-glowplug"
+latest = "0.1.0"
+phase = 1
+capabilities = ["shader", "spirv", "wgsl", "glsl", "naga", "compile", "vfio"]
+seed_fingerprint = "f918926384789dc22e39df3f99311c6f99c94b4b6b26317685202e251d46e134"
+ecobin_grade = "A+"
+arch = ["x86_64-unknown-linux-musl", "aarch64-unknown-linux-musl", "armv7-unknown-linux-musleabihf"]
+build_from_source = true
+
+[primals.biomeos]
+name = "biomeOS"
+description = "Neural API orchestrator — graph execution, niche deployment, NUCLEUS"
+latest = "0.1.0"
+phase = 2
+capabilities = ["orchestration", "graph", "deploy", "nucleus", "spore", "niche"]
+seed_fingerprint = "3040b197f942b36053ac82b7997f097aec33a61279b31244eb52f545937c8343"
+is_orchestrator = true
+ecobin_grade = "A++"
+stripped = true
+arch = ["x86_64-unknown-linux-musl", "aarch64-unknown-linux-musl", "armv7-unknown-linux-musleabihf"]
+check_pass = ["x86_64-apple-darwin", "aarch64-apple-darwin"]
+# armv7 gap closed: MAX_EXACT changed from usize to u64 in biomeos-types
+
+[primals.petaltongue]
+name = "petalTongue"
+description = "Representation / UI — egui, ratatui, axum, grammar of graphics. `live` mode: IPC server + native egui window sharing VisualizationState for real-time interactive compositions."
+latest = "1.6.6"
+phase = 2
+capabilities = ["visualization", "ui", "interaction", "representation"]
+seed_fingerprint = "b2ed4c27e831b2493958827a07b5522af2aba67b2f05d19b41fdc02f6f2f3179"
+modes = ["ui", "tui", "web", "headless", "live", "server", "status"]
+ecobin_grade = "A++"
+stripped = true
+arch = ["x86_64-unknown-linux-musl", "aarch64-unknown-linux-musl", "armv7-unknown-linux-musleabihf"]
+
+[primals.sourdough]
+name = "sourDough"
+description = "Scaffolding — starter culture, core traits, genomeBin tooling"
+latest = "0.1.0"
+phase = 2
+capabilities = ["scaffold", "validate", "genomebin", "doctor"]
+ecobin_grade = "A++"
+
+[primals.sweetgrass]
+name = "sweetGrass"
+description = "Attribution — PROV-O provenance tracking, credit allocation, witness retention"
+latest = "0.7.27"
+phase = 2
+capabilities = ["provenance", "attribution", "prov-o"]
+seed_fingerprint = "a5a35b5fae27db041395790e16a868208d21ac2311e835b23f1e0ac6d281b63f"
+ecobin_grade = "A+"
+arch = ["x86_64-unknown-linux-musl", "aarch64-unknown-linux-musl", "armv7-unknown-linux-musleabihf", "aarch64-linux-android"]
+check_pass = ["x86_64-apple-darwin", "aarch64-apple-darwin"]
+
+[primals.rhizocrypt]
+name = "rhizoCrypt"
+description = "Working memory — content-addressed ephemeral DAG, session state, witness emission"
+latest = "0.14.0"
+phase = 2
+capabilities = ["dag", "session", "ephemeral", "content-addressed"]
+seed_fingerprint = "b1a2d03498cf44c175784da4659c61758d7c53f9f3aa4a5934cb3d73fe2d64db"
+ecobin_grade = "A+"
+arch = ["x86_64-unknown-linux-musl", "aarch64-unknown-linux-musl", "armv7-unknown-linux-musleabihf", "aarch64-linux-android"]
+check_pass = ["x86_64-apple-darwin", "aarch64-apple-darwin"]
+
+[primals.loamspine]
+name = "LoamSpine"
+description = "Permanent ledger — immutable record, witness-bearing commits"
+latest = "0.9.16"
+phase = 2
+capabilities = ["ledger", "permanent", "audit"]
+seed_fingerprint = "2c4465fd8eb982e22efb01824c31945d3ffe81c5c98b75fedc7b3159d525e5bf"
+ecobin_grade = "A+"
+arch = ["x86_64-unknown-linux-musl", "aarch64-unknown-linux-musl", "armv7-unknown-linux-musleabihf", "aarch64-linux-android"]
+check_pass = ["x86_64-apple-darwin", "aarch64-apple-darwin"]
+
+[primals.skunkbat]
+name = "skunkBat"
+description = "Defense — metadata-only threat detection, lineage verification"
+latest = "0.1.0"
+phase = 2
+capabilities = ["defense", "threat", "metadata", "lineage"]
+ecobin_grade = "A+"
+check_pass = ["x86_64-unknown-linux-musl", "aarch64-unknown-linux-musl", "armv7-unknown-linux-musleabihf", "x86_64-apple-darwin", "aarch64-apple-darwin"]
+# skunkBat: library-only crate, no binary target produced
+
+# =============================================================================
+# SPRINGS — Science validation domains
+# =============================================================================
+#
+# Springs are NOT primals. They do not ship deployable binaries.
+# Springs validate science by composing NUCLEUS primals:
+#
+#   Research paper → Python baseline → Rust validation → Primal composition
+#
+# Each spring's domain logic evolves from local Rust code toward orchestrated
+# primal capability calls. plasmidBin deploys the PRIMALS that springs
+# compose against. The [niches] section below defines what each spring needs.
+#
+# Evolution status legend:
+#   paper     = published research, Python baselines documented
+#   rust      = faithful Rust port, validated against Python
+#   ipc       = wiring IPC to primals (transitional _primal binaries)
+#   composing = domain logic delegates to primal capabilities
+#   composed  = fully graph-driven, no spring binary needed
+#
+# Spring _primal binaries (e.g. healthspring_primal) are transitional IPC
+# servers that exist during the "ipc" and "composing" phases. They are NOT
+# the end state — the end state is primal composition orchestrated by biomeOS.
+
+[springs.hotspring]
+name = "hotSpring"
+org = "syntheticChemistry"
+description = "Computational physics — lattice QCD, MD, plasma, nuclear EOS"
+latest = "0.6.32"
+evolution = "composing"
+particle_profile = "proton_heavy"
+proto_nucleate = "hotspring_qcd_proto_nucleate"
+required_atomics = ["node"]
+tests = 1040
+barracuda_depth = "composing"
+note = "Dual path: in-process barraCuda + optional IPC math primal. NucleusContext.detect() + by_domain() pattern."
+
+[springs.neuralspring]
+name = "neuralSpring"
+org = "syntheticChemistry"
+description = "Bio ML — WGSL shader inference, tokenization, reservoir computing"
+latest = "0.1.0"
+evolution = "composing"
+particle_profile = "balanced"
+proto_nucleate = "neuralspring_inference_proto_nucleate"
+required_atomics = ["node", "meta_tier"]
+tests = 1403
+barracuda_depth = "composing"
+ecosystem_role = "AI provider — evolves inference.* for all springs via Squirrel"
+note = "inference.* stubs wired, waiting on Squirrel register_provider + coralReef shader.compile.wgsl"
+
+[springs.wetspring]
+name = "wetSpring"
+org = "syntheticChemistry"
+description = "Metagenomics — microbial ecology, spectral analysis, diversity indices"
+latest = "0.3.0"
+evolution = "composed"
+particle_profile = "balanced"
+proto_nucleate = "wetspring_lifescience_proto_nucleate"
+required_atomics = ["node", "nest", "meta_tier"]
+tests = 1902
+barracuda_depth = "composing"
+note = "Lean barraCuda absorption, deep IPC/MCP, composition handoffs active"
+
+[springs.airspring]
+name = "airSpring"
+org = "syntheticChemistry"
+description = "Agriculture / hydrology — Richards PDE, ET0, seasonal pipeline"
+latest = "0.10.0"
+evolution = "composed"
+particle_profile = "balanced"
+proto_nucleate = "airspring_ecology_proto_nucleate"
+required_atomics = ["node", "nest"]
+tests = 1364
+barracuda_depth = "composing"
+note = "Full paper→Python→Rust→GPU→NUCLEUS path traced. Phase 4.7 Penny Irrigation = product vision."
+
+[springs.groundspring]
+name = "groundSpring"
+org = "syntheticChemistry"
+description = "Measurement science — sensor networks, calibration, tolerance"
+latest = "0.1.0"
+evolution = "composing"
+particle_profile = "balanced"
+proto_nucleate = "groundspring_geoscience_proto_nucleate"
+required_atomics = ["node", "nest"]
+tests = 1050
+barracuda_depth = "calling"
+note = "~110 barraCuda delegations, biomeOS UDS wired, three-tier parity active"
+
+[springs.healthspring]
+name = "healthSpring"
+org = "syntheticChemistry"
+description = "Medical science — microbiome, clinical pipelines, dual-tower enclave"
+latest = "0.1.0"
+evolution = "composing"
+particle_profile = "neutron_heavy"
+proto_nucleate = "healthspring_enclave_proto_nucleate"
+required_atomics = ["tower", "nest", "meta_tier"]
+tests = 940
+barracuda_depth = "composing"
+note = "Dual-tower ionic bond pattern, exp112-117 composition IPC, blocked on TensorSession for shader unification"
+
+[springs.ludospring]
+name = "ludoSpring"
+org = "syntheticChemistry"
+description = "Game science — HCI, flow, DDA, pure primal composition"
+latest = "0.1.0"
+evolution = "composed"
+particle_profile = "balanced"
+proto_nucleate = "ludospring_proto_nucleate"
+required_atomics = ["node", "nest", "meta_tier"]
+tests = 817
+barracuda_depth = "composed"
+composition_model = "pure"
+note = "V53 pure composition — no spring binary deploys. 12-node cell graph, 30 capabilities, BTSP-enforced, 60Hz tick."
+
+[springs.primalspring]
+name = "primalSpring"
+org = "ecoPrimals"
+description = "Coordination validation — validates the ecosystem itself"
+latest = "0.9.17"
+evolution = "composing"
+particle_profile = "balanced"
+proto_nucleate = "nucleus_atomics_validate"
+required_atomics = ["tower", "node", "nest", "meta_tier"]
+tests = 455
+note = "Unique: its domain IS composition — primalspring_primal is a coordination primal"
+
+# =============================================================================
+# NICHES — Per-spring primal composition requirements
+# =============================================================================
+#
+# Each niche defines the NUCLEUS primals a spring needs deployed to validate
+# its science. Use with: ./validate_composition.sh niche-<spring>
+#
+# These map directly to proto-nucleate graphs in primalSpring/graphs/downstream/
+
+[niches.hotspring]
+name = "hotSpring QCD"
+primals = ["beardog", "songbird", "toadstool", "barracuda", "coralreef", "nestgate", "rhizocrypt", "loamspine", "sweetgrass"]
+description = "Full NUCLEUS — df64 GPU compute, fleet dispatch, gauge config provenance"
+composition = "nucleus"
+
+[niches.neuralspring]
+name = "neuralSpring Inference"
+primals = ["beardog", "songbird", "toadstool", "barracuda", "coralreef", "biomeos", "squirrel"]
+description = "Node + Meta — WGSL shader inference, model routing via Squirrel"
+composition = "science"
+
+[niches.wetspring]
+name = "wetSpring Life Science"
+primals = ["beardog", "songbird", "toadstool", "barracuda", "coralreef", "nestgate", "rhizocrypt", "loamspine", "sweetgrass", "biomeos", "squirrel", "petaltongue"]
+description = "Full NUCLEUS + Meta — spectral analysis, time-series storage, provenance"
+composition = "full"
+
+[niches.airspring]
+name = "airSpring Ecology"
+primals = ["beardog", "songbird", "toadstool", "barracuda", "coralreef", "nestgate", "rhizocrypt", "loamspine", "sweetgrass"]
+description = "Full NUCLEUS — PDE solvers, IoT sensor storage, measurement provenance"
+composition = "nucleus"
+
+[niches.groundspring]
+name = "groundSpring Geoscience"
+primals = ["beardog", "songbird", "toadstool", "barracuda", "coralreef", "nestgate", "rhizocrypt", "loamspine", "sweetgrass"]
+description = "Full NUCLEUS — statistical shaders, geospatial storage, calibration provenance"
+composition = "nucleus"
+
+[niches.healthspring]
+name = "healthSpring Clinical"
+primals = ["beardog", "songbird", "nestgate", "rhizocrypt", "loamspine", "sweetgrass", "biomeos", "squirrel"]
+description = "Tower + Nest + Meta — dual-tower enclave, ionic bonds, HIPAA audit"
+composition = "nest"
+
+[niches.ludospring]
+name = "ludoSpring Game Science"
+primals = ["beardog", "songbird", "toadstool", "barracuda", "coralreef", "nestgate", "rhizocrypt", "loamspine", "sweetgrass", "biomeos", "squirrel", "petaltongue"]
+description = "Full NUCLEUS + Meta — pure composition, 60Hz tick, scene push/poll, provenance trio"
+composition = "full"
+composition_model = "pure"
+
+# =============================================================================
+# SPOREGARDEN — gen4 consumers (sporeGarden/, public repos)
+# =============================================================================
+# gen4 products that compose primals from plasmidBin via JSON-RPC IPC.
+# The primals become invisible infrastructure inside creative products.
+
+[sporegarden.esotericwebb]
+name = "Esoteric Webb"
+org = "sporeGarden"
+repo = "sporeGarden/esotericWebb"
+description = "Cross-evolution CRPG substrate — bounded narrative, infinite exploration"
+latest = "V4"
+primals_consumed = ["beardog", "songbird", "toadstool", "barracuda", "coralreef", "nestgate", "rhizocrypt", "loamspine", "sweetgrass", "squirrel", "petaltongue"]
+composition_model = "pure"
+bridge_methods = 23
+tests = 166
+gen = 4
+
+# [sporegarden.helixvision]
+# name = "helixVision"
+# org = "sporeGarden"
+# description = "Sovereign genomics — sample to understanding pipeline"
+# gen = 4
+
+# =============================================================================
+# BINARY MATRIX — per-architecture metadata (PRIMALS ONLY)
+# =============================================================================
+# fetch.sh reads these to select the right binary for the current platform.
+# Layout: primals/{target-triple}/{binary}
+# Legacy symlinks: primals/{binary} -> x86_64-unknown-linux-musl/{binary}
+#
+# Target triples use full Rust conventions:
+#   x86_64-unknown-linux-musl, aarch64-unknown-linux-musl,
+#   armv7-unknown-linux-musleabihf, x86_64-pc-windows-gnu,
+#   aarch64-linux-android, riscv64gc-unknown-linux-musl
+
+# ── Tower Atomic ──────────────────────────────────────────────────────
+[binaries.beardog."x86_64-unknown-linux-musl"]
+stripped = true
+static = true
+
+[binaries.beardog."aarch64-unknown-linux-musl"]
+stripped = true
+static = true
+
+[binaries.beardog."armv7-unknown-linux-musleabihf"]
+stripped = true
+static = true
+
+[binaries.songbird."x86_64-unknown-linux-musl"]
+stripped = true
+static = true
+
+[binaries.songbird."aarch64-unknown-linux-musl"]
+stripped = true
+static = true
+
+[binaries.songbird."armv7-unknown-linux-musleabihf"]
+stripped = true
+static = true
+
+[binaries.songbird."aarch64-linux-android"]
+stripped = true
+static = false
+
+# ── Node Atomic additions ─────────────────────────────────────────────
+[binaries.toadstool."x86_64-unknown-linux-musl"]
+stripped = true
+static = true
+
+[binaries.toadstool."aarch64-unknown-linux-musl"]
+stripped = true
+static = true
+
+[binaries.toadstool."armv7-unknown-linux-musleabihf"]
+stripped = true
+static = true
+
+[binaries.barracuda."x86_64-unknown-linux-musl"]
+stripped = true
+static = true
+
+[binaries.barracuda."aarch64-unknown-linux-musl"]
+stripped = true
+static = true
+
+[binaries.barracuda."armv7-unknown-linux-musleabihf"]
+stripped = true
+static = true
+
+[binaries.barracuda."x86_64-pc-windows-gnu"]
+stripped = true
+static = false
+
+[binaries.barracuda."aarch64-linux-android"]
+stripped = true
+static = false
+
+[binaries.coralreef."x86_64-unknown-linux-musl"]
+stripped = true
+static = true
+
+[binaries.coralreef."aarch64-unknown-linux-musl"]
+stripped = true
+static = true
+
+[binaries.coralreef."armv7-unknown-linux-musleabihf"]
+stripped = true
+static = true
+
+# ── Nest Atomic additions ─────────────────────────────────────────────
+[binaries.nestgate."x86_64-unknown-linux-musl"]
+stripped = true
+static = true
+
+[binaries.nestgate."aarch64-unknown-linux-musl"]
+stripped = true
+static = true
+
+[binaries.nestgate."armv7-unknown-linux-musleabihf"]
+stripped = true
+static = true
+
+[binaries.rhizocrypt."x86_64-unknown-linux-musl"]
+stripped = true
+static = true
+
+[binaries.rhizocrypt."aarch64-unknown-linux-musl"]
+stripped = true
+static = true
+
+[binaries.rhizocrypt."armv7-unknown-linux-musleabihf"]
+stripped = true
+static = true
+
+[binaries.rhizocrypt."aarch64-linux-android"]
+stripped = true
+static = false
+
+[binaries.loamspine."x86_64-unknown-linux-musl"]
+stripped = true
+static = true
+
+[binaries.loamspine."aarch64-unknown-linux-musl"]
+stripped = true
+static = true
+
+[binaries.loamspine."armv7-unknown-linux-musleabihf"]
+stripped = true
+static = true
+
+[binaries.loamspine."aarch64-linux-android"]
+stripped = true
+static = false
+
+[binaries.sweetgrass."x86_64-unknown-linux-musl"]
+stripped = true
+static = true
+
+[binaries.sweetgrass."aarch64-unknown-linux-musl"]
+stripped = true
+static = true
+
+[binaries.sweetgrass."armv7-unknown-linux-musleabihf"]
+stripped = true
+static = true
+
+[binaries.sweetgrass."aarch64-linux-android"]
+stripped = true
+static = false
+
+# ── Meta-Tier ─────────────────────────────────────────────────────────
+[binaries.biomeos."x86_64-unknown-linux-musl"]
+stripped = true
+static = true
+
+[binaries.biomeos."aarch64-unknown-linux-musl"]
+stripped = true
+static = true
+
+[binaries.biomeos."armv7-unknown-linux-musleabihf"]
+stripped = true
+static = true
+
+[binaries.squirrel."x86_64-unknown-linux-musl"]
+stripped = true
+static = true
+
+[binaries.squirrel."aarch64-unknown-linux-musl"]
+stripped = true
+static = true
+
+[binaries.squirrel."armv7-unknown-linux-musleabihf"]
+stripped = true
+static = true
+
+[binaries.petaltongue."x86_64-unknown-linux-musl"]
+stripped = true
+static = true
+
+[binaries.petaltongue."aarch64-unknown-linux-musl"]
+stripped = true
+static = true
+
+[binaries.petaltongue."armv7-unknown-linux-musleabihf"]
+stripped = true
+static = true
+
+# ── Coordination primal (primalSpring) ────────────────────────────────
+[binaries.primalspring_primal."x86_64-unknown-linux-musl"]
+stripped = true
+static = true
+
+[binaries.primalspring_primal."aarch64-unknown-linux-musl"]
+stripped = true
+static = true
+
+[binaries.primalspring_primal."armv7-unknown-linux-musleabihf"]
+stripped = true
+static = true
+
+[binaries.primalspring_primal."riscv64gc-unknown-linux-musl"]
+stripped = true
+static = true
+
+# =============================================================================
+# ATOMICS — Phase 31 aligned
+# =============================================================================
+# Canonical atomic model. See infra/wateringHole/NUCLEUS_SPRING_ALIGNMENT.md
+
+[atomics.tower]
+name = "Tower Atomic"
+particle = "electron"
+primals = ["beardog", "songbird"]
+description = "Trust boundary — crypto + discovery"
+graph = "profiles/tower.toml"
+
+[atomics.node]
+name = "Node Atomic"
+particle = "proton"
+primals = ["beardog", "songbird", "toadstool", "barracuda", "coralreef"]
+description = "Compute substrate — dispatch + execute + compile"
+graph = "profiles/node.toml"
+
+[atomics.nest]
+name = "Nest Atomic"
+particle = "neutron"
+primals = ["beardog", "songbird", "nestgate", "rhizocrypt", "loamspine", "sweetgrass"]
+description = "Storage + provenance — content-addressed data + lineage"
+graph = "profiles/nest.toml"
+
+[atomics.nucleus]
+name = "Full NUCLEUS"
+primals = ["beardog", "songbird", "toadstool", "barracuda", "coralreef", "nestgate", "rhizocrypt", "loamspine", "sweetgrass"]
+description = "Full atom — Tower + Node + Nest (9 unique primals)"
+graph = "profiles/nucleus.toml"
+
+[atomics.meta_tier]
+name = "Meta-Tier"
+primals = ["biomeos", "squirrel", "petaltongue"]
+description = "Cross-atomic — orchestration, AI, UI (operate at all levels)"
+
+[atomics.nucleus_full]
+name = "NUCLEUS + Meta"
+primals = ["beardog", "songbird", "toadstool", "barracuda", "coralreef", "nestgate", "rhizocrypt", "loamspine", "sweetgrass", "biomeos", "squirrel", "petaltongue"]
+description = "Full NUCLEUS atom + all meta-tier primals"
+graph = "profiles/full.toml"
+
+# Per-spring niche compositions are in [niches] above, not here.
+# Atomics define the universal building blocks; niches compose them for domains.

@@ -280,7 +280,12 @@ case "$ACTION" in
         FAILED=0
 
         while read -r order name binary spawn; do
-            # Check if already running (e.g. biomeOS pre-started)
+            if [[ "$spawn" == "false" ]]; then
+                printf "  ${YELLOW}SKIP${NC}  %-20s (spawn=false in graph)\n" "$name"
+                SKIPPED=$((SKIPPED + 1))
+                continue
+            fi
+
             if health_check "$name" 2; then
                 printf "  ${GREEN}ALIVE${NC} %-20s (already running)\n" "$name"
                 SKIPPED=$((SKIPPED + 1))
