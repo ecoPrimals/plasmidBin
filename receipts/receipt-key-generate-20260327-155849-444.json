@@ -1,0 +1,22 @@
+{
+  "receipt_id": "2bafdcc5-8a86-4e2a-a502-b2f4f96fe1c5",
+  "operation": "key-generate",
+  "timestamp": "2026-03-27T15:58:49.444769170+00:00",
+  "result": {
+    "status": "success"
+  },
+  "key_info": {
+    "key_id": "eastgate-family-root",
+    "algorithm": "aes256-gcm",
+    "generation": 0
+  },
+  "hsm_info": {
+    "name": "BearDog Native Software HSM",
+    "vendor": "BearDog",
+    "model": "Native Software HSM",
+    "hsm_type": "Software"
+  },
+  "metadata": {
+    "entropy_source": "human"
+  }
+}

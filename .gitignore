@@ -1,33 +1,45 @@
 # plasmidBin — binaries live in GitHub Releases, not in git.
-# Only metadata.toml files and scripts are tracked.
+# Only metadata, scripts, cells, and manifests are tracked.
 
-# Exclude all primal binaries (they are downloaded via fetch.sh)
-beardog/beardog
-songbird/songbird
-squirrel/squirrel
-rhizocrypt/rhizocrypt
-loamspine/loamspine
-sweetgrass/sweetgrass
-biomeos/biomeos
-toadstool/toadstool
-barracuda/barracuda
-coralreef/coralreef
-nestgate/nestgate
-petaltongue/petaltongue
-sourdough/sourdough
-skunkbat/skunkbat
+# Flat-layout primal binaries (downloaded via fetch.sh)
+beardog
+songbird
+squirrel
+rhizocrypt
+loamspine
+sweetgrass
+biomeos-unibin
+toadstool
+barracuda
+coralreef
+nestgate
+petaltongue
+sourdough
+skunkbat
 
 # Spring binaries
-ludospring/ludospring
-groundspring/groundspring
-healthspring/healthspring_primal
-neuralspring/neuralspring
-wetspring/wetspring
-primalspring/primalspring_primal
+ludospring
+groundspring
+healthspring_primal
+neuralspring
+wetspring
+primalspring_primal
 
-# Catch arch-suffixed assets left by harvest.sh
-*/*-x86_64
-*/*-aarch64
+# Cross-architecture binary directory (populated by harvest/fetch)
+primals/
+
+# Spring binary directory
+springs/
+
+# Product binaries
+products/
 
 # Build artifacts
 **/target/
+
+# Catch arch-suffixed assets
+*-x86_64
+*-aarch64
+*-armv7
+*-riscv64
+*.exe

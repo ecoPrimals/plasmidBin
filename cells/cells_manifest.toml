@@ -1,0 +1,81 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+#
+# Cellular Deployment Manifest — indexes all deployable spring cells.
+#
+# A "cell" is a self-contained biomeOS deploy graph: NUCLEUS base + domain
+# overlay + petalTongue in `live` mode. Each cell is a deployable unit that
+# gardens can consume directly.
+#
+# Usage:
+#   ./tools/cell_launcher.sh <spring_name> start
+#   biomeos deploy --graph graphs/cells/<spring>_cell.toml
+
+[manifest]
+version = "1.0.0"
+description = "Cellular deployment index — one cell per spring, each a deployable biomeOS graph"
+template_base = "../spring_deploy/spring_deploy_template.toml"
+petaltongue_mode = "live"
+
+[[cell]]
+spring = "hotspring"
+graph = "hotspring_cell.toml"
+domain = "qcd_physics"
+binary = "hotspring_primal"
+requires = ["beardog", "songbird", "toadstool", "barracuda", "coralreef", "nestgate", "rhizocrypt", "loamspine", "sweetgrass", "squirrel", "petaltongue"]
+petaltongue_mode = "live"
+
+[[cell]]
+spring = "wetspring"
+graph = "wetspring_cell.toml"
+domain = "biology"
+binary = "wetspring"
+requires = ["beardog", "songbird", "toadstool", "barracuda", "coralreef", "nestgate", "rhizocrypt", "loamspine", "sweetgrass", "petaltongue"]
+petaltongue_mode = "live"
+
+[[cell]]
+spring = "neuralspring"
+graph = "neuralspring_cell.toml"
+domain = "inference"
+binary = "neuralspring"
+requires = ["beardog", "songbird", "toadstool", "barracuda", "coralreef", "squirrel", "petaltongue"]
+petaltongue_mode = "live"
+
+[[cell]]
+spring = "ludospring"
+graph = "ludospring_cell.toml"
+domain = "game_science"
+binary = "ludospring-barracuda"
+requires = ["beardog", "songbird", "toadstool", "barracuda", "coralreef", "nestgate", "rhizocrypt", "loamspine", "sweetgrass", "squirrel", "petaltongue"]
+petaltongue_mode = "live"
+
+[[cell]]
+spring = "airspring"
+graph = "airspring_cell.toml"
+domain = "weather"
+binary = "airspring_primal"
+requires = ["beardog", "songbird", "toadstool", "barracuda", "nestgate", "squirrel", "petaltongue"]
+petaltongue_mode = "live"
+
+[[cell]]
+spring = "groundspring"
+graph = "groundspring_cell.toml"
+domain = "geology"
+binary = "groundspring"
+requires = ["beardog", "songbird", "toadstool", "barracuda", "nestgate", "petaltongue"]
+petaltongue_mode = "live"
+
+[[cell]]
+spring = "healthspring"
+graph = "healthspring_cell.toml"
+domain = "health"
+binary = "healthspring_primal"
+requires = ["beardog", "songbird", "nestgate", "squirrel", "petaltongue"]
+petaltongue_mode = "live"
+
+[[cell]]
+spring = "esotericwebb"
+graph = "esotericwebb_cell.toml"
+domain = "crpg"
+binary = "esotericwebb"
+requires = ["beardog", "songbird", "toadstool", "barracuda", "nestgate", "squirrel", "petaltongue", "rhizocrypt", "loamspine", "sweetgrass"]
+petaltongue_mode = "live"

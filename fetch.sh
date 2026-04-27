@@ -1,279 +1,351 @@
 #!/usr/bin/env bash
-# SPDX-License-Identifier: AGPL-3.0-or-later
+# plasmidBin/fetch.sh — Download primal binaries from GitHub Releases
 #
-# fetch.sh — Download primal binaries from GitHub Releases and verify.
+# Consumer script for fresh machines, remote gates, or CI pipelines.
+# Downloads binaries from GitHub Releases (or a self-hosted mirror),
+# validates blake3 checksums, and stages into local plasmidBin.
 #
 # Usage:
-#   ./fetch.sh                        # fetch latest release for local arch
-#   ./fetch.sh beardog songbird       # fetch specific primals only
-#   ./fetch.sh --tag v2026.04.01      # fetch a specific release
-#   ./fetch.sh --arch aarch64         # fetch for a different architecture
-#   ./fetch.sh --composition tower    # fetch all primals in a composition
-#   ./fetch.sh --dry-run              # show what would be downloaded
-#   ./fetch.sh --help                 # show this help
-#
-# Architecture is auto-detected from `uname -m`. Override with --arch.
-# Checksums are verified against the [builds.<arch>-linux] section of
-# each primal's metadata.toml.
+#   ./fetch.sh --all                    # Fetch all available binaries
+#   ./fetch.sh --primal beardog         # Fetch a single primal
+#   ./fetch.sh --release v2026.03.27    # Fetch from specific release tag
+#   ./fetch.sh --dry-run --all          # Show what would be downloaded
 #
 # Prerequisites:
-#   - gh CLI (https://cli.github.com/) authenticated  OR
-#   - curl (fallback — downloads from release URL directly)
-#   - sha256sum (coreutils)
+#   - curl
+#   - b3sum (cargo install b3sum) — optional, skips checksum if missing
+#   - gh (optional, for private repos; falls back to curl)
 
 set -euo pipefail
 
-REPO="ecoPrimals/plasmidBin"
-TAG=""
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+SOURCES_FILE="$SCRIPT_DIR/sources.toml"
+MANIFEST_FILE="$SCRIPT_DIR/manifest.toml"
+CHECKSUMS_FILE="$SCRIPT_DIR/checksums.toml"
+PRIMALS_DIR="$SCRIPT_DIR/primals"
+SPRINGS_DIR="$SCRIPT_DIR/springs"
+PRODUCTS_DIR="$SCRIPT_DIR/products"
+
+GITHUB_REPO="ecoPrimals/plasmidBin"
+
 DRY_RUN=false
-ARCH=""
-COMPOSITION=""
-TARGETS=()
-MAX_RETRIES=3
-RETRY_DELAY=5
+FETCH_ALL=false
+FORCE=false
+RELEASE_TAG=""
+FILTER=""
+
+DOWNLOADED=0
+SKIPPED=0
+VERIFIED=0
+FAILED=0
+CHECKSUM_FAIL=0
 
 usage() {
-    sed -n '3,14p' "$0" | sed 's/^# \?//'
-    exit 0
+    echo "Usage: $0 [OPTIONS]"
+    echo ""
+    echo "Options:"
+    echo "  --all              Fetch all primals and springs"
+    echo "  --primal NAME      Fetch a single primal/spring by name"
+    echo "  --release TAG      Download from specific GitHub Release tag"
+    echo "                     (default: latest release from $GITHUB_REPO)"
+    echo "  --force            Re-download even if binary already exists"
+    echo "  --dry-run          Show what would be downloaded, don't fetch"
+    echo "  --help             Show this help"
+    echo ""
+    echo "Examples:"
+    echo "  $0 --all                          Fetch everything"
+    echo "  $0 --primal beardog               Just beardog"
+    echo "  $0 --release v2026.03.27 --all    Specific release"
 }
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
-        --tag)         TAG="$2"; shift 2 ;;
-        --arch)        ARCH="$2"; shift 2 ;;
-        --composition) COMPOSITION="$2"; shift 2 ;;
-        --dry-run)     DRY_RUN=true; shift ;;
-        --help|-h)     usage ;;
-        -*)            echo "Unknown option: $1"; usage ;;
-        *)             TARGETS+=("$1"); shift ;;
+        --all)       FETCH_ALL=true; shift ;;
+        --primal)    FILTER="$2"; shift 2 ;;
+        --release)   RELEASE_TAG="$2"; shift 2 ;;
+        --force)     FORCE=true; shift ;;
+        --dry-run)   DRY_RUN=true; shift ;;
+        --help)      usage; exit 0 ;;
+        -*)          echo "Unknown option: $1"; usage; exit 1 ;;
+        *)           FILTER="$1"; shift ;;
     esac
 done
 
-cd "$(dirname "$0")"
+if ! $FETCH_ALL && [[ -z "$FILTER" ]]; then
+    echo "ERROR: Specify --all or --primal NAME"
+    echo ""
+    usage
+    exit 1
+fi
 
-# ── Detect architecture ──────────────────────────────────────────────
-if [[ -z "$ARCH" ]]; then
-    raw_arch=$(uname -m)
-    case "$raw_arch" in
-        x86_64|amd64)   ARCH="x86_64" ;;
-        aarch64|arm64)  ARCH="aarch64" ;;
-        armv7l|armhf)   ARCH="armv7" ;;
-        riscv64)        ARCH="riscv64" ;;
-        *)              ARCH="$raw_arch" ;;
+has_b3sum() { command -v b3sum >/dev/null 2>&1; }
+has_gh() { command -v gh >/dev/null 2>&1; }
+
+detect_target_triple() {
+    local machine os kernel
+    machine=$(uname -m)
+    kernel=$(uname -s | tr '[:upper:]' '[:lower:]')
+    case "$kernel" in
+        linux)
+            case "$machine" in
+                x86_64)  echo "x86_64-unknown-linux-musl" ;;
+                aarch64) echo "aarch64-unknown-linux-musl" ;;
+                armv7l)  echo "armv7-unknown-linux-musleabihf" ;;
+                riscv64) echo "riscv64gc-unknown-linux-musl" ;;
+                *)       echo "${machine}-unknown-linux-musl" ;;
+            esac ;;
+        darwin)
+            case "$machine" in
+                x86_64)  echo "x86_64-apple-darwin" ;;
+                arm64)   echo "aarch64-apple-darwin" ;;
+                *)       echo "${machine}-apple-darwin" ;;
+            esac ;;
+        *)  echo "${machine}-unknown-${kernel}" ;;
     esac
-fi
-
-BUILDS_KEY="${ARCH}-linux"
-
-echo "=== plasmidBin fetch ==="
-echo "Architecture: $ARCH ($BUILDS_KEY)"
-
-# ── Resolve composition to primal list ───────────────────────────────
-if [[ -n "$COMPOSITION" ]]; then
-    if [[ -f "ports.env" ]]; then
-        source ports.env
-        comp_list=$(primals_for_composition "$COMPOSITION" 2>/dev/null || echo "")
-        if [[ -z "$comp_list" ]]; then
-            echo "ERROR: Unknown composition '$COMPOSITION'"
-            echo "Available: tower, compute, node, nest, full, provenance, science"
-            exit 1
-        fi
-        # shellcheck disable=SC2206
-        TARGETS=($comp_list)
-        echo "Composition: $COMPOSITION → ${TARGETS[*]}"
-    else
-        echo "ERROR: ports.env not found — cannot resolve composition"
-        exit 1
-    fi
-fi
-
-echo ""
-
-# ── Determine release ────────────────────────────────────────────────
-if [[ -n "$TAG" ]]; then
-    echo "Release: $TAG (specified)"
-else
-    TAG=$(gh release view --repo "$REPO" --json tagName -q '.tagName' 2>/dev/null || echo "")
-    if [[ -z "$TAG" ]]; then
-        echo "ERROR: No releases found on $REPO."
-        echo "The maintainer needs to run harvest.sh first."
-        exit 1
-    fi
-    echo "Release: $TAG (latest)"
-fi
-
-echo ""
-
-# ── List available assets ────────────────────────────────────────────
-assets=$(gh release view "$TAG" --repo "$REPO" --json assets -q '.assets[].name' 2>/dev/null || echo "")
-
-if [[ -z "$assets" ]]; then
-    echo "WARNING: No assets in release $TAG."
-    echo "Metadata is available; binaries must be fetched from another source"
-    echo "or built from source."
-    exit 0
-fi
-
-echo "Available assets in release $TAG:"
-echo "$assets" | while read -r name; do
-    echo "  - $name"
-done
-echo ""
-
-# ── Helper: retry a command ──────────────────────────────────────────
-retry() {
-    local attempt=1
-    while [[ $attempt -le $MAX_RETRIES ]]; do
-        if "$@"; then
-            return 0
-        fi
-        echo "  Retry $attempt/$MAX_RETRIES in ${RETRY_DELAY}s..."
-        sleep "$RETRY_DELAY"
-        attempt=$((attempt + 1))
-    done
-    return 1
 }
 
-# ── Helper: should we fetch this primal? ─────────────────────────────
-should_fetch() {
-    local name="$1"
-    if [[ ${#TARGETS[@]} -eq 0 ]]; then
-        return 0
-    fi
-    for t in "${TARGETS[@]}"; do
-        [[ "$t" == "$name" ]] && return 0
-    done
-    return 1
-}
+CURRENT_ARCH=$(detect_target_triple)
 
-# ── Helper: extract checksum from metadata.toml ─────────────────────
-get_expected_checksum() {
-    local meta="$1" builds_key="$2"
+parse_toml_value() {
+    local file="$1"
+    local section="$2"
+    local key="$3"
     local in_section=false
+    local section_header
+    section_header=$(echo "$section" | sed 's/\./\\./g')
+
     while IFS= read -r line; do
-        if [[ "$line" =~ ^\[builds\.${builds_key}\] ]]; then
+        if [[ "$line" =~ ^\[${section_header}\] ]]; then
             in_section=true
             continue
         fi
         if $in_section && [[ "$line" =~ ^\[ ]]; then
             break
         fi
-        if $in_section && [[ "$line" =~ checksum_sha256[[:space:]]*= ]]; then
-            echo "$line" | sed 's/.*"\(.*\)".*/\1/'
-            return
+        if $in_section && [[ "$line" =~ ^${key}[[:space:]]*=[[:space:]]*\"(.*)\" ]]; then
+            echo "${BASH_REMATCH[1]}"
+            return 0
         fi
-    done < "$meta"
+        if $in_section && [[ "$line" =~ ^${key}[[:space:]]*=[[:space:]]*true ]]; then
+            echo "true"
+            return 0
+        fi
+        if $in_section && [[ "$line" =~ ^${key}[[:space:]]*=[[:space:]]*false ]]; then
+            echo "false"
+            return 0
+        fi
+    done < "$file"
+    return 1
 }
 
-if [[ "$DRY_RUN" == true ]]; then
-    echo "--- Dry run: would download ---"
+list_sources() {
+    grep -oP '^\[sources\.(\w+)\]' "$SOURCES_FILE" | sed 's/\[sources\.//;s/\]//'
+}
+
+target_dir_for() {
+    local id="$1"
+    local base_dir
+    if parse_toml_value "$MANIFEST_FILE" "primals.$id" "latest" >/dev/null 2>&1; then
+        base_dir="$PRIMALS_DIR"
+    elif parse_toml_value "$MANIFEST_FILE" "sporegarden.$id" "latest" >/dev/null 2>&1; then
+        base_dir="$PRODUCTS_DIR"
+    else
+        base_dir="$SPRINGS_DIR"
+    fi
+    # genomeBin layout: primals/{target-triple}/
+    echo "$base_dir/$CURRENT_ARCH"
+}
+
+binary_name_for() {
+    local id="$1"
+    local override
+    override=$(parse_toml_value "$SOURCES_FILE" "sources.$id" "binary_name" 2>/dev/null) || true
+    if [[ -n "$override" ]]; then
+        echo "$override"
+    else
+        echo "$id"
+    fi
+}
+
+get_expected_checksum() {
+    local id="$1"
+    local arch="$2"
+    # Checksum sections use the base category (primals/springs), not arch subdirs
+    local section_prefix
+    if parse_toml_value "$MANIFEST_FILE" "primals.$id" "latest" >/dev/null 2>&1; then
+        section_prefix="primals"
+    elif parse_toml_value "$MANIFEST_FILE" "sporegarden.$id" "latest" >/dev/null 2>&1; then
+        section_prefix="products"
+    else
+        section_prefix="springs"
+    fi
+    local bin_name
+    bin_name=$(binary_name_for "$id")
+    parse_toml_value "$CHECKSUMS_FILE" "${section_prefix}.${bin_name}" "\"${arch}\"" 2>/dev/null || true
+}
+
+get_mirror_url() {
+    parse_toml_value "$MANIFEST_FILE" "manifest" "mirror_url" 2>/dev/null || true
+}
+
+# Resolve the release tag: explicit, or latest from GitHub
+resolve_release_tag() {
+    if [[ -n "$RELEASE_TAG" ]]; then
+        echo "$RELEASE_TAG"
+        return
+    fi
+
+    if has_gh; then
+        gh release view --repo "$GITHUB_REPO" --json tagName -q '.tagName' 2>/dev/null || true
+    else
+        local url="https://api.github.com/repos/$GITHUB_REPO/releases/latest"
+        curl -sf --max-time 10 "$url" 2>/dev/null | grep -oP '"tag_name"\s*:\s*"\K[^"]+' | head -1 || true
+    fi
+}
+
+download_from_release() {
+    local tag="$1"
+    local asset_name="$2"
+    local dest="$3"
+
+    local url="https://github.com/$GITHUB_REPO/releases/download/$tag/$asset_name"
+
+    if $DRY_RUN; then
+        echo "    [dry-run] Would download: $url"
+        return 0
+    fi
+
+    if curl -sfL --max-time 300 -o "$dest" "$url" 2>/dev/null; then
+        chmod +x "$dest"
+        return 0
+    fi
+
+    return 1
+}
+
+download_from_mirror() {
+    local mirror_url="$1"
+    local asset_name="$2"
+    local dest="$3"
+
+    local url="${mirror_url%/}/$asset_name"
+
+    if $DRY_RUN; then
+        echo "    [dry-run] Would download from mirror: $url"
+        return 0
+    fi
+
+    if curl -sfL --max-time 300 -o "$dest" "$url" 2>/dev/null; then
+        chmod +x "$dest"
+        return 0
+    fi
+
+    return 1
+}
+
+echo "plasmidBin fetch — $(date -Iseconds)"
+echo "Arch: $CURRENT_ARCH"
+
+TAG=$(resolve_release_tag)
+MIRROR=$(get_mirror_url)
+
+if [[ -z "$TAG" ]]; then
+    echo "WARNING: Could not resolve release tag. Trying mirror only."
 fi
 
-# ── Download per-primal ──────────────────────────────────────────────
-
-tmpdir=$(mktemp -d)
-trap 'rm -rf "$tmpdir"' EXIT
-
-downloaded=0
-verified=0
-failed=0
-skipped=0
-missing=0
-
-for dir in */; do
-    dir="${dir%/}"
-    meta="$dir/metadata.toml"
-    [[ -f "$meta" ]] || continue
-
-    name=$(grep -m1 'name\s*=' "$meta" | sed 's/.*"\(.*\)".*/\1/')
-    [[ -z "$name" ]] && continue
-
-    should_fetch "$name" || continue
-
-    # Check if this primal has a build for our arch
-    if ! grep -q "\[builds\.${BUILDS_KEY}\]" "$meta"; then
-        echo "SKIP: $name — no $BUILDS_KEY build defined in metadata.toml"
-        skipped=$((skipped + 1))
-        continue
-    fi
-
-    # Try arch-suffixed asset name first (new convention), then bare name (legacy)
-    asset_name=""
-    if echo "$assets" | grep -qx "${name}-${ARCH}"; then
-        asset_name="${name}-${ARCH}"
-    elif echo "$assets" | grep -qx "${name}"; then
-        asset_name="${name}"
-    fi
-
-    if [[ -z "$asset_name" ]]; then
-        echo "MISS: $name — no asset matching '${name}-${ARCH}' or '${name}' in release"
-        missing=$((missing + 1))
-        continue
-    fi
-
-    version=$(grep -m1 'version\s*=' "$meta" | sed 's/.*"\(.*\)".*/\1/')
-
-    if [[ "$DRY_RUN" == true ]]; then
-        echo "  $name v$version ← $asset_name"
-        continue
-    fi
-
-    echo "FETCH: $name v$version ← $asset_name"
-
-    # Download single asset
-    if ! retry gh release download "$TAG" \
-        --repo "$REPO" \
-        --pattern "$asset_name" \
-        --dir "$tmpdir" \
-        --clobber 2>/dev/null; then
-        echo "  ERROR: Failed to download $asset_name after $MAX_RETRIES attempts"
-        failed=$((failed + 1))
-        continue
-    fi
-
-    # Place binary (always stored as the bare primal name locally)
-    mv "$tmpdir/$asset_name" "$dir/$name"
-    chmod +x "$dir/$name"
-    downloaded=$((downloaded + 1))
-
-    # Verify checksum
-    expected=$(get_expected_checksum "$meta" "$BUILDS_KEY")
-    if [[ -n "$expected" ]]; then
-        actual=$(sha256sum "$dir/$name" | awk '{print $1}')
-        if [[ "$actual" == "$expected" ]]; then
-            echo "  OK: checksum verified"
-            verified=$((verified + 1))
-        else
-            echo "  FAIL: checksum mismatch!"
-            echo "    expected: $expected"
-            echo "    actual:   $actual"
-            echo "    The binary may be corrupt or metadata.toml is stale."
-            failed=$((failed + 1))
-        fi
-    else
-        echo "  WARN: no checksum for $BUILDS_KEY — binary unverified"
-    fi
-done
-
+echo "Release: ${TAG:-<none>}"
+if [[ -n "$MIRROR" ]]; then
+    echo "Mirror:  $MIRROR"
+fi
 echo ""
-echo "=== Fetch complete ==="
-echo "  Architecture: $ARCH ($BUILDS_KEY)"
-echo "  Downloaded:   $downloaded"
-echo "  Verified:     $verified"
-echo "  Skipped:      $skipped (no build for this arch)"
-echo "  Missing:      $missing (no release asset)"
-echo "  Failed:       $failed"
 
-if [[ $failed -gt 0 ]]; then
-    echo ""
-    echo "WARNING: $failed failure(s). Check output above."
+if [[ ! -f "$SOURCES_FILE" ]]; then
+    echo "ERROR: $SOURCES_FILE not found"
     exit 1
 fi
 
-if [[ $downloaded -eq 0 ]] && [[ "$DRY_RUN" == false ]]; then
-    echo ""
-    echo "No binaries downloaded. Either:"
-    echo "  - No release assets match your architecture ($ARCH)"
-    echo "  - The maintainer hasn't harvested yet (run harvest.sh)"
-    echo "  - Specify primals: ./fetch.sh beardog songbird"
+mkdir -p "$PRIMALS_DIR/$CURRENT_ARCH" "$SPRINGS_DIR" "$PRODUCTS_DIR"
+
+for source_id in $(list_sources); do
+    if ! $FETCH_ALL && [[ -n "$FILTER" && "$source_id" != "$FILTER" ]]; then
+        continue
+    fi
+
+    dest_dir=$(target_dir_for "$source_id")
+    bin_name=$(binary_name_for "$source_id")
+    local_path="$dest_dir/$bin_name"
+
+    # The asset name on GitHub Releases matches the local binary name
+    asset_name="$bin_name"
+
+    echo -n "  [$source_id] "
+
+    if [[ -f "$local_path" ]] && ! $FORCE; then
+        echo "EXISTS  $bin_name (use --force to re-download)"
+        SKIPPED=$((SKIPPED + 1))
+        continue
+    fi
+
+    got_it=false
+
+    if [[ -n "$TAG" ]]; then
+        if download_from_release "$TAG" "$asset_name" "$local_path"; then
+            got_it=true
+        fi
+    fi
+
+    if ! $got_it && [[ -n "$MIRROR" ]]; then
+        echo -n "(trying mirror) "
+        if download_from_mirror "$MIRROR" "$asset_name" "$local_path"; then
+            got_it=true
+        fi
+    fi
+
+    if ! $got_it; then
+        echo "FAIL  could not download $asset_name"
+        FAILED=$((FAILED + 1))
+        continue
+    fi
+
+    if $DRY_RUN; then
+        echo "OK  [dry-run]"
+        DOWNLOADED=$((DOWNLOADED + 1))
+        continue
+    fi
+
+    if has_b3sum && [[ -f "$CHECKSUMS_FILE" ]]; then
+        expected=$(get_expected_checksum "$source_id" "$CURRENT_ARCH")
+        if [[ -n "$expected" ]]; then
+            actual=$(b3sum --no-names "$local_path")
+            if [[ "$actual" == "$expected" ]]; then
+                echo "OK  checksum verified"
+                VERIFIED=$((VERIFIED + 1))
+            else
+                echo "FAIL  checksum mismatch (removing)"
+                rm -f "$local_path"
+                CHECKSUM_FAIL=$((CHECKSUM_FAIL + 1))
+                continue
+            fi
+        else
+            echo "OK  (no checksum entry to verify)"
+        fi
+    else
+        echo "OK  (checksum verification skipped)"
+    fi
+
+    DOWNLOADED=$((DOWNLOADED + 1))
+done
+
+echo ""
+echo "Summary:"
+echo "  Downloaded: $DOWNLOADED"
+echo "  Verified:   $VERIFIED"
+echo "  Skipped:    $SKIPPED"
+echo "  Failed:     $FAILED"
+if [[ $CHECKSUM_FAIL -gt 0 ]]; then
+    echo "  Checksum failures: $CHECKSUM_FAIL"
+fi
+
+if [[ $FAILED -gt 0 || $CHECKSUM_FAIL -gt 0 ]]; then
+    exit 1
 fi

@@ -1,354 +1,364 @@
 #!/usr/bin/env bash
-# SPDX-License-Identifier: AGPL-3.0-or-later
+# plasmidBin/harvest.sh — Publish local binaries to plasmidBin + GitHub Releases
 #
-# harvest.sh — Build checksums, update metadata, create GitHub Release.
+# Takes freshly built musl static binaries, validates them, computes checksums,
+# copies to local plasmidBin/{primals,springs}/, and optionally uploads to
+# GitHub Releases.
 #
 # Usage:
-#   ./harvest.sh                        # harvest all primals with binaries present
-#   ./harvest.sh beardog songbird       # harvest specific primals only
-#   ./harvest.sh --tag v2026.04.01      # use a specific release tag
-#   ./harvest.sh --arch aarch64         # override architecture detection
-#   ./harvest.sh --dry-run              # show what would happen without doing it
-#   ./harvest.sh --no-release           # update metadata only, skip GitHub Release
-#   ./harvest.sh --help                 # show this help
+#   ./harvest.sh                              # Harvest x86_64 from default staging
+#   ./harvest.sh --arch aarch64               # Harvest aarch64 binaries
+#   ./harvest.sh --source /path/to/bins       # Harvest from custom dir
+#   ./harvest.sh --release v2026.03.27        # Also upload to GitHub Release
+#   ./harvest.sh --dry-run                    # Validate only, no file changes
+#   ./harvest.sh --primal beardog             # Harvest a single primal
+#
+# Default source: /tmp/primalspring-deploy/primals/{arch}/
+#
+# Multi-arch layout:
+#   plasmidBin/primals/beardog              (x86_64 — default, backward compat)
+#   plasmidBin/primals/aarch64/beardog      (aarch64)
 #
 # Prerequisites:
-#   - gh CLI (https://cli.github.com/) authenticated
-#   - sha256sum (coreutils)
-#   - Primal binaries already built with --remap-path-prefix and strip=true
-#     (see wateringHole SECRETS_AND_SEEDS_STANDARD.md)
-#
-# Asset naming convention:
-#   Binaries are uploaded as {name}-{arch} (e.g. beardog-x86_64, beardog-aarch64).
-#   This allows a single release to carry builds for multiple architectures.
+#   - b3sum (cargo install b3sum)
+#   - strip (binutils, or aarch64 strip for cross-arch)
+#   - file (for ELF/static checks)
+#   - gh (GitHub CLI, only for --release)
 
 set -euo pipefail
 
-REPO="ecoPrimals/plasmidBin"
-TAG=""
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+CHECKSUMS_FILE="$SCRIPT_DIR/checksums.toml"
+PRIMALS_DIR="$SCRIPT_DIR/primals"
+SPRINGS_DIR="$SCRIPT_DIR/springs"
+
+GITHUB_REPO="ecoPrimals/plasmidBin"
+
 DRY_RUN=false
-NO_RELEASE=false
+RELEASE_TAG=""
+FILTER=""
 ARCH=""
-TARGETS=()
-MAX_RETRIES=3
-RETRY_DELAY=5
+SOURCE_DIR=""
+
+HARVESTED=0
+SKIPPED=0
+FAILED=0
+
+# Harvest maps keyed by arch. Format: "artifact-name:category/local-name"
+# artifact-name matches build_ecosystem_musl.sh output: {binary}-{arch}-linux-musl
+# Harvest maps: PRIMALS ONLY.
+# Springs do not ship binaries via plasmidBin — they compose primals.
+# The only exception is primalspring_primal (coordination primal).
+# Core primal names — used to auto-generate harvest maps for any target triple.
+CORE_PRIMAL_NAMES=(beardog songbird toadstool barracuda coralreef nestgate rhizocrypt loamspine sweetgrass biomeos squirrel petaltongue skunkbat primalspring_primal)
+
+# Legacy harvest maps kept for backward compatibility with old --arch x86_64/aarch64
+HARVEST_MAP_X86_64=()
+HARVEST_MAP_AARCH64=()
+for p in "${CORE_PRIMAL_NAMES[@]}"; do
+    HARVEST_MAP_X86_64+=("${p}-x86_64-linux-musl:primals/x86_64-unknown-linux-musl/${p}")
+    HARVEST_MAP_AARCH64+=("${p}-aarch64-linux-musl:primals/aarch64-unknown-linux-musl/${p}")
+done
 
 usage() {
-    sed -n '3,16p' "$0" | sed 's/^# \?//'
-    exit 0
+    echo "Usage: $0 [OPTIONS]"
+    echo ""
+    echo "Options:"
+    echo "  --source DIR       Source directory for built binaries"
+    echo "  --arch ARCH        Target architecture: x86_64 (default) or aarch64"
+    echo "  --release TAG      Upload to GitHub Release with this tag"
+    echo "  --primal NAME      Harvest only this primal (e.g., beardog)"
+    echo "  --dry-run          Validate binaries without copying or uploading"
+    echo "  --help             Show this help"
 }
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
-        --tag)        TAG="$2"; shift 2 ;;
-        --arch)       ARCH="$2"; shift 2 ;;
-        --dry-run)    DRY_RUN=true; shift ;;
-        --no-release) NO_RELEASE=true; shift ;;
-        --help|-h)    usage ;;
-        -*)           echo "Unknown option: $1"; usage ;;
-        *)            TARGETS+=("$1"); shift ;;
+        --source)    SOURCE_DIR="$2"; shift 2 ;;
+        --arch)      ARCH="$2"; shift 2 ;;
+        --release)   RELEASE_TAG="$2"; shift 2 ;;
+        --primal)    FILTER="$2"; shift 2 ;;
+        --dry-run)   DRY_RUN=true; shift ;;
+        --help)      usage; exit 0 ;;
+        -*)          echo "Unknown option: $1"; usage; exit 1 ;;
+        *)           FILTER="$1"; shift ;;
     esac
 done
 
-cd "$(dirname "$0")"
-
-# ── Detect architecture ──────────────────────────────────────────────
-if [[ -z "$ARCH" ]]; then
-    raw_arch=$(uname -m)
-    case "$raw_arch" in
-        x86_64|amd64)   ARCH="x86_64" ;;
-        aarch64|arm64)  ARCH="aarch64" ;;
-        *)              ARCH="$raw_arch" ;;
+detect_arch() {
+    local machine
+    machine=$(uname -m)
+    case "$machine" in
+        x86_64)  echo "x86_64" ;;
+        aarch64) echo "aarch64" ;;
+        armv7l)  echo "armv7" ;;
+        *)       echo "$machine" ;;
     esac
+}
+
+# Resolve ARCH to a full target triple. Accepts both short names (x86_64) and
+# full triples (x86_64-unknown-linux-musl).
+resolve_target_triple() {
+    case "$1" in
+        x86_64)                          echo "x86_64-unknown-linux-musl" ;;
+        aarch64)                         echo "aarch64-unknown-linux-musl" ;;
+        armv7)                           echo "armv7-unknown-linux-musleabihf" ;;
+        riscv64)                         echo "riscv64gc-unknown-linux-musl" ;;
+        *-unknown-*|*-apple-*|*-linux-*|*-pc-*|wasm32-*) echo "$1" ;; # already a full triple
+        *)                               echo "$1-unknown-linux-musl" ;;
+    esac
+}
+
+if [[ -z "$ARCH" ]]; then
+    ARCH=$(detect_arch)
 fi
 
-BUILDS_KEY="${ARCH}-linux"
+ARCH_TRIPLE=$(resolve_target_triple "$ARCH")
 
-if [[ -z "$TAG" ]]; then
-    TAG="v$(date +%Y.%m.%d)"
+if [[ -z "$SOURCE_DIR" ]]; then
+    # Try target-triple layout first, fall back to short arch name
+    if [[ -d "/tmp/primalspring-deploy/primals/$ARCH_TRIPLE" ]]; then
+        SOURCE_DIR="/tmp/primalspring-deploy/primals/$ARCH_TRIPLE"
+    else
+        SOURCE_DIR="/tmp/primalspring-deploy/primals/$ARCH"
+    fi
 fi
 
-echo "=== plasmidBin harvest ==="
-echo "Architecture: $ARCH ($BUILDS_KEY)"
-echo "Tag:          $TAG"
-echo ""
+# Build harvest map for the target. For known legacy short names, use the
+# pre-built maps. For any target triple, build dynamically.
+case "$ARCH" in
+    x86_64)  HARVEST_MAP=("${HARVEST_MAP_X86_64[@]}") ;;
+    aarch64) HARVEST_MAP=("${HARVEST_MAP_AARCH64[@]}") ;;
+    *)
+        # Dynamic harvest map for arbitrary target triples
+        HARVEST_MAP=()
+        for p in "${CORE_PRIMAL_NAMES[@]}"; do
+            HARVEST_MAP+=("${p}:primals/${ARCH_TRIPLE}/${p}")
+        done
+        ;;
+esac
 
-# ── Helper: update a key inside a specific TOML section ──────────────
-# Usage: update_toml_key <file> <section> <key> <value>
-# Updates key=value inside [section], or appends if missing.
-update_toml_key() {
-    local file="$1" section="$2" key="$3" value="$4"
-    local tmp="${file}.tmp"
+is_static_elf() {
+    local bin="$1"
+    if ! file "$bin" | grep -q "ELF"; then
+        return 1
+    fi
+    # For cross-arch binaries, ldd won't work — check file output instead
+    if file "$bin" | grep -q "statically linked"; then
+        return 0
+    fi
+    local ldd_out
+    ldd_out=$(ldd "$bin" 2>&1) || true
+    if echo "$ldd_out" | grep -qE "statically linked|not a dynamic executable"; then
+        return 0
+    fi
+    return 1
+}
+
+# Select strip binary — cross-arch needs cross-strip
+select_strip() {
+    case "$ARCH_TRIPLE" in
+        aarch64-unknown-linux-musl|aarch64-linux-*)
+            if command -v aarch64-linux-gnu-strip >/dev/null 2>&1; then
+                echo "aarch64-linux-gnu-strip"
+            else echo ""; fi ;;
+        armv7-*)
+            if command -v arm-linux-gnueabihf-strip >/dev/null 2>&1; then
+                echo "arm-linux-gnueabihf-strip"
+            else echo ""; fi ;;
+        riscv64*)
+            if command -v riscv64-linux-gnu-strip >/dev/null 2>&1; then
+                echo "riscv64-linux-gnu-strip"
+            else echo ""; fi ;;
+        x86_64-pc-windows-gnu)
+            if command -v x86_64-w64-mingw32-strip >/dev/null 2>&1; then
+                echo "x86_64-w64-mingw32-strip"
+            else echo ""; fi ;;
+        *)
+            echo "strip" ;;
+    esac
+}
+
+STRIP_BIN=$(select_strip)
+
+update_checksum() {
+    local section="$1"
+    local arch="$2"
+    local hash="$3"
+    local tmpfile
+    tmpfile=$(mktemp)
+
+    if [[ ! -f "$CHECKSUMS_FILE" ]]; then
+        cat > "$CHECKSUMS_FILE" <<HEADER
+# plasmidBin checksums — blake3
+#
+# One entry per binary, keyed by target triple.
+# Validated by update.sh, harvest.sh, and fetch.sh.
+#
+# Updated: $(date -I)
+
+HEADER
+    fi
+
     local in_section=false
+    local section_header
+    section_header=$(echo "$section" | sed 's/\./\\./g')
     local key_written=false
+    local section_found=false
 
-    while IFS= read -r line || [[ -n "$line" ]]; do
-        if [[ "$line" =~ ^\[${section}\] ]]; then
+    while IFS= read -r line; do
+        if [[ "$line" =~ ^\[${section_header}\] ]]; then
             in_section=true
-            echo "$line"
+            section_found=true
+            echo "$line" >> "$tmpfile"
             continue
         fi
-
         if $in_section && [[ "$line" =~ ^\[ ]]; then
             if ! $key_written; then
-                echo "${key} = \"${value}\""
+                echo "\"$arch\" = \"$hash\"" >> "$tmpfile"
                 key_written=true
             fi
             in_section=false
         fi
-
-        if $in_section && [[ "$line" =~ ^#?[[:space:]]*${key}[[:space:]]*= ]]; then
-            echo "${key} = \"${value}\""
+        if $in_section && [[ "$line" =~ ^\"${arch}\" ]]; then
+            echo "\"$arch\" = \"$hash\"" >> "$tmpfile"
             key_written=true
             continue
         fi
-
-        echo "$line"
-    done < "$file" > "$tmp"
+        echo "$line" >> "$tmpfile"
+    done < "$CHECKSUMS_FILE"
 
     if $in_section && ! $key_written; then
-        echo "${key} = \"${value}\"" >> "$tmp"
+        echo "\"$arch\" = \"$hash\"" >> "$tmpfile"
     fi
 
-    mv "$tmp" "$file"
+    if ! $section_found; then
+        echo "" >> "$tmpfile"
+        echo "[$section]" >> "$tmpfile"
+        echo "\"$arch\" = \"$hash\"" >> "$tmpfile"
+    fi
+
+    mv "$tmpfile" "$CHECKSUMS_FILE"
 }
 
-# ── Helper: retry a command ──────────────────────────────────────────
-retry() {
-    local attempt=1
-    while [[ $attempt -le $MAX_RETRIES ]]; do
-        if "$@"; then
-            return 0
-        fi
-        echo "  Attempt $attempt/$MAX_RETRIES failed. Retrying in ${RETRY_DELAY}s..."
-        sleep "$RETRY_DELAY"
-        attempt=$((attempt + 1))
-    done
-    echo "  ERROR: Command failed after $MAX_RETRIES attempts: $*"
-    return 1
-}
+echo "plasmidBin harvest — $(date -Iseconds)"
+echo "Source:  $SOURCE_DIR"
+echo "Arch:    $ARCH ($ARCH_TRIPLE)"
+if [[ -n "$RELEASE_TAG" ]]; then
+    echo "Release: $RELEASE_TAG (-> $GITHUB_REPO)"
+fi
+echo ""
 
-# ── Collect binaries ─────────────────────────────────────────────────
-
-binaries=()
-asset_args=()
-notes_lines=()
-
-should_harvest() {
-    local name="$1"
-    if [[ ${#TARGETS[@]} -eq 0 ]]; then
-        return 0
-    fi
-    for t in "${TARGETS[@]}"; do
-        [[ "$t" == "$name" ]] && return 0
-    done
-    return 1
-}
-
-for dir in */; do
-    dir="${dir%/}"
-    meta="$dir/metadata.toml"
-    [[ -f "$meta" ]] || continue
-
-    name=$(grep -m1 'name\s*=' "$meta" | sed 's/.*"\(.*\)".*/\1/')
-    [[ -z "$name" ]] && continue
-
-    should_harvest "$name" || continue
-
-    bin="$dir/$name"
-    if [[ ! -f "$bin" ]]; then
-        echo "SKIP: $name — no binary at $bin"
-        continue
-    fi
-
-    if [[ ! -x "$bin" ]]; then
-        chmod +x "$bin"
-    fi
-
-    checksum=$(sha256sum "$bin" | awk '{print $1}')
-    version=$(grep -m1 'version\s*=' "$meta" | sed 's/.*"\(.*\)".*/\1/')
-    timestamp=$(date -u +%Y-%m-%dT%H:%M:%SZ)
-    size=$(du -h "$bin" | awk '{print $1}')
-
-    echo "HARVEST: $name v$version ($size)"
-    echo "  binary:   $bin"
-    echo "  arch:     $BUILDS_KEY"
-    echo "  checksum: $checksum"
-
-    # Verify the binary has no build-machine paths baked in
-    if strings "$bin" 2>/dev/null | grep -qE '/home/(east|west|south|north|strand|biome)gate'; then
-        echo "  WARNING: Binary contains build-machine paths!"
-        echo "           Rebuild with --remap-path-prefix before harvesting."
-        echo "           See wateringHole SECRETS_AND_SEEDS_STANDARD.md"
-    fi
-
-    if [[ "$DRY_RUN" == false ]]; then
-        update_toml_key "$meta" "builds\\.${BUILDS_KEY}" "checksum_sha256" "$checksum"
-
-        if grep -q 'built_at' "$meta"; then
-            sed -i "s/^built_at = .*/built_at = \"$timestamp\"/" "$meta"
-        fi
-    fi
-
-    # Release asset: name with arch suffix for multi-arch coexistence
-    asset_name="${name}-${ARCH}"
-    cp "$bin" "/tmp/$asset_name"
-    binaries+=("$bin")
-    asset_args+=("/tmp/$asset_name")
-    notes_lines+=("- **$name** v$version — $ARCH ($size)")
-done
-
-if [[ ${#binaries[@]} -eq 0 ]]; then
-    echo ""
-    echo "No primal binaries found to harvest."
-    echo "Build primals first, then copy binaries into their directories:"
-    echo "  cp target/release/beardog plasmidBin/beardog/"
+if [[ ! -d "$SOURCE_DIR" ]]; then
+    echo "ERROR: Source directory not found: $SOURCE_DIR"
+    echo "  Run build_ecosystem_musl.sh first to produce binaries."
     exit 1
 fi
 
-# ── Regenerate manifest.lock ─────────────────────────────────────────
+mkdir -p "$PRIMALS_DIR/$ARCH_TRIPLE" "$SPRINGS_DIR"
 
-echo ""
-echo "--- Generating manifest.lock ---"
+RELEASE_ASSETS=()
 
-if [[ "$DRY_RUN" == false ]]; then
-    gen_ts=$(date -u +%Y-%m-%dT%H:%M:%SZ)
-    {
-        cat <<LOCKHEADER
-# plasmidBin manifest.lock — Resolved primal versions for this deployment
-# Generated: $gen_ts
-# Source: local builds
+for entry in "${HARVEST_MAP[@]}"; do
+    artifact="${entry%%:*}"
+    dest_rel="${entry##*:}"
+    local_name=$(basename "$dest_rel")
+    category=$(dirname "$dest_rel")
 
-[meta]
-generated = "$gen_ts"
-registry_version = "3.0.0"
-tag = "$TAG"
-architectures = ["x86_64-linux", "aarch64-linux"]
-LOCKHEADER
-
-        for dir in */; do
-            dir="${dir%/}"
-            meta="$dir/metadata.toml"
-            [[ -f "$meta" ]] || continue
-
-            name=$(grep -m1 'name\s*=' "$meta" | sed 's/.*"\(.*\)".*/\1/')
-            [[ -z "$name" ]] && continue
-
-            version=$(grep -m1 'version\s*=' "$meta" | sed 's/.*"\(.*\)".*/\1/')
-            domain=$(grep -m1 'domain\s*=' "$meta" | sed 's/.*"\(.*\)".*/\1/' 2>/dev/null || echo "unknown")
-            tier=$(grep -m1 'tier\s*=' "$meta" | sed 's/.*"\(.*\)".*/\1/' 2>/dev/null || echo "ecoBin")
-
-            # Determine default port from ports.env
-            port_var="${name^^}_PORT"
-            port_var="${port_var//-/_}"
-
-            # Collect available builds
-            builds=""
-            if grep -q "\[builds\.x86_64-linux\]" "$meta"; then
-                builds="${builds:+$builds, }\"x86_64-linux\""
-            fi
-            if grep -q "\[builds\.aarch64-linux\]" "$meta"; then
-                builds="${builds:+$builds, }\"aarch64-linux\""
-            fi
-
-            # Categorize as primal or spring
-            category="primals"
-            case "$name" in
-                *spring*) category="springs" ;;
-            esac
-
-            echo ""
-            echo "[$category.$name]"
-            echo "version = \"$version\""
-            echo "domain = \"$domain\""
-            echo "tier = \"$tier\""
-            [[ -n "$builds" ]] && echo "builds = [$builds]"
-        done
-
-        # Compositions (read from ports.env)
-        echo ""
-        echo "# ── Compositions ─────────────────────────────────────────────────────"
-        echo ""
-        echo "[compositions.tower]"
-        echo "primals = [\"beardog\", \"songbird\"]"
-        echo ""
-        echo "[compositions.compute]"
-        echo "primals = [\"beardog\", \"songbird\", \"toadstool\"]"
-        echo ""
-        echo "[compositions.node]"
-        echo "primals = [\"beardog\", \"songbird\", \"toadstool\", \"squirrel\"]"
-        echo ""
-        echo "[compositions.nest]"
-        echo "primals = [\"beardog\", \"songbird\", \"nestgate\"]"
-        echo ""
-        echo "[compositions.full]"
-        echo "primals = [\"beardog\", \"songbird\", \"nestgate\", \"toadstool\", \"squirrel\", \"biomeos\", \"petaltongue\"]"
-        echo ""
-        echo "[compositions.provenance]"
-        echo "primals = [\"beardog\", \"songbird\", \"rhizocrypt\", \"loamspine\", \"sweetgrass\"]"
-        echo ""
-        echo "[compositions.science]"
-        echo "primals = [\"beardog\", \"songbird\", \"toadstool\", \"squirrel\", \"biomeos\"]"
-    } > manifest.lock
-
-    echo "  manifest.lock regenerated"
-fi
-
-# ── Create GitHub Release ────────────────────────────────────────────
-
-echo ""
-echo "--- Release summary ---"
-echo "Tag:      $TAG"
-echo "Arch:     $ARCH"
-echo "Binaries: ${#binaries[@]}"
-for line in "${notes_lines[@]}"; do
-    echo "  $line"
-done
-
-if [[ "$DRY_RUN" == true ]]; then
-    echo ""
-    echo "(dry run — no changes made)"
-    rm -f /tmp/*-"${ARCH}" 2>/dev/null || true
-    exit 0
-fi
-
-if [[ "$NO_RELEASE" == true ]]; then
-    echo ""
-    echo "(--no-release — metadata updated, no GitHub Release created)"
-else
-    echo ""
-    echo "--- Creating GitHub Release ---"
-
-    release_notes=$(printf '%s\n' "${notes_lines[@]}")
-
-    # Check if release already exists — if so, upload assets to it
-    if gh release view "$TAG" --repo "$REPO" &>/dev/null; then
-        echo "  Release $TAG exists — uploading new assets"
-        retry gh release upload "$TAG" \
-            "${asset_args[@]}" \
-            --repo "$REPO" \
-            --clobber
-    else
-        retry gh release create "$TAG" \
-            "${asset_args[@]}" \
-            --repo "$REPO" \
-            --title "Harvest $TAG" \
-            --notes "$release_notes"
+    if [[ -n "$FILTER" && "$local_name" != "$FILTER" && "$artifact" != *"$FILTER"* ]]; then
+        continue
     fi
 
-    echo "  Release: https://github.com/$REPO/releases/tag/$TAG"
+    src="$SOURCE_DIR/$artifact"
+    if [[ ! -f "$src" ]]; then
+        echo "  [$local_name] SKIP  artifact not found: $artifact"
+        SKIPPED=$((SKIPPED + 1))
+        continue
+    fi
+
+    echo -n "  [$local_name] "
+
+    if ! is_static_elf "$src"; then
+        echo "FAIL  not a static ELF binary"
+        FAILED=$((FAILED + 1))
+        continue
+    fi
+
+    local_dest="$SCRIPT_DIR/$dest_rel"
+    stripped_tmp=$(mktemp)
+    if [[ -n "$STRIP_BIN" ]]; then
+        "$STRIP_BIN" -s "$src" -o "$stripped_tmp" 2>/dev/null || cp "$src" "$stripped_tmp"
+    else
+        cp "$src" "$stripped_tmp"
+        echo -n "(no cross-strip) "
+    fi
+    chmod +x "$stripped_tmp"
+
+    hash=$(b3sum --no-names "$stripped_tmp")
+    size=$(du -h "$stripped_tmp" | cut -f1)
+
+    if $DRY_RUN; then
+        echo "OK  [dry-run] static, stripped, ${size}, blake3=$hash"
+        rm -f "$stripped_tmp"
+        HARVESTED=$((HARVESTED + 1))
+        continue
+    fi
+
+    cp "$stripped_tmp" "$local_dest"
+
+    # Checksum section uses the base primal name (without arch subdir)
+    checksum_section="${category##*/aarch64/}"
+    checksum_section="${checksum_section%%aarch64/*}"
+    # Normalize: primals/aarch64 -> primals, springs/aarch64 -> springs
+    case "$dest_rel" in
+        primals/aarch64/*) checksum_section="primals.${local_name}" ;;
+        springs/aarch64/*) checksum_section="springs.${local_name}" ;;
+        *)                 checksum_section="$(echo "$category" | tr '/' '.').${local_name}" ;;
+    esac
+    update_checksum "$checksum_section" "$ARCH_TRIPLE" "$hash"
+
+    RELEASE_ASSETS+=("$local_dest")
+
+    echo "OK  ${size}  blake3=${hash:0:16}..."
+    HARVESTED=$((HARVESTED + 1))
+
+    rm -f "$stripped_tmp"
+done
+
+echo ""
+
+if [[ -n "$RELEASE_TAG" ]] && [[ ${#RELEASE_ASSETS[@]} -gt 0 ]] && ! $DRY_RUN; then
+    echo "Publishing to GitHub Release: $RELEASE_TAG"
+
+    if ! command -v gh >/dev/null 2>&1; then
+        echo "  ERROR: gh (GitHub CLI) not installed. Skipping release upload."
+        echo "  Install: https://cli.github.com/"
+    else
+        existing=$(gh release view "$RELEASE_TAG" --repo "$GITHUB_REPO" 2>/dev/null) || true
+        if [[ -z "$existing" ]]; then
+            echo "  Creating release $RELEASE_TAG ..."
+            gh release create "$RELEASE_TAG" \
+                --repo "$GITHUB_REPO" \
+                --title "plasmidBin $RELEASE_TAG" \
+                --notes "Automated harvest — $(date -I)" \
+                "${RELEASE_ASSETS[@]}"
+        else
+            echo "  Uploading to existing release $RELEASE_TAG ..."
+            gh release upload "$RELEASE_TAG" \
+                --repo "$GITHUB_REPO" \
+                --clobber \
+                "${RELEASE_ASSETS[@]}"
+        fi
+        echo "  Done."
+    fi
 fi
 
-# ── Cleanup temp files ───────────────────────────────────────────────
-rm -f /tmp/*-"${ARCH}" 2>/dev/null || true
-
-# ── Commit metadata ──────────────────────────────────────────────────
-
 echo ""
-echo "--- Committing metadata ---"
+echo "Summary:"
+echo "  Harvested: $HARVESTED"
+echo "  Skipped:   $SKIPPED"
+echo "  Failed:    $FAILED"
 
-git add manifest.lock */metadata.toml
-git commit -m "harvest($ARCH): $TAG — ${#binaries[@]} binaries" || echo "(nothing to commit)"
-
-echo ""
-echo "Done. Run 'git push' to publish metadata."
+if [[ $FAILED -gt 0 ]]; then
+    exit 1
+fi

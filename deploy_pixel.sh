@@ -1,0 +1,425 @@
+#!/usr/bin/env bash
+# plasmidBin/deploy_pixel.sh — Deploy primals to Pixel/GrapheneOS via ADB
+#
+# Pushes aarch64 musl-static binaries to device, generates startup script,
+# sets up ADB port forwarding, and starts primals with abstract sockets
+# (SELinux-safe) and TCP listeners.
+#
+# Usage:
+#   ./deploy_pixel.sh                           # Deploy Tower (beardog+songbird)
+#   ./deploy_pixel.sh --composition compute     # Tower + toadstool
+#   ./deploy_pixel.sh --dark-forest             # Enable Dark Forest beacons
+#   ./deploy_pixel.sh --beacon-seed ~/.config/biomeos/.beacon.seed
+#   ./deploy_pixel.sh --dry-run                 # Show plan, don't execute
+#   ./deploy_pixel.sh --stop                    # Stop running primals on device
+#
+# Prerequisites:
+#   - ADB connected to device (USB debugging enabled)
+#   - aarch64 musl binaries in plasmidBin/primals/aarch64/
+#     (build via: build_ecosystem_musl.sh --aarch64 && harvest.sh --arch aarch64)
+#
+# Standard ports (from primalSpring tolerances):
+#   beardog=9100 songbird=9200 nestgate=9300 toadstool=9400 squirrel=9500
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+# shellcheck source=ports.env
+source "$SCRIPT_DIR/ports.env"
+
+AARCH64_DIR="$SCRIPT_DIR/primals/aarch64-unknown-linux-musl"
+# Fall back to legacy layout if target-triple dir is empty/missing
+if [[ ! -d "$AARCH64_DIR" ]] || [[ -z "$(ls -A "$AARCH64_DIR" 2>/dev/null)" ]]; then
+    AARCH64_DIR="$SCRIPT_DIR/primals/aarch64"
+fi
+
+REMOTE_DIR="/data/local/tmp/plasmidBin"
+REMOTE_PRIMALS="$REMOTE_DIR/primals"
+REMOTE_RUNTIME="/data/local/tmp/biomeos"
+
+DRY_RUN=false
+COMPOSITION="tower"
+DARK_FOREST=false
+BEACON_SEED=""
+FAMILY_ID=""
+NODE_ID="pixel"
+DO_STOP=false
+SKIP_FORWARD=false
+LOCAL_PORT_OFFSET=0
+
+usage() {
+    echo "Usage: $0 [OPTIONS]"
+    echo ""
+    echo "Compositions:"
+    echo "  tower    BearDog + Songbird (default — crypto + network)"
+    echo "  compute  Tower + ToadStool (mobile compute sharing)"
+    echo "  full     All core primals"
+    echo ""
+    echo "Options:"
+    echo "  --composition NAME   Primal composition (tower|compute|full)"
+    echo "  --dark-forest        Enable Dark Forest beacon mode"
+    echo "  --beacon-seed PATH   .beacon.seed file for BirdSong discovery"
+    echo "  --family-id ID       Family ID (auto-generated from beacon seed if not set)"
+    echo "  --node-id ID         Node identifier (default: pixel)"
+    echo "  --no-forward         Skip ADB port forwarding"
+    echo "  --local-port-offset N  Offset local ADB forward ports (e.g., 10000 -> 19100)"
+    echo "  --stop               Stop primals on device and exit"
+    echo "  --dry-run            Show plan, don't execute"
+    echo "  --help               Show this help"
+}
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --composition)  COMPOSITION="$2"; shift 2 ;;
+        --dark-forest)  DARK_FOREST=true; shift ;;
+        --beacon-seed)  BEACON_SEED="$2"; shift 2 ;;
+        --family-id)    FAMILY_ID="$2"; shift 2 ;;
+        --node-id)      NODE_ID="$2"; shift 2 ;;
+        --no-forward)   SKIP_FORWARD=true; shift ;;
+        --local-port-offset) LOCAL_PORT_OFFSET="$2"; shift 2 ;;
+        --stop)         DO_STOP=true; shift ;;
+        --dry-run)      DRY_RUN=true; shift ;;
+        --help)         usage; exit 0 ;;
+        -*)             echo "Unknown option: $1"; usage; exit 1 ;;
+        *)              echo "Unknown argument: $1"; usage; exit 1 ;;
+    esac
+done
+
+# ── Helpers ──────────────────────────────────────────────────────────────────
+
+run() {
+    if $DRY_RUN; then
+        echo "  [dry-run] $*"
+    else
+        "$@"
+    fi
+}
+
+adb_sh() {
+    if $DRY_RUN; then
+        echo "  [dry-run] adb shell \"$*\""
+    else
+        adb shell "$@"
+    fi
+}
+
+# ── Stop mode ────────────────────────────────────────────────────────────────
+
+if $DO_STOP; then
+    echo "Stopping primals on device..."
+    adb_sh "pkill -f '$REMOTE_PRIMALS/' 2>/dev/null || true"
+    sleep 1
+    adb_sh "pkill -9 -f '$REMOTE_PRIMALS/' 2>/dev/null || true"
+    echo "Removing ADB port forwards..."
+    for p in $ALL_PRIMALS; do
+        port=$(port_for_primal "$p")
+        [[ "$port" == "0" ]] && continue
+        adb forward --remove tcp:$port 2>/dev/null || true
+    done
+    echo "Done."
+    exit 0
+fi
+
+# ── Verify ADB connection ───────────────────────────────────────────────────
+
+if ! $DRY_RUN; then
+    if ! adb get-state >/dev/null 2>&1; then
+        echo "ERROR: No ADB device connected."
+        echo "  Connect Pixel via USB and enable USB debugging."
+        exit 1
+    fi
+    DEVICE_ARCH=$(adb shell "uname -m" 2>/dev/null | tr -d '\r\n')
+    if [[ "$DEVICE_ARCH" != "aarch64" ]]; then
+        echo "WARNING: Device reports arch '$DEVICE_ARCH', expected aarch64"
+    fi
+fi
+
+# ── Resolve primals and config ───────────────────────────────────────────────
+
+PRIMALS=$(primals_for_composition "$COMPOSITION")
+
+if [[ -z "$FAMILY_ID" ]]; then
+    if [[ -n "$BEACON_SEED" && -f "$BEACON_SEED" ]]; then
+        FAMILY_ID=$(b3sum --no-names "$BEACON_SEED" | head -c 8)
+    else
+        FAMILY_ID=$(echo "$NODE_ID-$(date +%s)" | md5sum | head -c 8)
+    fi
+fi
+
+echo "plasmidBin Pixel deploy — $(date -Iseconds)"
+echo "Device:      $(adb get-serialno 2>/dev/null || echo 'unknown')"
+echo "Composition: $COMPOSITION ($PRIMALS)"
+echo "Family ID:   $FAMILY_ID"
+echo "Node ID:     $NODE_ID"
+echo "Dark Forest: $DARK_FOREST"
+echo "Remote dir:  $REMOTE_DIR"
+echo ""
+
+# ── Phase 1: Verify local aarch64 binaries ──────────────────────────────────
+
+echo "=== Phase 1: Verify aarch64 binaries ==="
+
+MISSING=0
+for p in $PRIMALS; do
+    if [[ ! -f "$AARCH64_DIR/$p" ]]; then
+        echo "  ERROR: Missing $AARCH64_DIR/$p"
+        MISSING=$((MISSING + 1))
+    else
+        echo "  OK: $p ($(du -h "$AARCH64_DIR/$p" | cut -f1))"
+    fi
+done
+
+if [[ $MISSING -gt 0 ]]; then
+    echo ""
+    echo "Build aarch64 binaries first:"
+    echo "  ./scripts/build_ecosystem_musl.sh --aarch64"
+    echo "  ./harvest.sh --arch aarch64"
+    exit 1
+fi
+echo ""
+
+# ── Phase 2: Push binaries to device ────────────────────────────────────────
+
+echo "=== Phase 2: Push binaries to device ==="
+
+adb_sh "mkdir -p $REMOTE_PRIMALS $REMOTE_RUNTIME"
+
+for p in $PRIMALS; do
+    echo "  Pushing $p..."
+    run adb push "$AARCH64_DIR/$p" "$REMOTE_PRIMALS/$p"
+done
+adb_sh "chmod +x $REMOTE_PRIMALS/*"
+
+if [[ -n "$BEACON_SEED" && -f "$BEACON_SEED" ]]; then
+    echo "  Pushing beacon seed..."
+    run adb push "$BEACON_SEED" "$REMOTE_DIR/.beacon.seed"
+    adb_sh "chmod 600 $REMOTE_DIR/.beacon.seed"
+fi
+echo ""
+
+# ── Phase 3: Generate and push startup script ───────────────────────────────
+
+echo "=== Phase 3: Generate startup script ==="
+
+STARTUP="#!/system/bin/sh
+export FAMILY_ID=\"$FAMILY_ID\"
+export NODE_ID=\"$NODE_ID\"
+export ECOPRIMALS_PLASMID_BIN=\"$REMOTE_DIR\"
+export HOME=\"$REMOTE_RUNTIME\"
+export TMPDIR=\"$REMOTE_RUNTIME\"
+mkdir -p $REMOTE_RUNTIME $REMOTE_RUNTIME/biomeos $REMOTE_RUNTIME/pid
+cd $REMOTE_RUNTIME
+"
+
+if $DARK_FOREST; then
+    STARTUP+="export SONGBIRD_DARK_FOREST=true
+export SONGBIRD_AUTO_DISCOVERY=true
+"
+fi
+
+STARTUP+="
+echo \"Starting primal composition: $COMPOSITION\"
+echo \"Family: \$FAMILY_ID  Node: \$NODE_ID  Dark Forest: $DARK_FOREST\"
+echo \"\"
+
+# Kill existing
+for p in $PRIMALS; do
+    pkill -f \"$REMOTE_PRIMALS/\$p\" 2>/dev/null || true
+done
+sleep 1
+"
+
+for p in $PRIMALS; do
+    PORT=$(port_for_primal "$p")
+    case "$p" in
+        beardog)
+            STARTUP+="
+echo \"Starting beardog (abstract socket + TCP $PORT)...\"
+$REMOTE_PRIMALS/beardog server \\
+    --abstract \\
+    --family-id \$FAMILY_ID \\
+    --listen 0.0.0.0:$PORT \\
+    > /data/local/tmp/beardog.log 2>&1 &
+BEARDOG_PID=\$!
+echo \"  PID: \$BEARDOG_PID\"
+sleep 2
+"
+            ;;
+        songbird)
+            STARTUP+="
+echo \"Starting songbird (HTTP $PORT)...\"
+export BEARDOG_SOCKET=\"@biomeos_beardog\"
+export BEARDOG_MODE=direct
+export SONGBIRD_SECURITY_PROVIDER=beardog
+$REMOTE_PRIMALS/songbird server \\
+    --port $PORT \\
+    > /data/local/tmp/songbird.log 2>&1 &
+echo \"  PID: \$!\"
+sleep 2
+"
+            ;;
+        nestgate)
+            STARTUP+="
+echo \"Starting nestgate (TCP $PORT)...\"
+export NESTGATE_FAMILY_ID=\"\$FAMILY_ID\"
+export NESTGATE_JWT_SECRET=\"plasmidbin-pixel-\$FAMILY_ID\"
+$REMOTE_PRIMALS/nestgate daemon \\
+    --socket-only --dev \\
+    > /data/local/tmp/nestgate.log 2>&1 &
+echo \"  PID: \$!\"
+sleep 2
+"
+            ;;
+        toadstool)
+            STARTUP+="
+echo \"Starting toadstool (capabilities mode)...\"
+export TOADSTOOL_FAMILY_ID=\"\$FAMILY_ID\"
+export TOADSTOOL_NODE_ID=\"\$NODE_ID\"
+export TOADSTOOL_SECURITY_WARNING_ACKNOWLEDGED=1
+echo \"  ToadStool capabilities:\"
+$REMOTE_PRIMALS/toadstool capabilities 2>/dev/null | head -5 || echo \"  (check unavailable)\"
+echo \"  NOTE: ToadStool requires biome.yaml for full server mode.\"
+"
+            ;;
+        squirrel)
+            STARTUP+="
+echo \"Starting squirrel (HTTP $PORT)...\"
+export SQUIRREL_MODE=server
+$REMOTE_PRIMALS/squirrel server \\
+    --port $PORT \\
+    --bind 0.0.0.0 \\
+    > /data/local/tmp/squirrel.log 2>&1 &
+echo \"  PID: \$!\"
+sleep 2
+"
+            ;;
+        biomeos)
+            STARTUP+="
+echo \"Starting biomeOS (TCP $PORT)...\"
+$REMOTE_PRIMALS/biomeos api \\
+    --port $PORT \\
+    --bind 0.0.0.0 \\
+    > /data/local/tmp/biomeos.log 2>&1 &
+echo \"  PID: \$!\"
+sleep 2
+"
+            ;;
+    esac
+done
+
+STARTUP+="
+echo \"\"
+echo \"=== Pixel Gate Ready ===\"
+echo \"Composition: $COMPOSITION\"
+echo \"Primals running:\"
+for p in $PRIMALS; do
+    pid=\$(pgrep -f \"$REMOTE_PRIMALS/\$p\" 2>/dev/null | head -1)
+    if [ -n \"\$pid\" ]; then
+        echo \"  \$p: PID \$pid\"
+    else
+        echo \"  \$p: FAILED (check /data/local/tmp/\$p.log)\"
+    fi
+done
+echo \"\"
+echo \"TCP endpoints:\"
+"
+
+for p in $PRIMALS; do
+    PORT=$(port_for_primal "$p")
+    STARTUP+="echo \"  $p: tcp://0.0.0.0:$PORT\"
+"
+done
+
+if $DRY_RUN; then
+    echo "  [dry-run] Startup script:"
+    echo "$STARTUP" | head -30
+    echo "  ..."
+else
+    echo "$STARTUP" | adb shell "cat > $REMOTE_DIR/start_gate.sh && chmod +x $REMOTE_DIR/start_gate.sh"
+    echo "  Pushed start_gate.sh to device"
+fi
+echo ""
+
+# ── Phase 4: Start primals on device ────────────────────────────────────────
+
+echo "=== Phase 4: Start primals ==="
+
+if $DRY_RUN; then
+    echo "  [dry-run] Would run: adb shell sh $REMOTE_DIR/start_gate.sh"
+else
+    adb shell "sh $REMOTE_DIR/start_gate.sh"
+fi
+echo ""
+
+# ── Phase 5: ADB port forwarding ────────────────────────────────────────────
+
+if ! $SKIP_FORWARD; then
+    echo "=== Phase 5: ADB port forwarding ==="
+    for p in $PRIMALS; do
+        PORT=$(port_for_primal "$p")
+        LOCAL_PORT=$((PORT + LOCAL_PORT_OFFSET))
+        if [[ "$PORT" != "0" ]]; then
+            run adb forward tcp:$LOCAL_PORT tcp:$PORT
+            echo "  $p: localhost:$LOCAL_PORT -> device:$PORT"
+        fi
+    done
+    echo ""
+    echo "Access primals via localhost:"
+    for p in $PRIMALS; do
+        PORT=$(port_for_primal "$p")
+        LOCAL_PORT=$((PORT + LOCAL_PORT_OFFSET))
+        echo "  $p: tcp://localhost:$LOCAL_PORT"
+    done
+fi
+
+echo ""
+
+# ── Phase 6: Quick probe ────────────────────────────────────────────────────
+
+echo "=== Phase 6: Quick probe ==="
+
+if ! $DRY_RUN; then
+    sleep 2
+    ALL_OK=true
+    for p in $PRIMALS; do
+        PORT=$(port_for_primal "$p")
+        LOCAL_PORT=$((PORT + LOCAL_PORT_OFFSET))
+        if timeout 3 bash -c "echo '' > /dev/tcp/localhost/$LOCAL_PORT" 2>/dev/null; then
+            echo "  $p (localhost:$LOCAL_PORT via ADB): REACHABLE"
+        else
+            echo "  $p (localhost:$LOCAL_PORT via ADB): NOT REACHABLE"
+            ALL_OK=false
+        fi
+    done
+
+    echo ""
+    if $ALL_OK; then
+        echo "Pixel gate deployed and reachable via ADB forward."
+    else
+        echo "Some primals not reachable. Check device logs:"
+        echo "  adb shell cat /data/local/tmp/beardog.log"
+        echo "  adb shell cat /data/local/tmp/songbird.log"
+    fi
+else
+    for p in $PRIMALS; do
+        PORT=$(port_for_primal "$p")
+        LOCAL_PORT=$((PORT + LOCAL_PORT_OFFSET))
+        echo "  [dry-run] Would probe localhost:$LOCAL_PORT ($p)"
+    done
+fi
+
+echo ""
+echo "=== Deploy complete ==="
+echo "Device script: $REMOTE_DIR/start_gate.sh"
+echo "Device logs:   adb shell 'cat /data/local/tmp/*.log'"
+if [[ $LOCAL_PORT_OFFSET -gt 0 ]]; then
+    echo "Validate:      ./validate_gate.sh localhost (ports offset by +$LOCAL_PORT_OFFSET)"
+else
+    echo "Validate:      ./validate_gate.sh localhost"
+fi
+echo "Stop:          $0 --stop"
+echo ""
+echo "For hotspot LAN access, find Pixel IP:"
+echo "  adb shell 'ip addr show wlan0 | grep inet'"
+echo "Then validate from any machine on the same hotspot:"
+echo "  ./validate_gate.sh <pixel-ip>"
