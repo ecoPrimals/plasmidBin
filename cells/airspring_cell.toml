@@ -130,8 +130,23 @@ order = 12
 required = true
 depends_on = ["beardog", "songbird"]
 health_method = "health.liveness"
-by_capability = "weather"
-capabilities = ["data.weather", "data.cross_spring_weather", "ecology.experiment", "compute.offload"]
+by_capability = "ecology"
+capabilities = [
+    "science.et0_fao56",
+    "science.water_balance",
+    "science.yield_response",
+    "science.dual_kc",
+    "ecology.full_pipeline",
+    "ecology.experiment",
+    "provenance.begin",
+    "provenance.complete",
+    "capability.list",
+    "health.liveness",
+    "health.readiness",
+    "data.weather",
+    "data.cross_spring_weather",
+    "compute.offload",
+]
 
 # ── Validation ───────────────────────────────────────────────────────
 

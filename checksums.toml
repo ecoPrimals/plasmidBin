@@ -111,3 +111,27 @@
 "aarch64-unknown-linux-musl" = "4c673a90ef0a31a505e54cd92eb16951232835cfdcaffe80beba47f696a632e0"
 "armv7-unknown-linux-musleabihf" = "e9fe9f84eda1443f160e017a8c19f5a4db06b060aabecc0fdbe460cb024aa438"
 "riscv64gc-unknown-linux-musl" = "e5e96e19e19e2a3c30ff70fdf1dd9f9c1ad65768dad7f857d5ad7fda1a49dfda"
+
+[primals.x86_64-unknown-linux-musl.beardog]
+"x86_64-unknown-linux-musl" = "d886edb346760169d861bdf39552cf9edd38a10c33cbfd892062dfa15c1be17d"
+
+[primals.x86_64-unknown-linux-musl.songbird]
+"x86_64-unknown-linux-musl" = "ffa43d9250128cf3893383c644cfe993487d99025952b6dd4ae0331f020ac661"
+
+[primals.x86_64-unknown-linux-musl.rhizocrypt]
+"x86_64-unknown-linux-musl" = "c880db3f748d90b0dbe0fc6abb9db67b67667c275dd144fbd9cf0cec4f5c4ecc"
+
+[primals.x86_64-unknown-linux-musl.loamspine]
+"x86_64-unknown-linux-musl" = "a32837b333484a484a629c70be645365a364b5ecc95ae2fd9a053513041d3c75"
+
+[primals.x86_64-unknown-linux-musl.sweetgrass]
+"x86_64-unknown-linux-musl" = "8afc8f7a64bfc58d9969c8699ab5614071f8313ecc600b9f596a5fa24dd76434"
+
+[primals.x86_64-unknown-linux-musl.petaltongue]
+"x86_64-unknown-linux-musl" = "8c384e3628381acf37163be09ef2c54fa865c7e6e890e9a3f6da0734f7ba182f"
+
+[primals.x86_64-unknown-linux-musl.squirrel]
+"x86_64-unknown-linux-musl" = "c92b93307ce890edcca4accb3c21e6b159f38e1992610db2133b93c1927e0bc0"
+
+[primals.x86_64-unknown-linux-musl.nestgate]
+"x86_64-unknown-linux-musl" = "6a2a38e77a7b99116c292785c48536462034befdd6f33b70eace594297dde4f9"
