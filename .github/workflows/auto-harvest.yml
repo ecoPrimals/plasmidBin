@@ -1,0 +1,182 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+#
+# auto-harvest.yml — Automated primal build + harvest pipeline
+#
+# Triggers:
+#   1. repository_dispatch from primal repos (on push to main)
+#   2. workflow_dispatch for manual rebuilds (single primal or all)
+#   3. Weekly schedule for full-sweep consistency
+#
+# Flow: install toolchain -> build-primal.sh -> harvest.sh -> commit checksums
+#       -> gh release upload -> smoke test triggers on release publish
+
+name: Auto Harvest
+
+on:
+  repository_dispatch:
+    types: [primal-updated]
+
+  workflow_dispatch:
+    inputs:
+      primal:
+        description: 'Primal to rebuild (source ID from sources.toml, or "all")'
+        required: true
+        default: 'all'
+        type: string
+
+  schedule:
+    - cron: '0 6 * * 1'
+
+permissions:
+  contents: write
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  harvest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.PLASMIDBIN_HARVEST_PAT }}
+
+      - name: Determine what to build
+        id: target
+        run: |
+          if [[ "${{ github.event_name }}" == "repository_dispatch" ]]; then
+            PRIMAL="${{ github.event.client_payload.primal }}"
+            COMMIT="${{ github.event.client_payload.sha }}"
+            echo "primal=$PRIMAL" >> "$GITHUB_OUTPUT"
+            echo "commit=$COMMIT" >> "$GITHUB_OUTPUT"
+            echo "Dispatch: build $PRIMAL (commit $COMMIT)"
+          elif [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "primal=${{ github.event.inputs.primal }}" >> "$GITHUB_OUTPUT"
+            echo "commit=" >> "$GITHUB_OUTPUT"
+            echo "Manual: build ${{ github.event.inputs.primal }}"
+          else
+            echo "primal=all" >> "$GITHUB_OUTPUT"
+            echo "commit=" >> "$GITHUB_OUTPUT"
+            echo "Schedule: full sweep"
+          fi
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-unknown-linux-musl
+
+      - name: Install musl-tools and b3sum
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq musl-tools
+          cargo install b3sum --locked || true
+
+      - name: Configure git for private repos
+        run: |
+          git config --global url."https://x-access-token:${{ secrets.PLASMIDBIN_HARVEST_PAT }}@github.com/".insteadOf "https://github.com/"
+
+      - name: Build primal(s)
+        run: |
+          PRIMAL="${{ steps.target.outputs.primal }}"
+          if [[ "$PRIMAL" == "all" ]]; then
+            ./build-primal.sh --all --target x86_64-unknown-linux-musl
+          else
+            ./build-primal.sh "$PRIMAL" --target x86_64-unknown-linux-musl
+          fi
+
+      - name: Harvest into plasmidBin
+        run: |
+          PRIMAL="${{ steps.target.outputs.primal }}"
+          ARCH="x86_64"
+          SOURCE="/tmp/primalspring-deploy/primals/x86_64-unknown-linux-musl"
+          ARGS=(--source "$SOURCE" --arch "$ARCH")
+          if [[ "$PRIMAL" != "all" ]]; then
+            ARGS+=(--primal "$PRIMAL")
+          fi
+          ./harvest.sh "${ARGS[@]}"
+
+      - name: Extract version info
+        id: version
+        run: |
+          PRIMAL="${{ steps.target.outputs.primal }}"
+          TAG="v$(date -u +%Y.%m.%d)"
+          NOTES="Auto-harvest $(date -u +%Y-%m-%d)"
+          if [[ "$PRIMAL" != "all" ]]; then
+            # Try to extract version from the built binary's Cargo.toml in build cache
+            NOTES="$NOTES — $PRIMAL"
+            COMMIT="${{ steps.target.outputs.commit }}"
+            if [[ -n "$COMMIT" ]]; then
+              NOTES="$NOTES ($COMMIT)"
+            fi
+          else
+            NOTES="$NOTES — full sweep (all primals)"
+          fi
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "notes=$NOTES" >> "$GITHUB_OUTPUT"
+
+      - name: Commit updated checksums
+        run: |
+          git config user.name "plasmidBin-bot"
+          git config user.email "plasmidbin-bot@ecoPrimals.dev"
+          git add checksums.toml primals/ springs/ || true
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            PRIMAL="${{ steps.target.outputs.primal }}"
+            git commit -m "harvest: $PRIMAL — $(date -u +%Y-%m-%d)"
+            git push
+          fi
+
+      - name: Upload to GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.PLASMIDBIN_HARVEST_PAT }}
+        run: |
+          TAG="${{ steps.version.outputs.tag }}"
+          NOTES="${{ steps.version.outputs.notes }}"
+          PRIMAL="${{ steps.target.outputs.primal }}"
+          ARCH_DIR="primals/x86_64-unknown-linux-musl"
+
+          ASSETS=()
+          if [[ "$PRIMAL" == "all" ]]; then
+            for bin in "$ARCH_DIR"/*; do
+              [[ -f "$bin" ]] && ASSETS+=("$bin")
+            done
+          else
+            for bin in "$ARCH_DIR"/*; do
+              [[ -f "$bin" ]] || continue
+              bn="$(basename "$bin")"
+              if [[ "$bn" == "$PRIMAL" || "$bn" == "${PRIMAL}_primal" ]]; then
+                ASSETS+=("$bin")
+              fi
+            done
+          fi
+
+          if [[ ${#ASSETS[@]} -eq 0 ]]; then
+            echo "No assets to upload"
+            exit 0
+          fi
+
+          if gh release view "$TAG" --repo ecoPrimals/plasmidBin >/dev/null 2>&1; then
+            echo "Uploading to existing release $TAG ..."
+            gh release upload "$TAG" \
+              --repo ecoPrimals/plasmidBin \
+              --clobber \
+              "${ASSETS[@]}"
+          else
+            echo "Creating release $TAG ..."
+            gh release create "$TAG" \
+              --repo ecoPrimals/plasmidBin \
+              --title "plasmidBin $TAG" \
+              --notes "$NOTES" \
+              "${ASSETS[@]}"
+          fi
+
+      - name: Summary
+        run: |
+          echo "### Auto Harvest Complete" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **Target**: ${{ steps.target.outputs.primal }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **Release**: ${{ steps.version.outputs.tag }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **Trigger**: ${{ github.event_name }}" >> "$GITHUB_STEP_SUMMARY"
