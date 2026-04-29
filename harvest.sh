@@ -50,7 +50,7 @@ FAILED=0
 # Springs do not ship binaries via plasmidBin — they compose primals.
 # The only exception is primalspring_primal (coordination primal).
 # Core primal names — used to auto-generate harvest maps for any target triple.
-CORE_PRIMAL_NAMES=(beardog songbird toadstool barracuda coralreef nestgate rhizocrypt loamspine sweetgrass biomeos squirrel petaltongue skunkbat primalspring_primal)
+CORE_PRIMAL_NAMES=(beardog songbird toadstool barracuda coralreef nestgate rhizocrypt loamspine sweetgrass biomeos squirrel petaltongue skunkbat)
 
 # Legacy harvest maps kept for backward compatibility with old --arch x86_64/aarch64
 HARVEST_MAP_X86_64=()

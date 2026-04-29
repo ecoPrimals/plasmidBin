@@ -88,6 +88,7 @@ assets = ["sweetgrass"]
 repo = "ecoPrimals/biomeOS"
 tag_pattern = "v{version}"
 assets = ["biomeos"]
+build_args = "-p biomeos-unibin"
 
 [sources.squirrel]
 repo = "ecoPrimals/squirrel"
@@ -108,25 +109,12 @@ repo = "ecoPrimals/skunkBat"
 private = true
 tag_pattern = "v{version}"
 assets = ["skunkbat"]
-note = "Threat intelligence — private source, public binary via plasmidBin releases"
+needs_sibling = "ecoPrimals/sourDough"
+note = "Threat intelligence — private source, public binary via plasmidBin releases. Needs sourDough sibling for build."
 
 # =============================================================================
-# COORDINATION PRIMAL (from primalSpring)
+# SPRINGS & COMPOSITIONS — NOT distributed via plasmidBin
 # =============================================================================
-
-[sources.primalspring]
-repo = "syntheticChemistry/primalSpring"
-tag_pattern = "v{version}"
-assets = ["primalspring_primal"]
-binary_name = "primalspring_primal"
-note = "primalSpring's domain IS composition — this is a primal, not a spring binary"
-
-# =============================================================================
-# SPOREGARDEN — gen4 consumers (ecosystem awareness)
-# =============================================================================
-
-[sources.esotericwebb]
-repo = "sporeGarden/esotericWebb"
-tag_pattern = "v{version}"
-assets = ["esotericwebb"]
-binary_name = "esotericwebb"
+# Springs (primalSpring, hotSpring, etc.) are validation targets, not primals.
+# Compositions (esotericWebb, etc.) consume primals — they don't ship here.
+# Only ecoPrimals/ org primals belong in plasmidBin.

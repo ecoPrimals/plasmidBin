@@ -119,6 +119,8 @@ build_one() {
     repo=$(parse_toml_value "$SOURCES_FILE" "sources.$id" "repo" 2>/dev/null) || true
     binary_name=$(parse_toml_value "$SOURCES_FILE" "sources.$id" "binary_name" 2>/dev/null) || true
     is_private=$(parse_toml_value "$SOURCES_FILE" "sources.$id" "private" 2>/dev/null) || true
+    build_args=$(parse_toml_value "$SOURCES_FILE" "sources.$id" "build_args" 2>/dev/null) || true
+    needs_sibling=$(parse_toml_value "$SOURCES_FILE" "sources.$id" "needs_sibling" 2>/dev/null) || true
 
     if [[ -z "$repo" ]]; then
         echo "  [$id] SKIP  no repo in sources.toml"
@@ -135,6 +137,17 @@ build_one() {
     echo " ..."
 
     rm -rf "$clone_dir"
+
+    # Clone sibling repos if needed (e.g., skunkBat needs sourDough)
+    if [[ -n "$needs_sibling" ]]; then
+        local sibling_name="${needs_sibling##*/}"
+        local sibling_dir="$BUILD_ROOT/$sibling_name"
+        if [[ ! -d "$sibling_dir" ]]; then
+            echo "  [$id] cloning sibling $needs_sibling ..."
+            git clone --depth 1 "https://github.com/${needs_sibling}.git" "$sibling_dir" 2>/dev/null || true
+        fi
+    fi
+
     if ! git clone --depth 1 "https://github.com/${repo}.git" "$clone_dir" 2>/tmp/build_clone_${id}.log; then
         if [[ "$is_private" == "true" ]]; then
             echo "  [$id] SKIP  private repo clone failed (PAT may lack access)"
@@ -148,8 +161,10 @@ build_one() {
 
     echo "  [$id] building for $TARGET ..."
 
+    # shellcheck disable=SC2086
     if ! cargo build --release --target "$TARGET" \
         --manifest-path "$clone_dir/Cargo.toml" \
+        $build_args \
         2>"/tmp/build_cargo_${id}.log"; then
         echo "  [$id] FAIL  build failed (see /tmp/build_cargo_${id}.log)"
         ((failed++)) || true

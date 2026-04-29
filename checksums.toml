@@ -102,12 +102,5 @@
 [primals.skunkbat]
 # skunkBat: library-only crate, no binary target
 
-# =============================================================================
-# COORDINATION PRIMAL (from primalSpring)
-# =============================================================================
-
-[primals.primalspring_primal]
-"x86_64-unknown-linux-musl" = "88e27ceb444abe538e246d7f2262965f972805ce8f94e4e40b21c7a4b6029fd4"
-"aarch64-unknown-linux-musl" = "4c673a90ef0a31a505e54cd92eb16951232835cfdcaffe80beba47f696a632e0"
-"armv7-unknown-linux-musleabihf" = "e9fe9f84eda1443f160e017a8c19f5a4db06b060aabecc0fdbe460cb024aa438"
-"riscv64gc-unknown-linux-musl" = "e5e96e19e19e2a3c30ff70fdf1dd9f9c1ad65768dad7f857d5ad7fda1a49dfda"
+# primalspring_primal removed — primalSpring is a spring, not a primal.
+# esotericwebb removed — compositions consume primals, they don't ship here.
