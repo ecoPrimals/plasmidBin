@@ -306,14 +306,11 @@ for entry in "${HARVEST_MAP[@]}"; do
 
     cp "$stripped_tmp" "$local_dest"
 
-    # Checksum section uses the base primal name (without arch subdir)
-    checksum_section="${category##*/aarch64/}"
-    checksum_section="${checksum_section%%aarch64/*}"
-    # Normalize: primals/aarch64 -> primals, springs/aarch64 -> springs
+    # Checksum section: primals.{name} or springs.{name} — arch is the key, not part of section
     case "$dest_rel" in
-        primals/aarch64/*) checksum_section="primals.${local_name}" ;;
-        springs/aarch64/*) checksum_section="springs.${local_name}" ;;
-        *)                 checksum_section="$(echo "$category" | tr '/' '.').${local_name}" ;;
+        primals/*) checksum_section="primals.${local_name}" ;;
+        springs/*) checksum_section="springs.${local_name}" ;;
+        *)         checksum_section="primals.${local_name}" ;;
     esac
     update_checksum "$checksum_section" "$ARCH_TRIPLE" "$hash"
 
