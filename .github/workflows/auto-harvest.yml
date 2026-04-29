@@ -84,7 +84,8 @@ jobs:
         env:
           HARVEST_PAT: ${{ secrets.PLASMIDBIN_HARVEST_PAT }}
         run: |
-          git config --global url."https://x-access-token:${HARVEST_PAT}@github.com/".insteadOf "https://github.com/"
+          TOKEN=$(echo -n "$HARVEST_PAT" | tr -d '[:space:]')
+          git config --global url."https://x-access-token:${TOKEN}@github.com/".insteadOf "https://github.com/"
 
       - name: Build primal(s)
         run: |
