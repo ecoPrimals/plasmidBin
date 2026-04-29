@@ -113,25 +113,37 @@
 "riscv64gc-unknown-linux-musl" = "e5e96e19e19e2a3c30ff70fdf1dd9f9c1ad65768dad7f857d5ad7fda1a49dfda"
 
 [primals.x86_64-unknown-linux-musl.beardog]
-"x86_64-unknown-linux-musl" = "d886edb346760169d861bdf39552cf9edd38a10c33cbfd892062dfa15c1be17d"
+"x86_64-unknown-linux-musl" = "04db7c84d74407b9f8a3a350f5b0cee35a90a1d01bbd27f4429f86fcfe2a3aa0"
 
 [primals.x86_64-unknown-linux-musl.songbird]
-"x86_64-unknown-linux-musl" = "ffa43d9250128cf3893383c644cfe993487d99025952b6dd4ae0331f020ac661"
+"x86_64-unknown-linux-musl" = "35c90d8b1e76aef7baf5f9719ae1a9d16703586150ed7e86bee32a5459339cb7"
 
 [primals.x86_64-unknown-linux-musl.rhizocrypt]
-"x86_64-unknown-linux-musl" = "c880db3f748d90b0dbe0fc6abb9db67b67667c275dd144fbd9cf0cec4f5c4ecc"
+"x86_64-unknown-linux-musl" = "dd49d36c354b9a639001b4c676408e709af8b5f323589576c3401c4a1f1af752"
 
 [primals.x86_64-unknown-linux-musl.loamspine]
-"x86_64-unknown-linux-musl" = "a32837b333484a484a629c70be645365a364b5ecc95ae2fd9a053513041d3c75"
+"x86_64-unknown-linux-musl" = "9de1c5af494cf96ddcec7448ff8765605ace760c4a6d4c58d0329a7fe47cc5a2"
 
 [primals.x86_64-unknown-linux-musl.sweetgrass]
-"x86_64-unknown-linux-musl" = "8afc8f7a64bfc58d9969c8699ab5614071f8313ecc600b9f596a5fa24dd76434"
+"x86_64-unknown-linux-musl" = "747d72ae2eade998964a401635e573e0a922462a373572201efb44ce2eea9ffb"
 
 [primals.x86_64-unknown-linux-musl.petaltongue]
-"x86_64-unknown-linux-musl" = "8c384e3628381acf37163be09ef2c54fa865c7e6e890e9a3f6da0734f7ba182f"
+"x86_64-unknown-linux-musl" = "5784aa2ffc2fa7dc6a1bd3ddff188e057db4f391e23e716e1104d6c3a92947ef"
 
 [primals.x86_64-unknown-linux-musl.squirrel]
-"x86_64-unknown-linux-musl" = "c92b93307ce890edcca4accb3c21e6b159f38e1992610db2133b93c1927e0bc0"
+"x86_64-unknown-linux-musl" = "a42877bf5e04839dc9024d5d659bd10d0516936aeb9a40a41c4634ef20b168bb"
 
 [primals.x86_64-unknown-linux-musl.nestgate]
-"x86_64-unknown-linux-musl" = "6a2a38e77a7b99116c292785c48536462034befdd6f33b70eace594297dde4f9"
+"x86_64-unknown-linux-musl" = "74063cadf8409f4822ffbfd476de4d8d8ec2d89dcb7e521980cdb94fb20abe58"
+
+[primals.x86_64-unknown-linux-musl.toadstool]
+"x86_64-unknown-linux-musl" = "3f897aa50bb4117e145ccfaf698b63fea427d1992eec7e3d2f9ad2c096772c30"
+
+[primals.x86_64-unknown-linux-musl.barracuda]
+"x86_64-unknown-linux-musl" = "cae5ce38bbd59901c1e0207693b2b881e664cd1d6042fe3379f58da610f35372"
+
+[primals.x86_64-unknown-linux-musl.coralreef]
+"x86_64-unknown-linux-musl" = "480ba1dda5eb343647120f93b9197f965a7c47bc4f90fa60ae1641e6c07cb5d0"
+
+[primals.x86_64-unknown-linux-musl.primalspring_primal]
+"x86_64-unknown-linux-musl" = "88e27ceb444abe538e246d7f2262965f972805ce8f94e4e40b21c7a4b6029fd4"
