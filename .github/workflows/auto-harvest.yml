@@ -7,6 +7,9 @@
 #   2. workflow_dispatch for manual rebuilds (single primal or all)
 #   3. Weekly schedule for full-sweep consistency
 #
+# Private repos (bearDog, skunkBat) are cloned using the PAT via git insteadOf.
+# Public binaries are published to GitHub Releases regardless of source visibility.
+#
 # Flow: install toolchain -> build-primal.sh -> harvest.sh -> commit checksums
 #       -> gh release upload -> smoke test triggers on release publish
 
@@ -26,6 +29,10 @@ on:
 
   schedule:
     - cron: '0 6 * * 1'
+
+concurrency:
+  group: auto-harvest
+  cancel-in-progress: false
 
 permissions:
   contents: write
@@ -74,8 +81,10 @@ jobs:
           cargo install b3sum --locked || true
 
       - name: Configure git for private repos
+        env:
+          HARVEST_PAT: ${{ secrets.PLASMIDBIN_HARVEST_PAT }}
         run: |
-          git config --global url."https://x-access-token:${{ secrets.PLASMIDBIN_HARVEST_PAT }}@github.com/".insteadOf "https://github.com/"
+          git config --global url."https://x-access-token:${HARVEST_PAT}@github.com/".insteadOf "https://github.com/"
 
       - name: Build primal(s)
         run: |
@@ -104,7 +113,6 @@ jobs:
           TAG="v$(date -u +%Y.%m.%d)"
           NOTES="Auto-harvest $(date -u +%Y-%m-%d)"
           if [[ "$PRIMAL" != "all" ]]; then
-            # Try to extract version from the built binary's Cargo.toml in build cache
             NOTES="$NOTES — $PRIMAL"
             COMMIT="${{ steps.target.outputs.commit }}"
             if [[ -n "$COMMIT" ]]; then

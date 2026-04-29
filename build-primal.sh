@@ -31,6 +31,7 @@ FILTER=""
 
 passed=0
 failed=0
+failed_private=0
 skipped=0
 
 usage() {
@@ -129,12 +130,19 @@ build_one() {
     local out_dir="$STAGING/primals/$TARGET"
     mkdir -p "$out_dir"
 
-    echo "  [$id] cloning $repo ..."
+    echo -n "  [$id] cloning $repo"
+    [[ "$is_private" == "true" ]] && echo -n " (private)"
+    echo " ..."
 
     rm -rf "$clone_dir"
     if ! git clone --depth 1 "https://github.com/${repo}.git" "$clone_dir" 2>/tmp/build_clone_${id}.log; then
-        echo "  [$id] FAIL  clone failed (see /tmp/build_clone_${id}.log)"
-        ((failed++)) || true
+        if [[ "$is_private" == "true" ]]; then
+            echo "  [$id] SKIP  private repo clone failed (PAT may lack access)"
+            ((failed_private++)) || true
+        else
+            echo "  [$id] FAIL  clone failed (see /tmp/build_clone_${id}.log)"
+            ((failed++)) || true
+        fi
         return
     fi
 
@@ -208,6 +216,9 @@ echo "=== Build Summary ==="
 echo "  Passed:  $passed"
 echo "  Failed:  $failed"
 echo "  Skipped: $skipped"
+if [[ $failed_private -gt 0 ]]; then
+    echo "  Private repo failures: $failed_private (not blocking — public bins still harvested)"
+fi
 
 if $DO_HARVEST && [[ $passed -gt 0 ]]; then
     echo ""
