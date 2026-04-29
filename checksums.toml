@@ -81,7 +81,7 @@
 # =============================================================================
 
 [primals.biomeos]
-"x86_64-unknown-linux-musl" = "7a7a3246a6941ee173521350f4d84dbdea12896bc4279a40598c05cba37aaa5f"
+"x86_64-unknown-linux-musl" = "b2fbd1d8c66f31239f099c8527142ed615630de399f0a7aae5a625fd9f72110b"
 "aarch64-unknown-linux-musl" = "571c152e5a7e680b3dcf97ad5b5617841789b9b9c6bf55d9c67e07fba8b96de4"
 "armv7-unknown-linux-musleabihf" = "e63b34b36bab506d6c89affd378bd906ee44e93bb87ed812d24786233205a391"
 
