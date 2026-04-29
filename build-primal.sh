@@ -189,7 +189,8 @@ build_one() {
         echo "  [$id] OK  $copied binary(ies) staged"
         ((passed++)) || true
     else
-        echo "  [$id] FAIL  built but no ELF binaries found"
+        echo "  [$id] FAIL  built but no ELF binaries found in $bin_dir"
+        echo "  [$id]   contents: $(ls "$bin_dir" 2>/dev/null | head -20 || echo '(empty)')"
         ((failed++)) || true
     fi
 
@@ -233,6 +234,10 @@ if $DO_HARVEST && [[ $passed -gt 0 ]]; then
     "$SCRIPT_DIR/harvest.sh" "${HARVEST_ARGS[@]}"
 fi
 
-if [[ $failed -gt 0 ]]; then
+if [[ $passed -eq 0 ]]; then
+    echo "ERROR: No primals built successfully"
     exit 1
+fi
+if [[ $failed -gt 0 ]]; then
+    echo "WARNING: $failed build(s) failed but $passed succeeded — continuing"
 fi
