@@ -200,13 +200,16 @@ check_pass = ["x86_64-apple-darwin", "aarch64-apple-darwin"]
 
 [primals.skunkbat]
 name = "skunkBat"
-description = "Defense — metadata-only threat detection, lineage verification"
-latest = "0.1.0"
+description = "Defense — metadata-only threat detection, lineage verification, composable anomaly primitives"
+latest = "0.2.0-dev"
 phase = 2
-capabilities = ["defense", "threat", "metadata", "lineage"]
+capabilities = ["defense", "threat", "metadata", "lineage", "baseline", "health"]
 ecobin_grade = "A+"
-check_pass = ["x86_64-unknown-linux-musl", "aarch64-unknown-linux-musl", "armv7-unknown-linux-musleabihf", "x86_64-apple-darwin", "aarch64-apple-darwin"]
-# skunkBat: library-only crate, no binary target produced
+binary = "skunkbat"
+build_package = "skunk-bat-server"
+needs_sibling = "ecoPrimals/sourDough"
+arch = ["x86_64-unknown-linux-musl", "aarch64-unknown-linux-musl", "armv7-unknown-linux-musleabihf"]
+check_pass = ["x86_64-apple-darwin", "aarch64-apple-darwin"]
 
 # =============================================================================
 # SPRINGS — Science validation domains

@@ -100,7 +100,7 @@
 # =============================================================================
 
 [primals.skunkbat]
-# skunkBat: library-only crate, no binary target
+# Checksums populated by harvest.sh after musl-static build
 
 # primalspring_primal removed — primalSpring is a spring, not a primal.
 # esotericwebb removed — compositions consume primals, they don't ship here.
