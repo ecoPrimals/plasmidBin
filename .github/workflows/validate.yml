@@ -25,13 +25,15 @@ jobs:
 
       - name: Validate metadata.toml structure
         run: |
+          shopt -s nullglob
           errors=0
+          count=0
 
           for meta in */metadata.toml; do
+            count=$((count + 1))
             dir=$(dirname "$meta")
             echo "--- $meta ---"
 
-            # Required fields in [primal]
             for field in name version domain description license; do
               if ! grep -q "^${field}\s*=" "$meta"; then
                 echo "  MISSING: [primal].${field}"
@@ -39,19 +41,16 @@ jobs:
               fi
             done
 
-            # Must have [provenance] section
             if ! grep -q '^\[provenance\]' "$meta"; then
               echo "  MISSING: [provenance] section"
               errors=$((errors + 1))
             fi
 
-            # Must have at least one [builds.*] section
             if ! grep -q '^\[builds\.' "$meta"; then
               echo "  MISSING: [builds.*] section (no architecture defined)"
               errors=$((errors + 1))
             fi
 
-            # License should be -or-later
             license=$(grep -m1 '^license\s*=' "$meta" | sed 's/.*"\(.*\)".*/\1/')
             if [[ "$license" == *"-only"* ]]; then
               echo "  WARN: license is '$license' — should be -or-later per ecosystem standard"
@@ -67,7 +66,7 @@ jobs:
           fi
 
           echo ""
-          echo "All metadata.toml files valid."
+          echo "All $count metadata.toml file(s) valid."
 
       - name: Check port conflicts
         run: |
@@ -96,6 +95,7 @@ jobs:
 
       - name: Validate manifest.lock consistency
         run: |
+          shopt -s nullglob
           errors=0
 
           for meta in */metadata.toml; do

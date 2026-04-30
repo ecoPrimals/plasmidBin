@@ -109,6 +109,8 @@ resolve_target_triple() {
     esac
 }
 
+FILTER="${FILTER,,}"
+
 if [[ -z "$ARCH" ]]; then
     ARCH=$(detect_arch)
 fi

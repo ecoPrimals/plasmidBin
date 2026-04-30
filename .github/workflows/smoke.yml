@@ -55,22 +55,22 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           echo "Fetching release ${{ steps.tag.outputs.tag }}"
-          ./fetch.sh --tag "${{ steps.tag.outputs.tag }}"
+          ./fetch.sh --all --release "${{ steps.tag.outputs.tag }}"
 
       - name: List fetched binaries
         run: |
           echo "--- Fetched binaries ---"
-          for dir in */; do
-            dir="${dir%/}"
-            meta="$dir/metadata.toml"
-            [[ -f "$meta" ]] || continue
-            name=$(grep -m1 'name\s*=' "$meta" | sed 's/.*"\(.*\)".*/\1/')
-            bin="$dir/$name"
-            if [[ -x "$bin" ]]; then
-              size=$(du -h "$bin" | awk '{print $1}')
+          ARCH_DIR="primals/x86_64-unknown-linux-musl"
+          if [[ -d "$ARCH_DIR" ]]; then
+            for bin in "$ARCH_DIR"/*; do
+              [[ -f "$bin" && -x "$bin" ]] || continue
+              name=$(basename "$bin")
+              size=$(du -h "$bin" | cut -f1)
               echo "  $name ($size)"
-            fi
-          done
+            done
+          else
+            echo "  (no binaries found in $ARCH_DIR)"
+          fi
 
       - name: Start composition and probe health
         run: |
@@ -85,21 +85,19 @@ jobs:
             exit 1
           fi
 
+          ARCH_DIR="primals/x86_64-unknown-linux-musl"
           started=()
           for primal in $primals; do
             port=$(port_for_primal "$primal")
-            bin="$primal/$primal"
+            bin="$ARCH_DIR/$primal"
 
-            # Some primals have different binary names
             if [[ ! -x "$bin" ]]; then
-              echo "SKIP: $primal — binary not available"
+              echo "SKIP: $primal — binary not available at $bin"
               continue
             fi
 
             echo "Starting $primal on port $port..."
-            ./start_primal.sh "$primal" \
-              --tcp-port "$port" \
-              --foreground &
+            "$bin" --tcp-port "$port" &
             started+=("$primal:$!")
             sleep 2
           done
@@ -120,7 +118,6 @@ jobs:
             fi
           done
 
-          # Cleanup
           for entry in "${started[@]}"; do
             pid="${entry##*:}"
             kill "$pid" 2>/dev/null || true

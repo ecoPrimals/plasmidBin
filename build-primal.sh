@@ -219,6 +219,8 @@ echo ""
 
 mkdir -p "$BUILD_ROOT"
 
+FILTER="${FILTER,,}"
+
 if $BUILD_ALL; then
     for source_id in $(list_sources); do
         build_one "$source_id"

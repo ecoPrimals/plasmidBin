@@ -54,15 +54,18 @@ jobs:
         id: target
         run: |
           if [[ "${{ github.event_name }}" == "repository_dispatch" ]]; then
-            PRIMAL="${{ github.event.client_payload.primal }}"
+            RAW="${{ github.event.client_payload.primal }}"
+            PRIMAL="${RAW,,}"
             COMMIT="${{ github.event.client_payload.sha }}"
             echo "primal=$PRIMAL" >> "$GITHUB_OUTPUT"
             echo "commit=$COMMIT" >> "$GITHUB_OUTPUT"
-            echo "Dispatch: build $PRIMAL (commit $COMMIT)"
+            echo "Dispatch: build $PRIMAL (raw: $RAW, commit $COMMIT)"
           elif [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-            echo "primal=${{ github.event.inputs.primal }}" >> "$GITHUB_OUTPUT"
+            RAW="${{ github.event.inputs.primal }}"
+            PRIMAL="${RAW,,}"
+            echo "primal=$PRIMAL" >> "$GITHUB_OUTPUT"
             echo "commit=" >> "$GITHUB_OUTPUT"
-            echo "Manual: build ${{ github.event.inputs.primal }}"
+            echo "Manual: build $PRIMAL (raw: $RAW)"
           else
             echo "primal=all" >> "$GITHUB_OUTPUT"
             echo "commit=" >> "$GITHUB_OUTPUT"

@@ -144,15 +144,14 @@ list_sources() {
 
 target_dir_for() {
     local id="$1"
-    local base_dir
-    if parse_toml_value "$MANIFEST_FILE" "primals.$id" "latest" >/dev/null 2>&1; then
-        base_dir="$PRIMALS_DIR"
-    elif parse_toml_value "$MANIFEST_FILE" "sporegarden.$id" "latest" >/dev/null 2>&1; then
-        base_dir="$PRODUCTS_DIR"
-    else
-        base_dir="$SPRINGS_DIR"
+    local base_dir="$PRIMALS_DIR"
+    if [[ -f "$MANIFEST_FILE" ]]; then
+        if parse_toml_value "$MANIFEST_FILE" "sporegarden.$id" "latest" >/dev/null 2>&1; then
+            base_dir="$PRODUCTS_DIR"
+        elif parse_toml_value "$MANIFEST_FILE" "springs.$id" "latest" >/dev/null 2>&1; then
+            base_dir="$SPRINGS_DIR"
+        fi
     fi
-    # genomeBin layout: primals/{target-triple}/
     echo "$base_dir/$CURRENT_ARCH"
 }
 
@@ -170,14 +169,13 @@ binary_name_for() {
 get_expected_checksum() {
     local id="$1"
     local arch="$2"
-    # Checksum sections use the base category (primals/springs), not arch subdirs
-    local section_prefix
-    if parse_toml_value "$MANIFEST_FILE" "primals.$id" "latest" >/dev/null 2>&1; then
-        section_prefix="primals"
-    elif parse_toml_value "$MANIFEST_FILE" "sporegarden.$id" "latest" >/dev/null 2>&1; then
-        section_prefix="products"
-    else
-        section_prefix="springs"
+    local section_prefix="primals"
+    if [[ -f "$MANIFEST_FILE" ]]; then
+        if parse_toml_value "$MANIFEST_FILE" "sporegarden.$id" "latest" >/dev/null 2>&1; then
+            section_prefix="products"
+        elif parse_toml_value "$MANIFEST_FILE" "springs.$id" "latest" >/dev/null 2>&1; then
+            section_prefix="springs"
+        fi
     fi
     local bin_name
     bin_name=$(binary_name_for "$id")
