@@ -109,8 +109,8 @@ repo = "ecoPrimals/skunkBat"
 private = true
 tag_pattern = "v{version}"
 assets = ["skunkbat"]
-needs_sibling = "ecoPrimals/sourDough"
-note = "Threat intelligence — private source, public binary via plasmidBin releases. Needs sourDough sibling for build."
+build_args = "-p skunk-bat-server"
+note = "Threat intelligence — private source, public binary via plasmidBin releases. Standalone build (GAP-28 resolved)."
 
 # =============================================================================
 # SPRINGS & COMPOSITIONS — NOT distributed via plasmidBin
