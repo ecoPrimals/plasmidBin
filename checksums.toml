@@ -18,14 +18,14 @@
 # =============================================================================
 
 [primals.beardog]
-"x86_64-unknown-linux-musl" = "04db7c84d74407b9f8a3a350f5b0cee35a90a1d01bbd27f4429f86fcfe2a3aa0"
-"aarch64-unknown-linux-musl" = "ca1af4af854c438cf08985eb223199bd8b153ab5af71ce1345762234f245555a"
-"armv7-unknown-linux-musleabihf" = "56390d002d5fd268e21474728992e686a2d10b88d326890c2db17f3eb31a2b01"
+"x86_64-unknown-linux-musl" = "eb885abfb2df88d8922a910e6de4bce48c39b7514e416eef6893454821431549"
+"aarch64-unknown-linux-musl" = "82048c728de654b69b848c36f4cfae31eb4e9c4bc907cdd45f1a98c3176e02cc"
+"armv7-unknown-linux-musleabihf" = "a0bc8a7469202af68119bc27aa3cb601026a1ea7abd4026fcba83c2ecbef6266"
 
 [primals.songbird]
 "x86_64-unknown-linux-musl" = "35c90d8b1e76aef7baf5f9719ae1a9d16703586150ed7e86bee32a5459339cb7"
-"aarch64-unknown-linux-musl" = "8099e7407a5bb35ed24c3767704760806626dfca427713cf76948bd505ce9feb"
-"armv7-unknown-linux-musleabihf" = "914602a28c2119d5582a3b01d333e4401454ad3ecbe85ea0ad26e57590f6fc70"
+"aarch64-unknown-linux-musl" = "1d6fb55f8dec60277297b0f806e81f456360ec6ab524b79bfac368ae5727a06f"
+"armv7-unknown-linux-musleabihf" = "80368ea3a41b6819e6c30682ce774ec51f6b7573ed5a3d34f4d3eac38e4990d3"
 "aarch64-linux-android" = "9024e9c4500e3f842dcb51d64e29683fc21554488880273dd48e94f9d3c2543b"
 
 # =============================================================================
@@ -33,21 +33,21 @@
 # =============================================================================
 
 [primals.toadstool]
-"x86_64-unknown-linux-musl" = "3f897aa50bb4117e145ccfaf698b63fea427d1992eec7e3d2f9ad2c096772c30"
-"aarch64-unknown-linux-musl" = "f4a4c72c35525bcdfa3fe04e7875feca0ad38625484bbb1f1ca36c18aa4b1cc6"
-"armv7-unknown-linux-musleabihf" = "b55090ad1309802e076c10a7e1433b78d0c31c7375d5365ba7f4de1d06fb82fd"
+"x86_64-unknown-linux-musl" = "a12c15ff1b3cc7102468450acc8f9edf8c52aaead441fa1613942ef78c8e8159"
+"aarch64-unknown-linux-musl" = "0813cef845c8662ac8bbb23971c77901e32ccd1a6855ce1e984662d935339da3"
+"armv7-unknown-linux-musleabihf" = "117e0adb20f2f09446a053f140816e15570bea5f98641872ed3b4df5d78f1bf1"
 
 [primals.barracuda]
 "x86_64-unknown-linux-musl" = "cae5ce38bbd59901c1e0207693b2b881e664cd1d6042fe3379f58da610f35372"
-"aarch64-unknown-linux-musl" = "8887ddc8194ca2a24ff7869619749f5f0afc25ef0b653b9f3174ca82f934bc57"
-"armv7-unknown-linux-musleabihf" = "a2a381b92d7ab9fe724ca4dcbc199efb2e5156af0322cc02dd491662d351d9db"
+"aarch64-unknown-linux-musl" = "e825b7ed0e09509dfc582297102865ec64ab6d94911bf96deca06b969350f645"
+"armv7-unknown-linux-musleabihf" = "74cfc51a7d161236dfde4c4b81ac84434a9bb9ed02555f41a55245e8039bab4f"
 "x86_64-pc-windows-gnu" = "607eff0abd370511646681c99a0e67cc7e5ee03aae52791b3933fded0552b141"
 "aarch64-linux-android" = "e34e40f4b42f909d240dfce68785ff338231e1bd51fe5f2c2afbdfe0dfb974a0"
 
 [primals.coralreef]
-"x86_64-unknown-linux-musl" = "480ba1dda5eb343647120f93b9197f965a7c47bc4f90fa60ae1641e6c07cb5d0"
-"aarch64-unknown-linux-musl" = "50a47f074a119ccfbcd7767870ac0980b05db84c54b2c8131507cd18c0e16e7f"
-"armv7-unknown-linux-musleabihf" = "004706829c753ee119b18b84ebde52a0843cf6e3a9eda4b5671be36a75344ea9"
+"x86_64-unknown-linux-musl" = "a13336407ccc3f6b7b20b058b2bb0f2d35f849b595cd2ec893908ae1716834b4"
+"aarch64-unknown-linux-musl" = "ebdb253d4a0105460215de11c0ff2a5131bf163c6d28438205fa307cda57dd11"
+"armv7-unknown-linux-musleabihf" = "599633a7c0cbb3f902d51f31e74000949e9787a507f759bbfd172b7d7b13e692"
 
 # =============================================================================
 # PRIMALS — Nest Atomic additions (neutron: nestgate + provenance trio)
@@ -55,25 +55,25 @@
 
 [primals.nestgate]
 "x86_64-unknown-linux-musl" = "74063cadf8409f4822ffbfd476de4d8d8ec2d89dcb7e521980cdb94fb20abe58"
-"aarch64-unknown-linux-musl" = "e6b503244f08a578f6251224c2a7f998cc9d5926b8e42b2511e6d4c63dde0c3a"
-"armv7-unknown-linux-musleabihf" = "f6f8a1e9aa839e998e6d5a3bf144c3fcd96956f9afcd4bf16e63fdf47c5da8ae"
+"aarch64-unknown-linux-musl" = "0c42aed7c49d4ee38fa94da9bf06c5faa1193f877e14c0798b2e428bcdf6cac5"
+"armv7-unknown-linux-musleabihf" = "7b118449c339dc845ec4bba4b2230a27ff6e289b92729780be0e6f9a5f73a239"
 
 [primals.rhizocrypt]
 "x86_64-unknown-linux-musl" = "dd49d36c354b9a639001b4c676408e709af8b5f323589576c3401c4a1f1af752"
-"aarch64-unknown-linux-musl" = "3107b23106e86ca6b3f3819397c2ecacebb215c6c0905f1a0f357747c0ed4337"
-"armv7-unknown-linux-musleabihf" = "714bcdbdbb10ee810e81bae8ab9cae66427d725a362446ca6b5804840f175bf9"
+"aarch64-unknown-linux-musl" = "699393714022e718ac6a48fb7eba927bbdd5664e6fc14591c4803356794435ef"
+"armv7-unknown-linux-musleabihf" = "31b38b2afa2e528e79283c25d0d59b1d58dfdbf0e8909cb8447a5f2f377bd209"
 "aarch64-linux-android" = "94258de191673b9a2d79f675365fb5a87617a7fd635cdd307380d57a8ac536ce"
 
 [primals.loamspine]
 "x86_64-unknown-linux-musl" = "9de1c5af494cf96ddcec7448ff8765605ace760c4a6d4c58d0329a7fe47cc5a2"
-"aarch64-unknown-linux-musl" = "921becce46a922bac732d2ccd8fd57307ac78f6a613707753bfe51687916b831"
-"armv7-unknown-linux-musleabihf" = "18ead3fb8a2793cc70ca4784214c544c9c482a7a8e0ec92284d6b1b947e57f0e"
+"aarch64-unknown-linux-musl" = "d137752ac7a1df537d8fa63302cb4adfde3e3b624123ea7282f619a70860b150"
+"armv7-unknown-linux-musleabihf" = "2e2eaaf3b4307a8cb1598f918b277d1de010b9302ee71a1da8e32f73a32a789c"
 "aarch64-linux-android" = "d61f6c420390d80df1fed005f1066188cddcf47ad738de9c729e7669f28a8cbb"
 
 [primals.sweetgrass]
 "x86_64-unknown-linux-musl" = "747d72ae2eade998964a401635e573e0a922462a373572201efb44ce2eea9ffb"
-"aarch64-unknown-linux-musl" = "ef74ace1469ab659197b03d67174750ef4ecb41dec8136581efbdc1e0582a8c5"
-"armv7-unknown-linux-musleabihf" = "1252df5d810c00023d71161024c46ced368e07e434cc6a2cbd0c101270e01b11"
+"aarch64-unknown-linux-musl" = "719e79f0bc950ed06b111005e69165bf6f4c0713b73ad967e9a41ee5342a1746"
+"armv7-unknown-linux-musleabihf" = "2e86ef95502ee448185fa6282a8578b5dc6aceb35735858a0f2a673d9d838288"
 "aarch64-linux-android" = "24ec1d011ec52f8dc0428b5273825929167fc10705de5dca6ef998a6c11c8468"
 
 # =============================================================================
@@ -81,19 +81,19 @@
 # =============================================================================
 
 [primals.biomeos]
-"x86_64-unknown-linux-musl" = "b2fbd1d8c66f31239f099c8527142ed615630de399f0a7aae5a625fd9f72110b"
-"aarch64-unknown-linux-musl" = "571c152e5a7e680b3dcf97ad5b5617841789b9b9c6bf55d9c67e07fba8b96de4"
-"armv7-unknown-linux-musleabihf" = "e63b34b36bab506d6c89affd378bd906ee44e93bb87ed812d24786233205a391"
+"x86_64-unknown-linux-musl" = "0899c4208f0b02c8fa04c89dbe97a82f9311b32932cd960bcb6d566cc61c8acb"
+"aarch64-unknown-linux-musl" = "2f5d3c4ea3c5a4916b2efc946f9e08e71a6b08607cac3fa59f1b94ce45afb9fa"
+"armv7-unknown-linux-musleabihf" = "2a76b4497ed10e206ea1f45fde39d5c6947d998ed990f109b570cdfc98bd4bb1"
 
 [primals.squirrel]
 "x86_64-unknown-linux-musl" = "a42877bf5e04839dc9024d5d659bd10d0516936aeb9a40a41c4634ef20b168bb"
-"aarch64-unknown-linux-musl" = "daf983b27e919cd8df18a69e3365d13d2990834aff88661a580ba3173654db11"
-"armv7-unknown-linux-musleabihf" = "6e09bc2123f8136634e273ad664798c97493c88414919fa9748134265d92d779"
+"aarch64-unknown-linux-musl" = "fac1cf4780ce2f1714005a7199c4bfc3ab91ec867a47de965e948acfc7ed42ff"
+"armv7-unknown-linux-musleabihf" = "4e7a5be2dbe1dd17cb1f043bdb5546b22d9a04b6b3a6859cc384f00156d66476"
 
 [primals.petaltongue]
-"x86_64-unknown-linux-musl" = "5784aa2ffc2fa7dc6a1bd3ddff188e057db4f391e23e716e1104d6c3a92947ef"
-"aarch64-unknown-linux-musl" = "344536958a50baf02abd93b8324479bd1ee202cd77693e6f305f385c2ac17d8b"
-"armv7-unknown-linux-musleabihf" = "7c339535e303fd30327c61d680ad443b34a3ce837df6582614122ca967e51059"
+"x86_64-unknown-linux-musl" = "1f33b187d6ce80794bed73c8f61fc7b5868b41943ac91323536387f5bdd7315f"
+"aarch64-unknown-linux-musl" = "5ba542d64d433dd97023a5b0012e021198b873ccc1dfaf1137e036511d2c532e"
+"armv7-unknown-linux-musleabihf" = "b32d530a598f6bd1dd45cba25dc8157d144a87c47133fa6fa6a1a64f5ee1c491"
 
 # =============================================================================
 # PRIMALS — Defense
