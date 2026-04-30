@@ -1,0 +1,304 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+#
+# tier23-harvest.yml — Tier 2 (SHOULD) and Tier 3 (NICE) cross-arch builds
+#
+# Runs weekly or on manual dispatch. These targets supplement Tier 1 (MUST)
+# which runs on every primal push via auto-harvest.yml.
+#
+# Tier 2 SHOULD: x86_64-pc-windows-gnu, aarch64-linux-android
+# Tier 2 check-only: x86_64-apple-darwin, aarch64-apple-darwin
+# Tier 3 NICE: riscv64gc-unknown-linux-musl
+# Tier 3 check-only: wasm32-wasip1
+#
+# "check-only" targets run cargo check (proves pure Rust) but don't
+# produce binaries — no linker available for cross-build from Linux.
+
+name: Tier 2/3 Harvest
+
+on:
+  schedule:
+    - cron: '0 8 * * 1'
+
+  workflow_dispatch:
+    inputs:
+      tier:
+        description: 'Which tier to build (2, 3, or all)'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - '2'
+          - '3'
+          - 'all'
+
+concurrency:
+  group: tier23-harvest
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_INCREMENTAL: 0
+
+jobs:
+  build-tier2:
+    if: ${{ github.event.inputs.tier != '3' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: x86_64-pc-windows-gnu
+            packages: gcc-mingw-w64-x86-64
+            linker_env: CARGO_TARGET_X86_64_PC_WINDOWS_GNU_LINKER=x86_64-w64-mingw32-gcc
+            check_only: false
+          - target: x86_64-apple-darwin
+            packages: ""
+            linker_env: ""
+            check_only: true
+          - target: aarch64-apple-darwin
+            packages: ""
+            linker_env: ""
+            check_only: true
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Install cross-compilation packages
+        if: matrix.packages != ''
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ${{ matrix.packages }}
+
+      - name: Configure git for private repos
+        env:
+          HARVEST_PAT: ${{ secrets.PLASMIDBIN_HARVEST_PAT }}
+        run: |
+          TOKEN=$(echo -n "$HARVEST_PAT" | tr -d '[:space:]')
+          git config --global url."https://x-access-token:${TOKEN}@github.com/".insteadOf "https://github.com/"
+
+      - name: Build or check primals
+        env:
+          LINKER_ENV: ${{ matrix.linker_env }}
+        run: |
+          if [[ -n "$LINKER_ENV" ]]; then
+            export ${LINKER_ENV}
+          fi
+
+          if [[ "${{ matrix.check_only }}" == "true" ]]; then
+            echo "=== cargo check for ${{ matrix.target }} (check-only) ==="
+            for source_id in $(grep -oP '^\[sources\.(\w+)\]' sources.toml | sed 's/\[sources\.//;s/\]//'); do
+              repo=$(grep -A5 "^\[sources\.${source_id}\]" sources.toml | grep -m1 '^repo' | sed 's/.*"\(.*\)".*/\1/' || true)
+              [[ -n "$repo" ]] || continue
+              echo -n "  [$source_id] cargo check ... "
+              clone_dir="/tmp/check-$source_id"
+              rm -rf "$clone_dir"
+              if git clone --depth 1 "https://github.com/${repo}.git" "$clone_dir" 2>/dev/null; then
+                if cargo check --target "${{ matrix.target }}" --manifest-path "$clone_dir/Cargo.toml" 2>/dev/null; then
+                  echo "OK"
+                else
+                  echo "FAIL"
+                fi
+                rm -rf "$clone_dir"
+              else
+                echo "SKIP (clone failed)"
+              fi
+            done
+          else
+            ./build-primal.sh --all --target "${{ matrix.target }}"
+          fi
+
+      - name: Upload build artifacts
+        if: matrix.check_only != true
+        uses: actions/upload-artifact@v4
+        with:
+          name: primals-${{ matrix.target }}
+          path: /tmp/primalspring-deploy/primals/${{ matrix.target }}/
+          retention-days: 1
+          if-no-files-found: warn
+
+  build-tier3:
+    if: ${{ github.event.inputs.tier != '2' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: riscv64gc-unknown-linux-musl
+            packages: gcc-riscv64-linux-gnu
+            linker_env: CARGO_TARGET_RISCV64GC_UNKNOWN_LINUX_MUSL_LINKER=riscv64-linux-gnu-gcc
+            check_only: false
+          - target: wasm32-wasip1
+            packages: ""
+            linker_env: ""
+            check_only: true
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Install cross-compilation packages
+        if: matrix.packages != ''
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ${{ matrix.packages }}
+
+      - name: Configure git for private repos
+        env:
+          HARVEST_PAT: ${{ secrets.PLASMIDBIN_HARVEST_PAT }}
+        run: |
+          TOKEN=$(echo -n "$HARVEST_PAT" | tr -d '[:space:]')
+          git config --global url."https://x-access-token:${TOKEN}@github.com/".insteadOf "https://github.com/"
+
+      - name: Build or check primals
+        env:
+          LINKER_ENV: ${{ matrix.linker_env }}
+        run: |
+          if [[ -n "$LINKER_ENV" ]]; then
+            export ${LINKER_ENV}
+          fi
+
+          if [[ "${{ matrix.check_only }}" == "true" ]]; then
+            echo "=== cargo check for ${{ matrix.target }} (check-only) ==="
+            for source_id in $(grep -oP '^\[sources\.(\w+)\]' sources.toml | sed 's/\[sources\.//;s/\]//'); do
+              repo=$(grep -A5 "^\[sources\.${source_id}\]" sources.toml | grep -m1 '^repo' | sed 's/.*"\(.*\)".*/\1/' || true)
+              [[ -n "$repo" ]] || continue
+              echo -n "  [$source_id] cargo check ... "
+              clone_dir="/tmp/check-$source_id"
+              rm -rf "$clone_dir"
+              if git clone --depth 1 "https://github.com/${repo}.git" "$clone_dir" 2>/dev/null; then
+                if cargo check --target "${{ matrix.target }}" --manifest-path "$clone_dir/Cargo.toml" 2>/dev/null; then
+                  echo "OK"
+                else
+                  echo "FAIL"
+                fi
+                rm -rf "$clone_dir"
+              else
+                echo "SKIP (clone failed)"
+              fi
+            done
+          else
+            ./build-primal.sh --all --target "${{ matrix.target }}"
+          fi
+
+      - name: Upload build artifacts
+        if: matrix.check_only != true
+        uses: actions/upload-artifact@v4
+        with:
+          name: primals-${{ matrix.target }}
+          path: /tmp/primalspring-deploy/primals/${{ matrix.target }}/
+          retention-days: 1
+          if-no-files-found: warn
+
+  consolidate:
+    needs: [build-tier2, build-tier3]
+    if: ${{ !cancelled() && (needs.build-tier2.result == 'success' || needs.build-tier3.result == 'success') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.PLASMIDBIN_HARVEST_PAT }}
+
+      - name: Install b3sum
+        run: cargo install b3sum --locked || true
+
+      - name: Download all build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: /tmp/harvest-artifacts
+
+      - name: Harvest all architectures
+        run: |
+          for artifact_dir in /tmp/harvest-artifacts/primals-*/; do
+            [[ -d "$artifact_dir" ]] || continue
+            triple=$(basename "$artifact_dir" | sed 's/^primals-//')
+            echo ""
+            echo "=== Harvesting $triple ==="
+
+            count=$(find "$artifact_dir" -maxdepth 1 -type f | wc -l)
+            if [[ "$count" -eq 0 ]]; then
+              echo "  (no binaries for $triple)"
+              continue
+            fi
+
+            ./harvest.sh --source "$artifact_dir" --arch "$triple" || \
+              echo "WARNING: harvest failed for $triple"
+          done
+
+      - name: Commit updated checksums and binaries
+        run: |
+          git config user.name "plasmidBin-bot"
+          git config user.email "plasmidbin-bot@ecoPrimals.dev"
+          git add checksums.toml primals/ springs/ || true
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "harvest: Tier 2/3 — $(date -u +%Y-%m-%d)"
+            git push
+          fi
+
+      - name: Upload Tier 2/3 assets to release
+        env:
+          GH_TOKEN: ${{ secrets.PLASMIDBIN_HARVEST_PAT }}
+        run: |
+          TAG="v$(date -u +%Y.%m.%d)"
+          STAGING="/tmp/release-assets"
+          mkdir -p "$STAGING"
+
+          for triple_dir in primals/*/; do
+            triple=$(basename "$triple_dir")
+            # Skip Tier 1 triples (handled by auto-harvest.yml)
+            case "$triple" in
+              x86_64-unknown-linux-musl|aarch64-unknown-linux-musl|armv7-unknown-linux-musleabihf)
+                continue ;;
+            esac
+
+            for bin in "$triple_dir"/*; do
+              [[ -f "$bin" ]] || continue
+              name=$(basename "$bin")
+              cp "$bin" "$STAGING/${name}-${triple}"
+            done
+          done
+
+          cp checksums.toml "$STAGING/checksums.toml"
+
+          ASSETS=()
+          for f in "$STAGING"/*; do
+            [[ -f "$f" ]] && ASSETS+=("$f")
+          done
+
+          if [[ ${#ASSETS[@]} -eq 0 ]]; then
+            echo "No Tier 2/3 assets to upload"
+            exit 0
+          fi
+
+          if gh release view "$TAG" --repo ecoPrimals/plasmidBin >/dev/null 2>&1; then
+            gh release upload "$TAG" --repo ecoPrimals/plasmidBin --clobber "${ASSETS[@]}"
+          else
+            gh release create "$TAG" --repo ecoPrimals/plasmidBin \
+              --title "plasmidBin $TAG" \
+              --notes "Tier 2/3 harvest — $(date -u +%Y-%m-%d)" \
+              "${ASSETS[@]}"
+          fi
+
+      - name: Summary
+        run: |
+          echo "### Tier 2/3 Harvest Complete" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **Trigger**: ${{ github.event_name }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **Date**: $(date -u +%Y-%m-%d)" >> "$GITHUB_STEP_SUMMARY"

@@ -6,9 +6,10 @@
 # fetch.sh, starts a minimal composition, probes health endpoints,
 # and reports pass/fail.
 #
-# This is the CI equivalent of what benchScale + agentReagents do
-# on real hardware. The CI version tests x86_64 on GitHub runners;
-# real gate testing covers aarch64 and multi-node topologies.
+# genomeBin releases contain multi-arch assets ({name}-{triple}).
+# fetch.sh auto-detects the runner architecture (x86_64-unknown-linux-musl)
+# and downloads the correct binaries. Real gate testing covers
+# aarch64 and armv7 on actual hardware.
 
 name: Release Smoke Test
 

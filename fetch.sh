@@ -273,8 +273,10 @@ for source_id in $(list_sources); do
     bin_name=$(binary_name_for "$source_id")
     local_path="$dest_dir/$bin_name"
 
-    # The asset name on GitHub Releases matches the local binary name
-    asset_name="$bin_name"
+    # genomeBin asset naming: {name}-{triple} (multi-arch releases)
+    # Falls back to plain {name} for backward compatibility with older releases
+    asset_name_arch="${bin_name}-${CURRENT_ARCH}"
+    asset_name_plain="$bin_name"
 
     echo -n "  [$source_id] "
 
@@ -287,20 +289,24 @@ for source_id in $(list_sources); do
     got_it=false
 
     if [[ -n "$TAG" ]]; then
-        if download_from_release "$TAG" "$asset_name" "$local_path"; then
+        if download_from_release "$TAG" "$asset_name_arch" "$local_path"; then
+            got_it=true
+        elif download_from_release "$TAG" "$asset_name_plain" "$local_path"; then
             got_it=true
         fi
     fi
 
     if ! $got_it && [[ -n "$MIRROR" ]]; then
         echo -n "(trying mirror) "
-        if download_from_mirror "$MIRROR" "$asset_name" "$local_path"; then
+        if download_from_mirror "$MIRROR" "$asset_name_arch" "$local_path"; then
+            got_it=true
+        elif download_from_mirror "$MIRROR" "$asset_name_plain" "$local_path"; then
             got_it=true
         fi
     fi
 
     if ! $got_it; then
-        echo "FAIL  could not download $asset_name"
+        echo "FAIL  could not download $bin_name (tried $asset_name_arch and $asset_name_plain)"
         FAILED=$((FAILED + 1))
         continue
     fi

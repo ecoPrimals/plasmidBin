@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 #
-# auto-harvest.yml — Automated primal build + harvest pipeline
+# auto-harvest.yml — Automated primal build + harvest pipeline (genomeBin cross-arch)
 #
 # Triggers:
 #   1. repository_dispatch from primal repos (on push to main)
@@ -10,8 +10,11 @@
 # Private repos (bearDog, skunkBat) are cloned using the PAT via git insteadOf.
 # Public binaries are published to GitHub Releases regardless of source visibility.
 #
-# Flow: install toolchain -> build-primal.sh -> harvest.sh -> commit checksums
-#       -> gh release upload -> smoke test triggers on release publish
+# genomeBin Tier 1 MUST targets are built in parallel via matrix strategy:
+#   x86_64-unknown-linux-musl, aarch64-unknown-linux-musl, armv7-unknown-linux-musleabihf
+#
+# Flow: determine target -> matrix build (3 parallel) -> consolidate -> harvest
+#       -> commit checksums -> upload to GitHub Release -> smoke test
 
 name: Auto Harvest
 
@@ -39,17 +42,17 @@ permissions:
 
 env:
   CARGO_TERM_COLOR: always
+  CARGO_INCREMENTAL: 0
 
 jobs:
-  harvest:
+  prepare:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
-
+    outputs:
+      primal: ${{ steps.target.outputs.primal }}
+      commit: ${{ steps.target.outputs.commit }}
+      tag: ${{ steps.version.outputs.tag }}
+      notes: ${{ steps.version.outputs.notes }}
     steps:
-      - uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.PLASMIDBIN_HARVEST_PAT }}
-
       - name: Determine what to build
         id: target
         run: |
@@ -72,44 +75,6 @@ jobs:
             echo "Schedule: full sweep"
           fi
 
-      - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: x86_64-unknown-linux-musl
-
-      - name: Install musl-tools and b3sum
-        run: |
-          sudo apt-get update -qq
-          sudo apt-get install -y -qq musl-tools
-          cargo install b3sum --locked || true
-
-      - name: Configure git for private repos
-        env:
-          HARVEST_PAT: ${{ secrets.PLASMIDBIN_HARVEST_PAT }}
-        run: |
-          TOKEN=$(echo -n "$HARVEST_PAT" | tr -d '[:space:]')
-          git config --global url."https://x-access-token:${TOKEN}@github.com/".insteadOf "https://github.com/"
-
-      - name: Build primal(s)
-        run: |
-          PRIMAL="${{ steps.target.outputs.primal }}"
-          if [[ "$PRIMAL" == "all" ]]; then
-            ./build-primal.sh --all --target x86_64-unknown-linux-musl
-          else
-            ./build-primal.sh "$PRIMAL" --target x86_64-unknown-linux-musl
-          fi
-
-      - name: Harvest into plasmidBin
-        run: |
-          PRIMAL="${{ steps.target.outputs.primal }}"
-          ARCH="x86_64"
-          SOURCE="/tmp/primalspring-deploy/primals/x86_64-unknown-linux-musl"
-          ARGS=(--source "$SOURCE" --arch "$ARCH")
-          if [[ "$PRIMAL" != "all" ]]; then
-            ARGS+=(--primal "$PRIMAL")
-          fi
-          ./harvest.sh "${ARGS[@]}"
-
       - name: Extract version info
         id: version
         run: |
@@ -123,12 +88,127 @@ jobs:
               NOTES="$NOTES ($COMMIT)"
             fi
           else
-            NOTES="$NOTES — full sweep (all primals)"
+            NOTES="$NOTES — full sweep (all primals, Tier 1 cross-arch)"
           fi
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
           echo "notes=$NOTES" >> "$GITHUB_OUTPUT"
 
-      - name: Commit updated checksums
+  build:
+    needs: prepare
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - x86_64-unknown-linux-musl
+          - aarch64-unknown-linux-musl
+          - armv7-unknown-linux-musleabihf
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Install cross-compilation toolchain
+        run: |
+          sudo apt-get update -qq
+          case "${{ matrix.target }}" in
+            x86_64-unknown-linux-musl)
+              sudo apt-get install -y -qq musl-tools
+              ;;
+            aarch64-unknown-linux-musl)
+              sudo apt-get install -y -qq musl-tools gcc-aarch64-linux-gnu
+              ;;
+            armv7-unknown-linux-musleabihf)
+              sudo apt-get install -y -qq musl-tools gcc-arm-linux-gnueabihf
+              ;;
+          esac
+
+      - name: Configure cross-linkers
+        run: |
+          mkdir -p ~/.cargo
+          cat >> ~/.cargo/config.toml <<'TOML'
+          [target.aarch64-unknown-linux-musl]
+          linker = "aarch64-linux-gnu-gcc"
+
+          [target.armv7-unknown-linux-musleabihf]
+          linker = "arm-linux-gnueabihf-gcc"
+          TOML
+
+      - name: Install b3sum
+        run: cargo install b3sum --locked || true
+
+      - name: Configure git for private repos
+        env:
+          HARVEST_PAT: ${{ secrets.PLASMIDBIN_HARVEST_PAT }}
+        run: |
+          TOKEN=$(echo -n "$HARVEST_PAT" | tr -d '[:space:]')
+          git config --global url."https://x-access-token:${TOKEN}@github.com/".insteadOf "https://github.com/"
+
+      - name: Build primal(s) for ${{ matrix.target }}
+        run: |
+          PRIMAL="${{ needs.prepare.outputs.primal }}"
+          if [[ "$PRIMAL" == "all" ]]; then
+            ./build-primal.sh --all --target "${{ matrix.target }}"
+          else
+            ./build-primal.sh "$PRIMAL" --target "${{ matrix.target }}"
+          fi
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: primals-${{ matrix.target }}
+          path: /tmp/primalspring-deploy/primals/${{ matrix.target }}/
+          retention-days: 1
+          if-no-files-found: warn
+
+  consolidate:
+    needs: [prepare, build]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    if: ${{ !cancelled() && needs.prepare.result == 'success' }}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.PLASMIDBIN_HARVEST_PAT }}
+
+      - name: Install b3sum
+        run: cargo install b3sum --locked || true
+
+      - name: Download all build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: /tmp/harvest-artifacts
+
+      - name: Harvest all architectures
+        run: |
+          PRIMAL="${{ needs.prepare.outputs.primal }}"
+
+          for artifact_dir in /tmp/harvest-artifacts/primals-*/; do
+            [[ -d "$artifact_dir" ]] || continue
+            triple=$(basename "$artifact_dir" | sed 's/^primals-//')
+            echo ""
+            echo "=== Harvesting $triple ==="
+
+            count=$(find "$artifact_dir" -maxdepth 1 -type f | wc -l)
+            if [[ "$count" -eq 0 ]]; then
+              echo "  (no binaries for $triple — build may have failed)"
+              continue
+            fi
+
+            ARGS=(--source "$artifact_dir" --arch "$triple")
+            if [[ "$PRIMAL" != "all" ]]; then
+              ARGS+=(--primal "$PRIMAL")
+            fi
+            ./harvest.sh "${ARGS[@]}" || echo "WARNING: harvest failed for $triple"
+          done
+
+      - name: Commit updated checksums and binaries
         run: |
           git config user.name "plasmidBin-bot"
           git config user.email "plasmidbin-bot@ecoPrimals.dev"
@@ -136,34 +216,56 @@ jobs:
           if git diff --cached --quiet; then
             echo "No changes to commit"
           else
-            PRIMAL="${{ steps.target.outputs.primal }}"
-            git commit -m "harvest: $PRIMAL — $(date -u +%Y-%m-%d)"
+            PRIMAL="${{ needs.prepare.outputs.primal }}"
+            git commit -m "harvest: $PRIMAL — $(date -u +%Y-%m-%d) — Tier 1 cross-arch"
             git push
           fi
+
+      - name: Rename assets for multi-arch release
+        id: assets
+        run: |
+          PRIMAL="${{ needs.prepare.outputs.primal }}"
+          STAGING="/tmp/release-assets"
+          mkdir -p "$STAGING"
+
+          for triple_dir in primals/*/; do
+            triple=$(basename "$triple_dir")
+            [[ "$triple" == "x86_64-unknown-linux-musl" || \
+               "$triple" == "aarch64-unknown-linux-musl" || \
+               "$triple" == "armv7-unknown-linux-musleabihf" ]] || continue
+
+            for bin in "$triple_dir"/*; do
+              [[ -f "$bin" ]] || continue
+              name=$(basename "$bin")
+
+              if [[ "$PRIMAL" != "all" && "$name" != "$PRIMAL" && "$name" != "${PRIMAL}_primal" ]]; then
+                continue
+              fi
+
+              cp "$bin" "$STAGING/${name}-${triple}"
+            done
+          done
+
+          # Also upload checksums.toml as a release asset
+          cp checksums.toml "$STAGING/checksums.toml"
+
+          echo "staging=$STAGING" >> "$GITHUB_OUTPUT"
+
+          echo "--- Release assets ---"
+          ls -lh "$STAGING/"
 
       - name: Upload to GitHub Release
         env:
           GH_TOKEN: ${{ secrets.PLASMIDBIN_HARVEST_PAT }}
         run: |
-          TAG="${{ steps.version.outputs.tag }}"
-          NOTES="${{ steps.version.outputs.notes }}"
-          PRIMAL="${{ steps.target.outputs.primal }}"
-          ARCH_DIR="primals/x86_64-unknown-linux-musl"
+          TAG="${{ needs.prepare.outputs.tag }}"
+          NOTES="${{ needs.prepare.outputs.notes }}"
+          STAGING="${{ steps.assets.outputs.staging }}"
 
           ASSETS=()
-          if [[ "$PRIMAL" == "all" ]]; then
-            for bin in "$ARCH_DIR"/*; do
-              [[ -f "$bin" ]] && ASSETS+=("$bin")
-            done
-          else
-            for bin in "$ARCH_DIR"/*; do
-              [[ -f "$bin" ]] || continue
-              bn="$(basename "$bin")"
-              if [[ "$bn" == "$PRIMAL" || "$bn" == "${PRIMAL}_primal" ]]; then
-                ASSETS+=("$bin")
-              fi
-            done
-          fi
+          for f in "$STAGING"/*; do
+            [[ -f "$f" ]] && ASSETS+=("$f")
+          done
 
           if [[ ${#ASSETS[@]} -eq 0 ]]; then
             echo "No assets to upload"
@@ -171,13 +273,13 @@ jobs:
           fi
 
           if gh release view "$TAG" --repo ecoPrimals/plasmidBin >/dev/null 2>&1; then
-            echo "Uploading to existing release $TAG ..."
+            echo "Uploading ${#ASSETS[@]} assets to existing release $TAG ..."
             gh release upload "$TAG" \
               --repo ecoPrimals/plasmidBin \
               --clobber \
               "${ASSETS[@]}"
           else
-            echo "Creating release $TAG ..."
+            echo "Creating release $TAG with ${#ASSETS[@]} assets ..."
             gh release create "$TAG" \
               --repo ecoPrimals/plasmidBin \
               --title "plasmidBin $TAG" \
@@ -189,6 +291,7 @@ jobs:
         run: |
           echo "### Auto Harvest Complete" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "- **Target**: ${{ steps.target.outputs.primal }}" >> "$GITHUB_STEP_SUMMARY"
-          echo "- **Release**: ${{ steps.version.outputs.tag }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **Target**: ${{ needs.prepare.outputs.primal }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **Release**: ${{ needs.prepare.outputs.tag }}" >> "$GITHUB_STEP_SUMMARY"
           echo "- **Trigger**: ${{ github.event_name }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **Architectures**: x86_64-unknown-linux-musl, aarch64-unknown-linux-musl, armv7-unknown-linux-musleabihf" >> "$GITHUB_STEP_SUMMARY"
