@@ -128,14 +128,16 @@ fi
 
 # Build harvest map for the target. For known legacy short names, use the
 # pre-built maps. For any target triple, build dynamically.
+arch_short="${ARCH_TRIPLE%%-*}"
 case "$ARCH" in
-    x86_64)  HARVEST_MAP=("${HARVEST_MAP_X86_64[@]}") ;;
-    aarch64) HARVEST_MAP=("${HARVEST_MAP_AARCH64[@]}") ;;
+    x86_64|x86_64-unknown-linux-musl)
+        HARVEST_MAP=("${HARVEST_MAP_X86_64[@]}") ;;
+    aarch64|aarch64-unknown-linux-musl)
+        HARVEST_MAP=("${HARVEST_MAP_AARCH64[@]}") ;;
     *)
-        # Dynamic harvest map for arbitrary target triples
         HARVEST_MAP=()
         for p in "${CORE_PRIMAL_NAMES[@]}"; do
-            HARVEST_MAP+=("${p}:primals/${ARCH_TRIPLE}/${p}")
+            HARVEST_MAP+=("${p}-${arch_short}-linux-musl:primals/${ARCH_TRIPLE}/${p}")
         done
         ;;
 esac
