@@ -104,6 +104,6 @@
 
 # primalspring_primal removed — primalSpring is a spring, not a primal.
 # esotericwebb removed — compositions consume primals, they don't ship here.
-"aarch64-unknown-linux-musl" = "9e91cbb49e3a26558844d85cd1cb927c5007c1b78edd265cef3bfa59576af56c"
-"armv7-unknown-linux-musleabihf" = "425ca97e9302101fef0295eef930dda4551447fc6ee7066db1ef97e5da43bbb5"
-"x86_64-unknown-linux-musl" = "10d0a15e17cc4f5ea5c9165f2a3a661ff6e47d7e4c37a33794a4bfddf262973a"
+"aarch64-unknown-linux-musl" = "d705913eb6a22bd421a1693b761c48aac03509087c6baf447792c9502f49b451"
+"armv7-unknown-linux-musleabihf" = "f02feb993feddc7bebd0892a524a2e6763a74f62ed0447299b5e36db57f72cdd"
+"x86_64-unknown-linux-musl" = "bdf53a51b08cad70f55249bf3bc89dbb1033a9f5003d8bf7d97f142ecd8af91d"
