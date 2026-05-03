@@ -228,19 +228,49 @@ plasmidBin/
 └── receipts/               # Harvest receipts
 ```
 
-## Release Workflow (primalSpring)
+## CI/CD: plasmidBin as Sole Paid Hub
 
-primalSpring owns the release cycle:
+plasmidBin is the **only repository with paid GitHub Actions minutes**. Primal
+repos run free-tier lint/test (`ci.yml`) and dispatch to plasmidBin on push
+(`notify-plasmidbin.yml`). plasmidBin's `auto-harvest.yml` handles:
+
+- **3-arch matrix builds** (x86_64, aarch64, armv7 — Tier 1 MUST targets)
+- **Per-primal concurrency** (independent primals build in parallel)
+- **Serialized consolidation** (checksums commit + GitHub Release upload)
+
+See `CONTEXT.md` for the full architecture, cost model, and future
+distribution channel roadmap (CDN, OCI, apt/deb, Nix).
+
+## Release Workflow
+
+### Automated (Primary)
+
+Every push to `main` in a primal repo triggers `auto-harvest.yml` via
+`repository_dispatch`. Builds run on paid runners, consolidate with rebase
+retry, and upload to GitHub Releases automatically. Weekly full sweeps catch
+any missed updates.
+
+### Manual
 
 ```bash
-# 1. Build all primals from source (musl-static)
+# Rebuild a single primal
+gh workflow run auto-harvest.yml -f primal=beardog --repo ecoPrimals/plasmidBin
+
+# Full sweep
+gh workflow run auto-harvest.yml -f primal=all --repo ecoPrimals/plasmidBin
+```
+
+### Local (primalSpring)
+
+```bash
+# Build all primals from source (musl-static)
 ./scripts/build_ecosystem_musl.sh --harvest
 
-# 2. Validate the full composition
+# Validate the full composition
 cd plasmidBin && ./doctor.sh && ./validate_composition.sh full
 
-# 3. Cut a release
-./harvest.sh --release v2026.04.11
+# Cut a release
+./harvest.sh --release v2026.05.03
 ```
 
 ### What primalSpring validates before release

@@ -207,7 +207,6 @@ capabilities = ["defense", "threat", "metadata", "lineage", "baseline", "health"
 ecobin_grade = "A+"
 binary = "skunkbat"
 build_package = "skunk-bat-server"
-needs_sibling = "ecoPrimals/sourDough"
 arch = ["x86_64-unknown-linux-musl", "aarch64-unknown-linux-musl", "armv7-unknown-linux-musleabihf"]
 check_pass = ["x86_64-apple-darwin", "aarch64-apple-darwin"]
 
