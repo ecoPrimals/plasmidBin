@@ -54,7 +54,7 @@ Legacy symlinks: `primals/{binary}` -> `x86_64-unknown-linux-musl/{binary}`
 
 ### Documented Gaps
 
-- **nestgate/skunkbat**: Library-only crates — no binary target produced (workspace structure)
+- **nestgate**: Library-only crate on non-x86_64 targets (workspace structure)
 - **toadstool on armv7**: 32-bit usize overflow in GPU allocation constant (4GB > u32::MAX)
 - **biomeos on armv7**: 32-bit usize overflow in cast.rs (1 << 53 overflows on 32-bit)
 - **macOS**: cargo check passes for 8/14 primals (proves pure Rust), no osxcross for linking
