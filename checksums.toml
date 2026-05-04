@@ -86,9 +86,9 @@
 "armv7-unknown-linux-musleabihf" = "1aa96908710dabda0958d26340714c1a56c424f45987bc588df396adc3086345"
 
 [primals.squirrel]
-"x86_64-unknown-linux-musl" = "6656f81ee908ec076f7e40640ee3eedb3a3b5fb55ea7c55f5e7bcf1aa6bf8920"
-"aarch64-unknown-linux-musl" = "3be8ded710118413b6973ae42120605664284efb502034ca6618d8b54391a92b"
-"armv7-unknown-linux-musleabihf" = "a1070e663de4cc87e23c66c3c12aa498f6b0dba30646b694269a4ddbc44ba573"
+"x86_64-unknown-linux-musl" = "7d99918c98ce4157218b65ccaf6150dadaf112599ea75e1107d40718c964b7c5"
+"aarch64-unknown-linux-musl" = "63e4ec60fd4be2f9ff108b26433db7b6770f4a074f81b535a8004dc66b3b846d"
+"armv7-unknown-linux-musleabihf" = "2ccf2a4afcb07598a0ce5e1f935d5e69ab8cba9ed9ab3c5baabbdd098186027c"
 
 [primals.petaltongue]
 "x86_64-unknown-linux-musl" = "a4c34475b93d4619c3ea6dce44e459a0109ef308aa613614a27b751c86422e03"
