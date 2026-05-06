@@ -12,7 +12,7 @@ name: Notify sporePrint
 
 on:
   push:
-    branches: [main]
+    branches: [main, master]
 
 jobs:
   notify:
