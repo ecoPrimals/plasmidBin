@@ -47,7 +47,7 @@
 [primals.coralreef]
 "x86_64-unknown-linux-musl" = "0c462e6d176002a0cbd59432f6dcf7ea196492c5a2e049cd47c4e93a68c0f442"
 "aarch64-unknown-linux-musl" = "81db66a59981103baf1074aa08ebc81dec84d4436c1f0552874a7624af9deb05"
-"armv7-unknown-linux-musleabihf" = "5e4683ec162c072eb7a9b37567619d3009f7451c2a427e0418fe3a62192121dd"
+"armv7-unknown-linux-musleabihf" = "62d49ab211cd5c55402882efd763b1337d410d9ce226f8aa07574818bf5d87d0"
 
 # =============================================================================
 # PRIMALS — Nest Atomic additions (neutron: nestgate + provenance trio)
