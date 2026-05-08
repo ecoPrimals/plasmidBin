@@ -31,7 +31,8 @@ on:
         type: string
 
   schedule:
-    - cron: '0 6 * * 1'
+    - cron: '0 6 * * 1'   # weekly full sweep (Monday 06:00 UTC)
+    - cron: '30 5 * * *'   # daily catch-up — covers dispatch drops from rate limits
 
 concurrency:
   group: auto-harvest-${{ github.event.client_payload.primal || github.event.inputs.primal || 'sweep' }}
