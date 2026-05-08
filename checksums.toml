@@ -71,9 +71,9 @@
 "aarch64-linux-android" = "d61f6c420390d80df1fed005f1066188cddcf47ad738de9c729e7669f28a8cbb"
 
 [primals.sweetgrass]
-"x86_64-unknown-linux-musl" = "6007c9a1e00aef00487c63946fb917911f0c865db3ff764bf0e1cd7817f35d0b"
-"aarch64-unknown-linux-musl" = "6ac3e23cddef6ef113a68beb02032cc61e73e038d1ce70530835bb671b58593f"
-"armv7-unknown-linux-musleabihf" = "d2a8972e0629cc256284839e75795a03b4e6ecf3eab347cf96f2edfedc5de095"
+"x86_64-unknown-linux-musl" = "588da9f5d3094215f802cf25df4db64a9af421c15a087853012aa9998ab2fe5c"
+"aarch64-unknown-linux-musl" = "0ca061a095a05f90e014a7137bc728eccb503dac93ea446f4e24e699d922c498"
+"armv7-unknown-linux-musleabihf" = "08ebf663822b63a9635b9316e8df9dbb86b26251e2af80f271bb2743a6787d88"
 "aarch64-linux-android" = "24ec1d011ec52f8dc0428b5273825929167fc10705de5dca6ef998a6c11c8468"
 
 # =============================================================================
