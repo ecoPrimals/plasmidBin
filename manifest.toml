@@ -336,7 +336,7 @@ evolution = "composing"
 particle_profile = "balanced"
 proto_nucleate = "nucleus_atomics_validate"
 required_atomics = ["tower", "node", "nest", "meta_tier"]
-tests = 455
+tests = 666
 note = "Unique: its domain IS composition — primalspring_primal is a coordination primal"
 
 # =============================================================================
