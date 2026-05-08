@@ -286,6 +286,11 @@ for source_id in $(list_sources); do
         continue
     fi
 
+    # --force: remove stale binary so curl writes fresh
+    if $FORCE && [[ -f "$local_path" ]]; then
+        rm -f "$local_path"
+    fi
+
     got_it=false
 
     if [[ -n "$TAG" ]]; then
@@ -339,6 +344,24 @@ for source_id in $(list_sources); do
 
     DOWNLOADED=$((DOWNLOADED + 1))
 done
+
+# Create backward-compat symlinks: primals/{name} -> {triple}/{name}
+# validate_composition.sh, doctor.sh, and legacy tooling expect flat primals/{name}.
+if ! $DRY_RUN && [[ -d "$PRIMALS_DIR/$CURRENT_ARCH" ]]; then
+    SYMLINKED=0
+    for bin in "$PRIMALS_DIR/$CURRENT_ARCH"/*; do
+        [[ -f "$bin" ]] || continue
+        name=$(basename "$bin")
+        link="$PRIMALS_DIR/$name"
+        if [[ ! -e "$link" ]] || [[ -L "$link" ]]; then
+            ln -sf "$CURRENT_ARCH/$name" "$link"
+            SYMLINKED=$((SYMLINKED + 1))
+        fi
+    done
+    if [[ $SYMLINKED -gt 0 ]]; then
+        echo "Symlinked: $SYMLINKED (primals/{name} -> $CURRENT_ARCH/{name})"
+    fi
+fi
 
 echo ""
 echo "Summary:"
