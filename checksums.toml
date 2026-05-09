@@ -23,9 +23,9 @@
 "armv7-unknown-linux-musleabihf" = "65a2bfaee70c5826aeda2524cdcfa2437c7661e5b3751454656ee3af93a0c114"
 
 [primals.songbird]
-"x86_64-unknown-linux-musl" = "1050f8ea12df7e35698cdf6038bc4d5156f400f99b7e535c96d2e283864f9664"
-"aarch64-unknown-linux-musl" = "0644d27b3b9b61d28b74370cb2824ccd50b095fef6ae9653c181056975d4e3ca"
-"armv7-unknown-linux-musleabihf" = "b7ab8777571842fe8fb881e595c3bcec5662007d139fd634ac3e6c5f4619a4dd"
+"x86_64-unknown-linux-musl" = "68ec99b861d47303015ac6058ad3befacb182b5267b85d9c63b4848800eea093"
+"aarch64-unknown-linux-musl" = "418332c4b8f700524d8eef59bb4115c58e9977c71710d47bae7e3264f6852d01"
+"armv7-unknown-linux-musleabihf" = "4dd55d1b51c751fa07b74bbc9537bc7fd46d0f8baea15940ecba98e9c62498ee"
 "aarch64-linux-android" = "9024e9c4500e3f842dcb51d64e29683fc21554488880273dd48e94f9d3c2543b"
 
 # =============================================================================
