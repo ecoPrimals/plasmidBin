@@ -33,9 +33,9 @@
 # =============================================================================
 
 [primals.toadstool]
-"x86_64-unknown-linux-musl" = "688bf3a9228cb54557b4e247a99098c486f2cc9b1c628e8edc897d872bc830ef"
-"aarch64-unknown-linux-musl" = "d233a096f0500dc4849ea2c357a243fb9cf6de6a1f88e66766d3c4837f5c44e2"
-"armv7-unknown-linux-musleabihf" = "2bb599c92e1e8b7ee873e52c8ba719f8bb832cdb9369cd23d3741773dcda68ee"
+"x86_64-unknown-linux-musl" = "421c9d6b2952e958901a363cdd05e30b8f1ed023e16c5b4f2cb2820e2572673f"
+"aarch64-unknown-linux-musl" = "9ea553827f3e18d39f794ef216d68d3260b10c79a04cbe1e138af55926d9450b"
+"armv7-unknown-linux-musleabihf" = "f3e31dc8f546f22f193d12dfaab944b19c725876136d952508f85ec3dca9619e"
 
 [primals.barracuda]
 "x86_64-unknown-linux-musl" = "568091b5d3779d37dff4f9ccb769f65f4bde2c9ab5f2841991573fc8745cf046"
@@ -91,9 +91,9 @@
 "armv7-unknown-linux-musleabihf" = "be60ec37c1625161c76c3b2ee9aa8e160e88aa79b04823a5d94f97107556b01c"
 
 [primals.petaltongue]
-"x86_64-unknown-linux-musl" = "08615c1efcac38e32265cff938014520cf465d5dd6d60bf0afcd81824db22ae8"
-"aarch64-unknown-linux-musl" = "57f8f366de35da9097a226c7d3224f25ca5d279ac92ca5717bbe81934a902911"
-"armv7-unknown-linux-musleabihf" = "37a88dd02c19a61122f94e3533a0a18b5e88b1f1e0618bd411f75c48dfd37c45"
+"x86_64-unknown-linux-musl" = "dcd9b3522015894f005bd3566abd94e87bdd7141192d2193a74ce513001d5a4c"
+"aarch64-unknown-linux-musl" = "92160bd90e181e3515a6e5c7e5659bdd47eaab008d5fb176a13cbe8735ae330c"
+"armv7-unknown-linux-musleabihf" = "0ba5f6d071edc0a08137a57aac098238442a940ca727649cfda18f67f413b526"
 
 # =============================================================================
 # PRIMALS — Defense
