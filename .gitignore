@@ -20,6 +20,8 @@ skunkbat
 # Spring binaries
 ludospring
 groundspring
+healthspring
+healthspring_unibin
 healthspring_primal
 neuralspring
 wetspring
