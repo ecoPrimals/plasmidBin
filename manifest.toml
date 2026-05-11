@@ -322,10 +322,10 @@ evolution = "composed"
 particle_profile = "balanced"
 proto_nucleate = "ludospring_proto_nucleate"
 required_atomics = ["node", "nest", "meta_tier"]
-tests = 817
+tests = 854
 barracuda_depth = "composed"
 composition_model = "pure"
-note = "V53 pure composition — no spring binary deploys. 12-node cell graph, 30 capabilities, BTSP-enforced, 60Hz tick."
+note = "V62 Tier 4 IPC-first (default=[ipc], barracuda opt-in). 854 tests, 8 scenarios, 12-node cell, 30 capabilities, Foundation 9+10 seeded."
 
 [springs.primalspring]
 name = "primalSpring"

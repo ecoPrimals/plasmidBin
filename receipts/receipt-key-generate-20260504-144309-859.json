@@ -1,0 +1,23 @@
+{
+  "receipt_id": "3f454aa9-40bc-46dc-8798-7cc60cf8e1be",
+  "operation": "key-generate",
+  "timestamp": "2026-05-04T14:43:09.859307883+00:00",
+  "result": {
+    "status": "success"
+  },
+  "key_info": {
+    "key_id": "irongate-sovereign-root",
+    "algorithm": "aes256-gcm",
+    "generation": 0
+  },
+  "hsm_info": {
+    "name": "BearDog Native Software HSM",
+    "vendor": "BearDog",
+    "model": "Native Software HSM",
+    "hsm_type": "Software"
+  },
+  "metadata": {
+    "entropy_source": "human",
+    "kdf": "argon2"
+  }
+}

@@ -187,9 +187,10 @@ for p in $PRIMALS; do
     if command -v b3sum >/dev/null 2>&1 && [[ -f "$SCRIPT_DIR/checksums.toml" ]]; then
         ARCH=$(uname -m)
         case "$ARCH" in
-            x86_64)  TRIPLE="x86_64-linux-musl" ;;
-            aarch64) TRIPLE="aarch64-linux-musl" ;;
-            *)       TRIPLE="$ARCH-linux-musl" ;;
+            x86_64)  TRIPLE="x86_64-unknown-linux-musl" ;;
+            aarch64) TRIPLE="aarch64-unknown-linux-musl" ;;
+            armv7l)  TRIPLE="armv7-unknown-linux-musleabihf" ;;
+            *)       TRIPLE="$ARCH-unknown-linux-musl" ;;
         esac
 
         section="primals.$p"

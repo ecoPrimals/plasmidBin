@@ -139,6 +139,9 @@ X86_COUNT=0
 X86_ECOBIN=0
 for name in beardog songbird nestgate toadstool barracuda coralreef squirrel petaltongue biomeos rhizocrypt loamspine sweetgrass skunkbat; do
     bin="$SCRIPT_DIR/primals/$name"
+    if [[ ! -f "$bin" ]] && [[ -f "$SCRIPT_DIR/primals/x86_64-unknown-linux-musl/$name" ]]; then
+        bin="$SCRIPT_DIR/primals/x86_64-unknown-linux-musl/$name"
+    fi
     if [[ ! -f "$bin" ]]; then
         check "$name" fail "missing"
         continue
@@ -168,7 +171,7 @@ if ! $JSON; then echo ""; echo "=== Binary Inventory (aarch64) ==="; fi
 ARM_COUNT=0
 ARM_ECOBIN=0
 for name in beardog songbird squirrel toadstool biomeos barracuda coralreef; do
-    bin="$SCRIPT_DIR/primals/aarch64/$name"
+    bin="$SCRIPT_DIR/primals/aarch64-unknown-linux-musl/$name"
     if [[ ! -f "$bin" ]]; then
         check "$name (aarch64)" warn "not built yet"
         continue
@@ -278,9 +281,10 @@ if ! $QUICK && command -v b3sum >/dev/null 2>&1 && [[ -f "$SCRIPT_DIR/checksums.
 
     ARCH=$(uname -m)
     case "$ARCH" in
-        x86_64)  ARCH_TRIPLE="x86_64-linux-musl" ;;
-        aarch64) ARCH_TRIPLE="aarch64-linux-musl" ;;
-        *)       ARCH_TRIPLE="$ARCH-linux-musl" ;;
+        x86_64)  ARCH_TRIPLE="x86_64-unknown-linux-musl" ;;
+        aarch64) ARCH_TRIPLE="aarch64-unknown-linux-musl" ;;
+        armv7l)  ARCH_TRIPLE="armv7-unknown-linux-musleabihf" ;;
+        *)       ARCH_TRIPLE="$ARCH-unknown-linux-musl" ;;
     esac
 
     CHECKSUMS_VERIFIED=0
