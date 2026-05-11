@@ -140,13 +140,27 @@ health_method = "health.liveness"
 by_capability = "attribution"
 capabilities = ["braid.create", "braid.commit", "anchoring.anchor"]
 
+# ── Defense / Audit ──────────────────────────────────────────────────
+
+[[graph.nodes]]
+name = "skunkbat"
+security_model = "btsp"
+binary = "skunkbat"
+order = 10
+required = false
+spawn = false
+depends_on = ["beardog", "nestgate"]
+health_method = "health.liveness"
+by_capability = "defense"
+capabilities = ["security.audit_log", "security.baseline", "security.anomaly"]
+
 # ── Meta Tier ────────────────────────────────────────────────────────
 
 [[graph.nodes]]
 name = "squirrel"
 security_model = "btsp"
 binary = "squirrel"
-order = 10
+order = 11
 required = false
 spawn = false
 depends_on = ["songbird"]
@@ -158,7 +172,7 @@ capabilities = ["ai.chat", "ai.inference"]
 name = "petaltongue"
 security_model = "btsp"
 binary = "petaltongue"
-order = 11
+order = 12
 required = true
 spawn = false
 depends_on = ["songbird"]
@@ -175,7 +189,7 @@ mode = "live"
 name = "hotspring"
 security_model = "btsp"
 binary = "hotspring_primal"
-order = 12
+order = 13
 required = true
 depends_on = ["beardog", "songbird", "toadstool", "barracuda"]
 health_method = "health.liveness"
@@ -194,4 +208,4 @@ depends_on = ["hotspring", "petaltongue"]
 name = "health_check"
 
 [graph.nodes.operation.params]
-targets = ["beardog", "songbird", "toadstool", "barracuda", "petaltongue", "hotspring"]
+targets = ["beardog", "songbird", "toadstool", "barracuda", "skunkbat", "petaltongue", "hotspring"]

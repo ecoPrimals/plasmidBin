@@ -243,9 +243,9 @@ evolution = "composing"
 particle_profile = "proton_heavy"
 proto_nucleate = "hotspring_qcd_proto_nucleate"
 required_atomics = ["node"]
-tests = 1040
+tests = 1025
 barracuda_depth = "composing"
-note = "Dual path: in-process barraCuda + optional IPC math primal. NucleusContext.detect() + by_domain() pattern."
+note = "Tier 4 IPC-first: barracuda optional, 25+ modules feature-gated behind barracuda-local. primal-proof builds compile and test (576 tests) without barraCuda source. NucleusContext.detect() + by_domain() pattern."
 
 [springs.neuralspring]
 name = "neuralSpring"
