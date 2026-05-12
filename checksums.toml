@@ -40,7 +40,7 @@
 [primals.barracuda]
 "x86_64-unknown-linux-musl" = "1fb46a5764265e6cba2fd895dbaa81aff3d266388c3bea939bfc101745de8be3"
 "aarch64-unknown-linux-musl" = "8ad928458be6af9caf2c4dd4eb0b6f060f6c7e42b91703913e4849058b907381"
-"armv7-unknown-linux-musleabihf" = "4b54296c50fa82ffdfe4aead7193f6da0db0e6c4def139d5bee6bf183288d765"
+"armv7-unknown-linux-musleabihf" = "8732a9b1d348ca23085190bc1746324b52025cf700aff5926c7ced989ca588d1"
 "x86_64-pc-windows-gnu" = "607eff0abd370511646681c99a0e67cc7e5ee03aae52791b3933fded0552b141"
 "aarch64-linux-android" = "e34e40f4b42f909d240dfce68785ff338231e1bd51fe5f2c2afbdfe0dfb974a0"
 
