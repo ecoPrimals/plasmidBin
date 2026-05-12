@@ -38,9 +38,9 @@
 "armv7-unknown-linux-musleabihf" = "4e832949dfaae5d55e872c3449da5a55e7d15e329725c1a2ddc475ee7af6efea"
 
 [primals.barracuda]
-"x86_64-unknown-linux-musl" = "bbf0b2feaa0a9dee80cc848c79d6816e4577024b6e6a7bc0feca8d0c2c34c2bd"
-"aarch64-unknown-linux-musl" = "6a0097b0a9d56c6411a51c6fc86b859e3083dec4d914dfa9e0a8ab29572367fa"
-"armv7-unknown-linux-musleabihf" = "7426172c17f70589f0d889b8697ef6c781c0934c1de3d7b0b4321b5c8c0c1d51"
+"x86_64-unknown-linux-musl" = "f8f299a1cc3e402b6890897a34ced6fcfd944f9dff3612dae5de458d34f43158"
+"aarch64-unknown-linux-musl" = "23cc739a8062b49af696080fd3cbe1f8d1ce1c2dc8039628f2f61a36e9d59b9c"
+"armv7-unknown-linux-musleabihf" = "1807eb964cc9cbaa2db9cff505e862945a5096c753abff122ace5040d1644f28"
 "x86_64-pc-windows-gnu" = "607eff0abd370511646681c99a0e67cc7e5ee03aae52791b3933fded0552b141"
 "aarch64-linux-android" = "e34e40f4b42f909d240dfce68785ff338231e1bd51fe5f2c2afbdfe0dfb974a0"
 
