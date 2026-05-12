@@ -43,6 +43,7 @@ SOURCE_DIR=""
 HARVESTED=0
 SKIPPED=0
 FAILED=0
+UNCHANGED=0
 
 # Harvest maps keyed by arch. Format: "artifact-name:category/local-name"
 # artifact-name matches build_ecosystem_musl.sh output: {binary}-{arch}-linux-musl
@@ -185,6 +186,31 @@ select_strip() {
 
 STRIP_BIN=$(select_strip)
 
+lookup_checksum() {
+    local section="$1"
+    local arch="$2"
+    local in_section=false
+    local section_header
+    section_header=$(echo "$section" | sed 's/\./\\./g')
+
+    [[ -f "$CHECKSUMS_FILE" ]] || return 1
+
+    while IFS= read -r line; do
+        if [[ "$line" =~ ^\[${section_header}\] ]]; then
+            in_section=true
+            continue
+        fi
+        if $in_section && [[ "$line" =~ ^\[ ]]; then
+            break
+        fi
+        if $in_section && [[ "$line" =~ ^\"${arch}\"[[:space:]]*=[[:space:]]*\"(.*)\" ]]; then
+            echo "${BASH_REMATCH[1]}"
+            return 0
+        fi
+    done < "$CHECKSUMS_FILE"
+    return 1
+}
+
 update_checksum() {
     local section="$1"
     local arch="$2"
@@ -308,6 +334,20 @@ for entry in "${HARVEST_MAP[@]}"; do
         continue
     fi
 
+    # Skip if the computed hash matches the existing checksums.toml entry
+    case "$dest_rel" in
+        primals/*) _chk_section="primals.${local_name}" ;;
+        springs/*) _chk_section="springs.${local_name}" ;;
+        *)         _chk_section="primals.${local_name}" ;;
+    esac
+    existing_hash=$(lookup_checksum "$_chk_section" "$ARCH_TRIPLE" 2>/dev/null) || existing_hash=""
+    if [[ -n "$existing_hash" && "$existing_hash" == "$hash" ]]; then
+        echo "UNCHANGED  ${size}  blake3=${hash:0:16}... (matches checksums.toml)"
+        rm -f "$stripped_tmp"
+        UNCHANGED=$((UNCHANGED + 1))
+        continue
+    fi
+
     cp "$stripped_tmp" "$local_dest"
 
     # Checksum section: primals.{name} or springs.{name} — arch is the key, not part of section
@@ -356,9 +396,10 @@ fi
 
 echo ""
 echo "Summary:"
-echo "  Harvested: $HARVESTED"
-echo "  Skipped:   $SKIPPED"
-echo "  Failed:    $FAILED"
+echo "  Harvested:  $HARVESTED"
+echo "  Unchanged:  $UNCHANGED"
+echo "  Skipped:    $SKIPPED"
+echo "  Failed:     $FAILED"
 
 if [[ $FAILED -gt 0 ]]; then
     exit 1

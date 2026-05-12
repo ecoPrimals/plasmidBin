@@ -180,15 +180,15 @@ verify_checksum() {
     fi
 }
 
-# Detect current architecture as target triple fragment
+# Detect current architecture as full Rust target triple matching checksums.toml keys
 detect_arch() {
     local machine
     machine=$(uname -m)
     case "$machine" in
-        x86_64)  echo "x86_64-linux-musl" ;;
-        aarch64) echo "aarch64-linux-musl" ;;
-        armv7l)  echo "armv7-linux-musleabihf" ;;
-        *)       echo "$machine-linux-musl" ;;
+        x86_64)  echo "x86_64-unknown-linux-musl" ;;
+        aarch64) echo "aarch64-unknown-linux-musl" ;;
+        armv7l)  echo "armv7-unknown-linux-musleabihf" ;;
+        *)       echo "$machine-unknown-linux-musl" ;;
     esac
 }
 

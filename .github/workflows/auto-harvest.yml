@@ -192,6 +192,7 @@ jobs:
       - name: Harvest all architectures
         run: |
           PRIMAL="${{ needs.prepare.outputs.primal }}"
+          HARVEST_FAILURES=0
 
           for artifact_dir in /tmp/harvest-artifacts/primals-*/; do
             [[ -d "$artifact_dir" ]] || continue
@@ -202,6 +203,7 @@ jobs:
             count=$(find "$artifact_dir" -maxdepth 1 -type f | wc -l)
             if [[ "$count" -eq 0 ]]; then
               echo "  (no binaries for $triple — build may have failed)"
+              HARVEST_FAILURES=$((HARVEST_FAILURES + 1))
               continue
             fi
 
@@ -209,25 +211,85 @@ jobs:
             if [[ "$PRIMAL" != "all" ]]; then
               ARGS+=(--primal "$PRIMAL")
             fi
-            ./harvest.sh "${ARGS[@]}" || echo "WARNING: harvest failed for $triple"
+            if ! ./harvest.sh "${ARGS[@]}"; then
+              echo "ERROR: harvest failed for $triple"
+              HARVEST_FAILURES=$((HARVEST_FAILURES + 1))
+            fi
           done
 
+          if [[ "$HARVEST_FAILURES" -gt 0 ]]; then
+            echo ""
+            echo "FATAL: $HARVEST_FAILURES architecture(s) failed harvest — aborting to prevent stale checksums"
+            exit 1
+          fi
+
       - name: Commit updated checksums and binaries
+        id: commit
         run: |
           git config user.name "plasmidBin-bot"
           git config user.email "plasmidbin-bot@ecoPrimals.dev"
           git add checksums.toml primals/ springs/ || true
           if git diff --cached --quiet; then
             echo "No changes to commit"
+            echo "changed=false" >> "$GITHUB_OUTPUT"
           else
             PRIMAL="${{ needs.prepare.outputs.primal }}"
+            echo ""
+            echo "=== Checksum changes ==="
+            git diff --cached checksums.toml | grep '^[+-]"' | head -40 || true
+            echo ""
             git commit -m "harvest: $PRIMAL — $(date -u +%Y-%m-%d) — Tier 1 cross-arch"
             for attempt in 1 2 3; do
               git push && break
               echo "Push failed (attempt $attempt), rebasing..."
               git pull --rebase
             done
+            echo "changed=true" >> "$GITHUB_OUTPUT"
           fi
+
+      - name: Post-harvest validation
+        if: ${{ steps.commit.outputs.changed == 'true' }}
+        run: |
+          echo "=== Post-harvest integrity check ==="
+
+          FAIL=0
+
+          # 1. Binary presence: every primal in checksums.toml has a file on disk
+          for triple_dir in primals/*/; do
+            triple=$(basename "$triple_dir")
+            [[ "$triple" == "x86_64-unknown-linux-musl" || \
+               "$triple" == "aarch64-unknown-linux-musl" || \
+               "$triple" == "armv7-unknown-linux-musleabihf" ]] || continue
+
+            for bin in "$triple_dir"/*; do
+              [[ -f "$bin" ]] || continue
+              name=$(basename "$bin")
+              expected=$(grep -A1 "^\[primals\.${name}\]" checksums.toml | \
+                         grep "\"${triple}\"" | \
+                         sed 's/.*= *"\(.*\)"/\1/' || true)
+              if [[ -z "$expected" ]]; then
+                echo "  WARN: $name ($triple) — no checksum entry"
+                continue
+              fi
+              actual=$(b3sum --no-names "$bin")
+              if [[ "$actual" != "$expected" ]]; then
+                echo "  FAIL: $name ($triple) — hash mismatch"
+                echo "    expected: $expected"
+                echo "    actual:   $actual"
+                FAIL=$((FAIL + 1))
+              else
+                echo "  OK: $name ($triple)"
+              fi
+            done
+          done
+
+          if [[ "$FAIL" -gt 0 ]]; then
+            echo ""
+            echo "FATAL: $FAIL checksum mismatches after harvest — checksums.toml is inconsistent"
+            exit 1
+          fi
+          echo ""
+          echo "Post-harvest validation passed"
 
       - name: Rename assets for multi-arch release
         id: assets
