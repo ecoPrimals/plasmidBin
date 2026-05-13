@@ -91,9 +91,9 @@
 "armv7-unknown-linux-musleabihf" = "45d12312c1bff817bbf3dcd7ae167e0056b144485aa6b1195a3947f4bd36b668"
 
 [primals.petaltongue]
-"x86_64-unknown-linux-musl" = "12dbf25cc84a4b3b41eea92b6b68245ab769f7f438add8a83e4dbabf5429e8e1"
-"aarch64-unknown-linux-musl" = "1475a3c4dd79c27b1a7c294220613c1b490f0eaf3ded508d274a6d32476b889e"
-"armv7-unknown-linux-musleabihf" = "2b1d1c8679d576523cb89280b470b0055f08d33af75032d71ccb0722bd558b2d"
+"x86_64-unknown-linux-musl" = "330cc42555f2ebaddd15a3aebb9ba71b5add1e7691267b7ab3f8a3a4748fbb81"
+"aarch64-unknown-linux-musl" = "e888f2463a916c534d203a130ea1aba0779ce93978415ee1917d941d89082b31"
+"armv7-unknown-linux-musleabihf" = "d289aa0622d8914e8415c3e7e713d26164ae6ac602bcf142def2bdef826f1c15"
 
 # =============================================================================
 # PRIMALS — Defense
