@@ -25,13 +25,13 @@
 #   4. ../plasmidBin            (parent)
 #   5. ../../plasmidBin         (grandparent — reaches here from phase2/biomeOS/)
 #
-# Updated: 2026-04-26
-# Version: 5.2.0 (Phase 45c — pure composition cells, ludoSpring V53, BTSP everywhere, graphics node)
+# Updated: 2026-05-13
+# Version: 5.3.0 (Atomic deployment phase — 13/13 zero debt, Tower LIVE, toadstool.validate S250)
 
 [manifest]
-version = "5.2.0"
+version = "5.3.0"
 format = "genomeBin"
-generated = "2026-04-26T00:00:00Z"
+generated = "2026-05-13T00:00:00Z"
 checksum_algorithm = "blake3"
 # mirror_url = "https://bins.ecoprimals.dev/latest/"
 
@@ -111,9 +111,9 @@ arch = ["x86_64-unknown-linux-musl", "aarch64-unknown-linux-musl", "armv7-unknow
 [primals.barracuda]
 name = "barraCuda"
 description = "GPU math engine — 826 WGSL shaders, DF64, FFT/NTT, tensor, scientific compute"
-latest = "0.3.12"
+latest = "0.4.0"
 phase = 1
-capabilities = ["compute", "gpu", "tensor", "fhe", "linalg", "spectral", "stats", "wgsl"]
+capabilities = ["compute", "gpu", "tensor", "fhe", "linalg", "spectral", "stats", "wgsl", "precision"]
 seed_fingerprint = "5fd6fb7017cc5a3d2c0deddd8b65cf034c3849c583c2a5a9caa1924c64fc53c9"
 ecobin_grade = "A++"
 arch = ["x86_64-unknown-linux-musl", "aarch64-unknown-linux-musl", "armv7-unknown-linux-musleabihf", "x86_64-pc-windows-gnu", "aarch64-linux-android"]
@@ -332,13 +332,13 @@ note = "V62 Tier 4 IPC-first (default=[ipc], barracuda opt-in). 854 tests, 8 sce
 name = "primalSpring"
 org = "ecoPrimals"
 description = "Coordination validation — validates the ecosystem itself"
-latest = "0.9.17"
+latest = "0.9.25"
 evolution = "composing"
 particle_profile = "balanced"
 proto_nucleate = "nucleus_atomics_validate"
 required_atomics = ["tower", "node", "nest", "meta_tier"]
-tests = 666
-note = "Unique: its domain IS composition — primalspring_primal is a coordination primal"
+tests = 689
+note = "Unique: its domain IS composition — primalspring_primal is a coordination primal. L8 guideStone, 77 graphs, 413-method registry."
 
 # =============================================================================
 # NICHES — Per-spring primal composition requirements
@@ -625,8 +625,8 @@ static = true
 [atomics.tower]
 name = "Tower Atomic"
 particle = "electron"
-primals = ["beardog", "songbird"]
-description = "Trust boundary — crypto + discovery"
+primals = ["beardog", "songbird", "skunkbat"]
+description = "Trust boundary — crypto + discovery + defense (Phase 32)"
 graph = "profiles/tower.toml"
 
 [atomics.node]
