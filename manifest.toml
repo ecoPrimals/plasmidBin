@@ -277,16 +277,16 @@ note = "Lean barraCuda absorption, deep IPC/MCP, composition handoffs active"
 [springs.airspring]
 name = "airSpring"
 org = "syntheticChemistry"
-description = "Agriculture / hydrology — Richards PDE, ET0, seasonal pipeline, Tier 2 IPC wired"
+description = "Agriculture / hydrology — Richards PDE, ET0, seasonal pipeline, NestGate CAS + Squirrel inference wired"
 latest = "0.10.0"
 evolution = "composed"
 particle_profile = "balanced"
 proto_nucleate = "airspring_ecology_proto_nucleate"
 required_atomics = ["node", "nest"]
-tests = 1413
+tests = 1429
 barracuda_depth = "composing"
 musl_static = true
-note = "Full paper→Python→Rust→GPU→NUCLEUS path traced. Tier 2 convergence complete. musl 3.3 MB. Phase 4.7 Penny Irrigation = product vision."
+note = "Niche Atomic Convergence: NestGate + Squirrel IPC clients, AG-008 resolved, 1,051 lib tests. Holding full NUCLEUS compositions per audit."
 
 [springs.groundspring]
 name = "groundSpring"
