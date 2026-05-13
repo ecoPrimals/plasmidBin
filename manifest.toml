@@ -338,7 +338,7 @@ particle_profile = "balanced"
 proto_nucleate = "nucleus_atomics_validate"
 required_atomics = ["tower", "node", "nest", "meta_tier"]
 tests = 689
-note = "Unique: its domain IS composition — primalspring_primal is a coordination primal. L8 guideStone, 77 graphs, 413-method registry."
+note = "Unique: its domain IS composition — primalspring_primal is a coordination primal. L8 guideStone, 77 graphs, 415-method registry."
 
 # =============================================================================
 # NICHES — Per-spring primal composition requirements
@@ -662,3 +662,19 @@ graph = "profiles/full.toml"
 
 # Per-spring niche compositions are in [niches] above, not here.
 # Atomics define the universal building blocks; niches compose them for domains.
+
+# =============================================================================
+# ARTIFACTS — GuideStone science artifacts (sporeGarden)
+# =============================================================================
+
+[artifacts.lithoSpore]
+name = "lithoSpore LTEE GuideStone"
+description = "Targeted GuideStone — 7 LTEE science modules with provenance"
+source = "sporeGarden/lithoSpore"
+tracking = "artifact/liveSpore.json"
+modules = 7
+modules_tier2 = 6
+tier_reached = 2
+binaries = ["litho", "ltee-fitness", "ltee-mutations", "ltee-alleles", "ltee-citrate", "ltee-biobricks", "ltee-breseq", "ltee-anderson"]
+composition = "nucleus"
+ecoBin_compliant = true
