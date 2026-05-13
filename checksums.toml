@@ -59,9 +59,9 @@
 "armv7-unknown-linux-musleabihf" = "99f3a1f57a49c034aa59ea5a88da169edfc323114bf27c9d9e46ac015ae53c16"
 
 [primals.rhizocrypt]
-"x86_64-unknown-linux-musl" = "b90e108161a18bd08da64baacd4dc0372c015e991a55e255e2802bb3d8447b68"
-"aarch64-unknown-linux-musl" = "fcf93d8babcf415beafee964d5ce25562f70e36123c6a1669889200c915d74d2"
-"armv7-unknown-linux-musleabihf" = "485c888bc412715e70aace142aa0e71d1786b7eb26bb6b58bce66ce7e01d27a6"
+"x86_64-unknown-linux-musl" = "50eb2cfda59f4e730a37496701c3add12c17fd2b542521942dfa9bfe6d3ade46"
+"aarch64-unknown-linux-musl" = "586dbb2624a3185067c1593467acdd8de5d79e7e2e3b92d20a0c95d0d8b9e9ef"
+"armv7-unknown-linux-musleabihf" = "c3f2d3546ec9aaa6d601732ab8286f0fecd296878f8869ea13f540a229e8cf67"
 "aarch64-linux-android" = "94258de191673b9a2d79f675365fb5a87617a7fd635cdd307380d57a8ac536ce"
 
 [primals.loamspine]
