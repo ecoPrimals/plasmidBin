@@ -308,10 +308,10 @@ latest = "0.1.0"
 evolution = "composing"
 particle_profile = "neutron_heavy"
 proto_nucleate = "healthspring_enclave_proto_nucleate"
-required_atomics = ["tower", "nest", "meta_tier"]
-tests = 940
+required_atomics = ["tower", "node", "nest", "meta_tier"]
+tests = 1014
 barracuda_depth = "composing"
-note = "Dual-tower ionic bond pattern, exp112-117 composition IPC, blocked on TensorSession for shader unification"
+note = "V64e: Tier 2 wired (toadstool.validate, barracuda.precision.route), LTEE B5 complete, 17 scenarios, 88 capabilities, --format json + --list"
 
 [springs.ludospring]
 name = "ludoSpring"
@@ -380,9 +380,9 @@ composition = "nucleus"
 
 [niches.healthspring]
 name = "healthSpring Clinical"
-primals = ["beardog", "songbird", "nestgate", "rhizocrypt", "loamspine", "sweetgrass", "biomeos", "squirrel"]
-description = "Tower + Nest + Meta — dual-tower enclave, ionic bonds, HIPAA audit"
-composition = "nest"
+primals = ["beardog", "songbird", "toadstool", "barracuda", "coralreef", "nestgate", "rhizocrypt", "loamspine", "sweetgrass", "biomeos", "squirrel", "petaltongue"]
+description = "Full NUCLEUS + Meta — dual-tower enclave, ionic bonds, Tier 2 compute dispatch, live visualization"
+composition = "full"
 
 [niches.ludospring]
 name = "ludoSpring Game Science"

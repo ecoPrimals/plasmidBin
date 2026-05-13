@@ -68,6 +68,44 @@ health_method = "health.liveness"
 by_capability = "storage"
 capabilities = ["storage.store", "storage.retrieve", "storage.list"]
 
+# ── Compute Trio (Node Atomic) ────────────────────────────────────────
+
+[[graph.nodes]]
+name = "toadstool"
+security_model = "btsp"
+binary = "toadstool"
+order = 3
+required = true
+spawn = false
+depends_on = ["songbird"]
+health_method = "health.liveness"
+by_capability = "compute"
+capabilities = ["compute.dispatch.submit", "compute.dispatch.result", "compute.dispatch.capabilities", "toadstool.validate", "toadstool.list_workloads"]
+
+[[graph.nodes]]
+name = "barracuda"
+security_model = "btsp"
+binary = "barracuda"
+order = 4
+required = false
+spawn = false
+depends_on = ["toadstool"]
+health_method = "health.liveness"
+by_capability = "gpu_math"
+capabilities = ["stats.mean", "stats.std_dev", "rng.normal", "barracuda.precision.route"]
+
+[[graph.nodes]]
+name = "coralreef"
+security_model = "btsp"
+binary = "coralreef"
+order = 5
+required = false
+spawn = false
+depends_on = ["toadstool"]
+health_method = "health.liveness"
+by_capability = "shader"
+capabilities = ["shader.compile.wgsl", "shader.compile.spirv"]
+
 # ── Meta Tier ────────────────────────────────────────────────────────
 
 [[graph.nodes]]
@@ -122,4 +160,4 @@ depends_on = ["healthspring", "petaltongue"]
 name = "health_check"
 
 [graph.nodes.operation.params]
-targets = ["beardog", "songbird", "nestgate", "petaltongue", "healthspring"]
+targets = ["beardog", "songbird", "toadstool", "nestgate", "petaltongue", "healthspring"]
