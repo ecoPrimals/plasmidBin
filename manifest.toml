@@ -277,15 +277,16 @@ note = "Lean barraCuda absorption, deep IPC/MCP, composition handoffs active"
 [springs.airspring]
 name = "airSpring"
 org = "syntheticChemistry"
-description = "Agriculture / hydrology — Richards PDE, ET0, seasonal pipeline"
+description = "Agriculture / hydrology — Richards PDE, ET0, seasonal pipeline, Tier 2 IPC wired"
 latest = "0.10.0"
 evolution = "composed"
 particle_profile = "balanced"
 proto_nucleate = "airspring_ecology_proto_nucleate"
 required_atomics = ["node", "nest"]
-tests = 1364
+tests = 1413
 barracuda_depth = "composing"
-note = "Full paper→Python→Rust→GPU→NUCLEUS path traced. Phase 4.7 Penny Irrigation = product vision."
+musl_static = true
+note = "Full paper→Python→Rust→GPU→NUCLEUS path traced. Tier 2 convergence complete. musl 3.3 MB. Phase 4.7 Penny Irrigation = product vision."
 
 [springs.groundspring]
 name = "groundSpring"
