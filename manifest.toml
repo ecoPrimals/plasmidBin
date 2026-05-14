@@ -286,7 +286,7 @@ required_atomics = ["node", "nest"]
 tests = 1435
 barracuda_depth = "composing"
 musl_static = true
-note = "AG-005 + AG-008 resolved. inference.embed wired through science dispatch. 49 capabilities, 1,057 lib tests. Holding NUCLEUS per audit."
+note = "Tower triple-first evolved (bearDog+songBird+skunkBat). AG-005+AG-008 resolved. 49 capabilities, 1,057 lib + 62 forge tests. Holding NUCLEUS per audit."
 
 [springs.groundspring]
 name = "groundSpring"
@@ -678,3 +678,17 @@ tier_reached = 2
 binaries = ["litho", "ltee-fitness", "ltee-mutations", "ltee-alleles", "ltee-citrate", "ltee-biobricks", "ltee-breseq", "ltee-anderson"]
 composition = "nucleus"
 ecoBin_compliant = true
+
+# =============================================================================
+# MEMBRANE — External substrate deployment components
+# =============================================================================
+# Symbiotic partners and pinned dependencies for cellMembrane (fieldMouse)
+# deployments. Versions tracked here so deploy_membrane.sh reads from manifest
+# rather than hardcoding constants.
+
+[membrane.rustdesk]
+name = "RustDesk Server"
+version = "1.1.15"
+url_template = "https://github.com/rustdesk/rustdesk-server/releases/download/{version}/rustdesk-server-linux-amd64.zip"
+license = "AGPL-3.0"
+description = "Sovereign remote desktop relay (hbbs + hbbr)"
