@@ -25,13 +25,13 @@
 #   4. ../plasmidBin            (parent)
 #   5. ../../plasmidBin         (grandparent — reaches here from phase2/biomeOS/)
 #
-# Updated: 2026-05-13
-# Version: 5.3.0 (Atomic deployment phase — 13/13 zero debt, Tower LIVE, toadstool.validate S250)
+# Updated: 2026-05-14
+# Version: 5.4.0 (Wave 12: deep debt sweep, compute trio absorption across all springs)
 
 [manifest]
-version = "5.3.0"
+version = "5.4.0"
 format = "genomeBin"
-generated = "2026-05-13T00:00:00Z"
+generated = "2026-05-14T00:00:00Z"
 checksum_algorithm = "blake3"
 # mirror_url = "https://bins.ecoprimals.dev/latest/"
 
@@ -243,9 +243,9 @@ evolution = "composing"
 particle_profile = "proton_heavy"
 proto_nucleate = "hotspring_qcd_proto_nucleate"
 required_atomics = ["node"]
-tests = 1025
+tests = 1042
 barracuda_depth = "composing"
-note = "Tier 4 IPC-first: barracuda optional, 25+ modules feature-gated behind barracuda-local. primal-proof builds compile and test (576 tests) without barraCuda source. NucleusContext.detect() + by_domain() pattern."
+note = "Compute trio rewired: compile-then-dispatch (coralReef→toadStool), circuit breaker, FusedSubmitReport, tiered validation (smoke/nucleus/silicon). wgsl_source param."
 
 [springs.neuralspring]
 name = "neuralSpring"
@@ -256,10 +256,10 @@ evolution = "composing"
 particle_profile = "balanced"
 proto_nucleate = "neuralspring_inference_proto_nucleate"
 required_atomics = ["node", "meta_tier"]
-tests = 1403
+tests = 1453
 barracuda_depth = "composing"
 ecosystem_role = "AI provider — evolves inference.* for all springs via Squirrel"
-note = "inference.* stubs wired, waiting on Squirrel register_provider + coralReef shader.compile.wgsl"
+note = "V160 S206: triple-first Tower + skunkBat, content.get rename, coralReef universal compile routing, Rust 1.94 clippy."
 
 [springs.wetspring]
 name = "wetSpring"
@@ -270,9 +270,9 @@ evolution = "composed"
 particle_profile = "balanced"
 proto_nucleate = "wetspring_lifescience_proto_nucleate"
 required_atomics = ["node", "nest", "meta_tier"]
-tests = 1902
-barracuda_depth = "composing"
-note = "Lean barraCuda absorption, deep IPC/MCP, composition handoffs active"
+tests = 1962
+barracuda_depth = "composed"
+note = "V168: barraCuda 0.3.12→0.4.0, coralReef v0.1.0 declared, LTEE B7 mutation accumulation, plasmidBin deployment re-verified."
 
 [springs.airspring]
 name = "airSpring"
@@ -283,10 +283,10 @@ evolution = "composed"
 particle_profile = "balanced"
 proto_nucleate = "airspring_ecology_proto_nucleate"
 required_atomics = ["node", "nest"]
-tests = 1435
+tests = 1389
 barracuda_depth = "composing"
 musl_static = true
-note = "Tower triple-first evolved (bearDog+songBird+skunkBat). AG-005+AG-008 resolved. 49 capabilities, 1,057 lib + 62 forge tests. Holding NUCLEUS per audit."
+note = "v0.10.0: Zero actionable debt, 10 scenarios, 49 capabilities, guideStone L4, /tmp/ fallback eliminated, Squirrel dispatch wired."
 
 [springs.groundspring]
 name = "groundSpring"
@@ -297,9 +297,9 @@ evolution = "composing"
 particle_profile = "balanced"
 proto_nucleate = "groundspring_geoscience_proto_nucleate"
 required_atomics = ["node", "nest"]
-tests = 1050
-barracuda_depth = "calling"
-note = "~110 barraCuda delegations, biomeOS UDS wired, three-tier parity active"
+tests = 1123
+barracuda_depth = "composing"
+note = "V142: compute trio deepened (17→20 IPC methods), shader.compile.gemm, health.version on trio. Filed GAPs 15-17."
 
 [springs.healthspring]
 name = "healthSpring"
@@ -310,9 +310,9 @@ evolution = "composing"
 particle_profile = "neutron_heavy"
 proto_nucleate = "healthspring_enclave_proto_nucleate"
 required_atomics = ["tower", "node", "nest", "meta_tier"]
-tests = 1014
+tests = 1018
 barracuda_depth = "composing"
-note = "V64e: Tier 2 wired (toadstool.validate, barracuda.precision.route), LTEE B5 complete, 17 scenarios, 88 capabilities, --format json + --list"
+note = "V64n: Tower atomic in all deploy graphs (+ skunkBat), capability renames to canonical wire names, niche sync, 1018 tests."
 
 [springs.ludospring]
 name = "ludoSpring"
@@ -323,10 +323,10 @@ evolution = "composed"
 particle_profile = "balanced"
 proto_nucleate = "ludospring_proto_nucleate"
 required_atomics = ["node", "nest", "meta_tier"]
-tests = 858
+tests = 862
 barracuda_depth = "composed"
 composition_model = "pure"
-note = "V62 Tier 4 IPC-first (default=[ipc], barracuda opt-in). 854 tests, 8 scenarios, 12-node cell, 30 capabilities, Foundation 9+10 seeded."
+note = "V71: compute trio in cell graphs, coralReef compile+validate, barraCuda health.version, 3 new GAPs filed, Foundation 10/10."
 
 [springs.primalspring]
 name = "primalSpring"
@@ -337,8 +337,8 @@ evolution = "composing"
 particle_profile = "balanced"
 proto_nucleate = "nucleus_atomics_validate"
 required_atomics = ["tower", "node", "nest", "meta_tier"]
-tests = 689
-note = "Unique: its domain IS composition — primalspring_primal is a coordination primal. L8 guideStone, 77 graphs, 418-method registry."
+tests = 641
+note = "Wave 12: deep debt sweep + safety. L8 guideStone, 77 graphs, 419-method registry, 27 scenarios, 73.3% exercised. Zero panics in production."
 
 # =============================================================================
 # NICHES — Per-spring primal composition requirements
