@@ -29,7 +29,6 @@ ExecStart=/opt/membrane/songbird relay \
     --credentials-file /etc/songbird/relay-credentials
 
 Environment=SONGBIRD_TURN_USERNAME=nucleus-relay
-EnvironmentFile=-/opt/membrane/credentials.env
 
 Restart=always
 RestartSec=5

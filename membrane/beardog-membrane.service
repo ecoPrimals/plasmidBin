@@ -1,0 +1,49 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+#
+# Membrane Tower: BearDog — Crypto identity + BTSP handshake on the membrane
+#
+# Provides the membrane's crypto layer: BTSP authentication for inner gates,
+# TLS certificate management for outer surface, and secrets delegation.
+# Part of the Tower composition (BearDog + Songbird + SkunkBat).
+#
+# See: wateringHole/MEMBRANE_CHANNEL_ARCHITECTURE.md (Tower on Membrane)
+#
+# Install:
+#   cp beardog-membrane.service /etc/systemd/system/
+#   systemctl daemon-reload
+#   systemctl enable --now beardog-membrane
+
+[Unit]
+Description=BearDog Crypto (Membrane Tower — BTSP + Secrets)
+Documentation=https://primals.eco
+After=network-online.target
+Wants=network-online.target
+StartLimitIntervalSec=60
+StartLimitBurst=5
+
+[Service]
+Type=simple
+ExecStart=/opt/membrane/beardog server \
+    --socket /run/membrane/beardog.sock
+
+Environment=BEARDOG_SOCKET_MODE=0660
+Environment=BEARDOG_LOG_LEVEL=info
+Environment=BEARDOG_ROLE=membrane
+EnvironmentFile=-/opt/membrane/tower.env
+
+Restart=always
+RestartSec=5
+
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/run/membrane
+ReadOnlyPaths=/opt/membrane
+ReadOnlyPaths=/etc/membrane
+
+MemoryMax=64M
+CPUQuota=25%
+
+[Install]
+WantedBy=multi-user.target

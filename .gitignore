@@ -45,3 +45,7 @@ products/
 *-armv7
 *-riscv64
 *.exe
+
+# Encrypted credential blobs (safe to store on VPS, not in git)
+membrane-credentials.age
+*.age

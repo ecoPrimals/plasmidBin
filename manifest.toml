@@ -338,7 +338,7 @@ particle_profile = "balanced"
 proto_nucleate = "nucleus_atomics_validate"
 required_atomics = ["tower", "node", "nest", "meta_tier"]
 tests = 689
-note = "Unique: its domain IS composition — primalspring_primal is a coordination primal. L8 guideStone, 77 graphs, 415-method registry."
+note = "Unique: its domain IS composition — primalspring_primal is a coordination primal. L8 guideStone, 77 graphs, 418-method registry."
 
 # =============================================================================
 # NICHES — Per-spring primal composition requirements

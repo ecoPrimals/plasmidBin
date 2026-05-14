@@ -1,0 +1,49 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+#
+# Membrane Tower: SkunkBat — Defense + audit on the membrane
+#
+# Monitors cross-boundary traffic, audits channel access, and provides
+# threat assessment for the membrane surface. Part of the Tower composition
+# (BearDog + Songbird + SkunkBat).
+#
+# See: wateringHole/MEMBRANE_CHANNEL_ARCHITECTURE.md (Tower on Membrane)
+#
+# Install:
+#   cp skunkbat-membrane.service /etc/systemd/system/
+#   systemctl daemon-reload
+#   systemctl enable --now skunkbat-membrane
+
+[Unit]
+Description=SkunkBat Defense (Membrane Tower — Audit + Threat)
+Documentation=https://primals.eco
+After=network-online.target beardog-membrane.service
+Wants=network-online.target
+StartLimitIntervalSec=60
+StartLimitBurst=5
+
+[Service]
+Type=simple
+ExecStart=/opt/membrane/skunkbat server \
+    --socket /run/membrane/skunkbat.sock
+
+Environment=SKUNKBAT_SOCKET_MODE=0660
+Environment=SKUNKBAT_LOG_LEVEL=info
+Environment=SKUNKBAT_ROLE=membrane
+EnvironmentFile=-/opt/membrane/tower.env
+
+Restart=always
+RestartSec=5
+
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/run/membrane
+ReadOnlyPaths=/opt/membrane
+ReadOnlyPaths=/etc/membrane
+
+MemoryMax=64M
+CPUQuota=25%
+
+[Install]
+WantedBy=multi-user.target
