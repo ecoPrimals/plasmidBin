@@ -45,9 +45,9 @@
 "aarch64-linux-android" = "e34e40f4b42f909d240dfce68785ff338231e1bd51fe5f2c2afbdfe0dfb974a0"
 
 [primals.coralreef]
-"x86_64-unknown-linux-musl" = "82b4e4d65e6f4a98795a800493cfa10cae6d9f4ab4c07a75c69c9c5130855662"
-"aarch64-unknown-linux-musl" = "1f4c16635cbe40295262ed0526af047763a87aee85d7cbf0e47708cb181ea6e4"
-"armv7-unknown-linux-musleabihf" = "1ceaef0d2d23fe89ef13fa7aaaa9f4a2fa6e129439be9f598c0019c4f4903385"
+"x86_64-unknown-linux-musl" = "5b6a692e02c086316c439285a39b49442d27aea0e493488c0694bc4c051478df"
+"aarch64-unknown-linux-musl" = "f2ce0e5eca5d2ba1ef07ab8cf1f7271ed0773e3792dccda31141eca1873e8f22"
+"armv7-unknown-linux-musleabihf" = "ef564ee40491137986ebd4a4d340258d6b73bc8c0c76493bb9f8bb609b027bf0"
 
 # =============================================================================
 # PRIMALS — Nest Atomic additions (neutron: nestgate + provenance trio)
