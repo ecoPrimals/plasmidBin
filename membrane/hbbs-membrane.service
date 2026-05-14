@@ -1,0 +1,43 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+#
+# RustDesk Rendezvous Server (hbbs) — cellMembrane co-host
+#
+# Provides sovereign remote desktop ID registration and NAT hole-punching
+# for geo-delocalized gates. RustDesk is a symbiotic partner (AGPL-3.0).
+#
+# Ports: TCP 21115 (NAT test), TCP+UDP 21116 (ID/hole-punch)
+#
+# See: wateringHole/MEMBRANE_CHANNEL_ARCHITECTURE.md (Channel 2b: RustDesk)
+#
+# Install:
+#   cp hbbs-membrane.service /etc/systemd/system/
+#   systemctl daemon-reload
+#   systemctl enable --now hbbs-membrane
+
+[Unit]
+Description=RustDesk Rendezvous Server (cellMembrane)
+Documentation=https://rustdesk.com/docs/en/self-host/rustdesk-server-oss/install/
+After=network-online.target
+Wants=network-online.target
+StartLimitIntervalSec=60
+StartLimitBurst=5
+
+[Service]
+Type=simple
+ExecStart=/opt/membrane/hbbs -r 157.230.3.183
+WorkingDirectory=/opt/membrane/rustdesk
+
+Restart=always
+RestartSec=5
+
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/membrane/rustdesk
+
+MemoryMax=64M
+CPUQuota=25%
+
+[Install]
+WantedBy=multi-user.target

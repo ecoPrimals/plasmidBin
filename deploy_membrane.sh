@@ -11,9 +11,9 @@
 #
 # Compositions:
 #   relay      — Channel 2 only: Songbird TURN relay (default)
-#   tower      — Full Tower atomic: BearDog + Songbird + SkunkBat
-#                Adds BTSP identity, secrets delegation, and defense audit
-#                to the membrane. Required for mid-term credential delegation.
+#   rustdesk   — Songbird relay + RustDesk (hbbs+hbbr) for remote desktop
+#   tower      — Full Tower atomic + RustDesk: BearDog + Songbird + SkunkBat + hbbs/hbbr
+#                Adds BTSP identity, secrets delegation, defense audit, and remote desktop.
 #
 # Modes:
 #   provision  — Create a DigitalOcean droplet via doctl, then deploy
@@ -66,21 +66,28 @@ Modes:
   provision              Create a DigitalOcean droplet and deploy channels
   deploy <user@host>     Deploy channel binaries to an existing VPS
   status <user@host>     Check health of deployed channels
+  keys <action> <u@h>    Manage SSH keys for multi-gate access
   teardown               Destroy the membrane droplet
+
+Keys actions:
+  keys add <u@h>  --name "gate-name" --pubkey "ssh-ed25519 AAAA..."
+  keys list <u@h>
+  keys revoke <u@h> --name "gate-name"
 
 Options:
   --region REGION        DigitalOcean region (default: nyc1)
   --size SIZE            Droplet size slug (default: s-1vcpu-512mb-10gb)
-  --name NAME            Droplet name (default: membrane-relay)
+  --name NAME            Droplet / gate name (context-dependent)
+  --pubkey KEY           Public key string (for keys add)
   --ssh-key FP           SSH key fingerprint for droplet access
-  --composition COMP     Deployment composition: relay (default) or tower
+  --composition COMP     Deployment composition: relay, tower, or rustdesk
   --dry-run              Show plan without executing
   --help                 Show this help
 
 Compositions:
   relay     Channel 2 only: Songbird TURN relay
-  tower     Full Tower atomic: BearDog + Songbird + SkunkBat
-            Adds BTSP identity, crypto, secrets, and defense audit
+  rustdesk  Songbird relay + RustDesk (hbbs+hbbr) remote desktop
+  tower     Full Tower + RustDesk: BearDog + Songbird + SkunkBat + hbbs/hbbr
 
 Deployment Models (from MEMBRANE_CHANNEL_ARCHITECTURE.md):
   Model A: Single VPS, all channels on one box (default)
@@ -88,9 +95,10 @@ Deployment Models (from MEMBRANE_CHANNEL_ARCHITECTURE.md):
   Model C: Hybrid, Channel 3 on gate hardware + Channels 1+2 on VPS
 
 Channels deployed:
-  Channel 2 (Relay): songbird relay on :3478 — ACTIVE
-  Channel 1 (Signal): knot-dns on :53        — FUTURE
-  Channel 3 (Surface): beardog-tls on :443   — FUTURE
+  Channel 2  (Relay):    songbird relay on :3478      — ACTIVE
+  Channel 2b (RustDesk): hbbs :21116 + hbbr :21117    — ACTIVE (rustdesk/tower)
+  Channel 1  (Signal):   knot-dns on :53              — FUTURE
+  Channel 3  (Surface):  beardog-tls on :443          — FUTURE
 EOF
 }
 
@@ -204,6 +212,15 @@ deploy_firewall() {
         return 0
     fi
 
+    local rustdesk_rules=""
+    if [[ "$COMPOSITION" == "rustdesk" || "$COMPOSITION" == "tower" ]]; then
+        rustdesk_rules="
+    ufw allow 21115/tcp comment 'RustDesk: NAT type test'
+    ufw allow 21116/tcp comment 'RustDesk: ID registration'
+    ufw allow 21116/udp comment 'RustDesk: hole punching'
+    ufw allow 21117/tcp comment 'RustDesk: relay'"
+    fi
+
     ssh "$remote" "bash -s" <<FIREWALL
 if command -v ufw >/dev/null 2>&1; then
     ufw --force reset
@@ -212,14 +229,15 @@ if command -v ufw >/dev/null 2>&1; then
     ufw allow 22/tcp comment 'SSH management'
     ufw allow 3478/tcp comment 'Channel 2: Relay (TURN)'
     ufw allow 3478/udp comment 'Channel 2: Relay (TURN)'
+    ${rustdesk_rules}
     ufw --force enable
-    echo "UFW configured (composition: $COMPOSITION, ports: 22 + 3478)."
+    echo "UFW configured (composition: $COMPOSITION)."
 else
     echo "UFW not found — install with: apt install ufw"
 fi
 FIREWALL
 
-    log "  Firewall configured (22/tcp + 3478/udp+tcp, composition-aware)."
+    log "  Firewall configured (composition: $COMPOSITION)."
 }
 
 harden_ssh() {
@@ -388,6 +406,71 @@ status_tower_composition() {
     ssh "$remote" "ss -tlnp 2>/dev/null | grep ':3478' | sed 's/^/  Listening: /' || echo '  Port 3478: not listening'"
 }
 
+# ── RustDesk co-host deployment ──────────────────────────────────────
+# Installs hbbs (rendezvous) and hbbr (relay) alongside Songbird.
+# RustDesk is an AGPL-3.0 symbiotic partner providing sovereign remote
+# desktop for geo-delocalized gates.
+
+RUSTDESK_VER="1.1.15"
+RUSTDESK_URL="https://github.com/rustdesk/rustdesk-server/releases/download/${RUSTDESK_VER}/rustdesk-server-linux-amd64.zip"
+
+deploy_rustdesk() {
+    local remote="$1"
+
+    log "Deploying RustDesk server (hbbs + hbbr) v${RUSTDESK_VER}..."
+
+    if $DRY_RUN; then
+        log "[dry-run] Would download RustDesk server from GitHub"
+        log "[dry-run] Would install hbbs + hbbr to /opt/membrane/"
+        log "[dry-run] Would create systemd units"
+        return 0
+    fi
+
+    ssh "$remote" "bash -s" <<RDEPLOY
+set -euo pipefail
+mkdir -p /opt/membrane/rustdesk
+cd /tmp
+command -v unzip >/dev/null 2>&1 || apt-get install -y -qq unzip >/dev/null 2>&1
+curl -fsSL "${RUSTDESK_URL}" -o rustdesk-server.zip
+unzip -o rustdesk-server.zip -d rustdesk-extract
+find rustdesk-extract -name 'hbbs' -type f -exec cp {} /opt/membrane/hbbs \;
+find rustdesk-extract -name 'hbbr' -type f -exec cp {} /opt/membrane/hbbr \;
+chmod +x /opt/membrane/hbbs /opt/membrane/hbbr
+rm -rf /tmp/rustdesk-server.zip /tmp/rustdesk-extract
+echo "RustDesk binaries installed."
+RDEPLOY
+
+    log "  Installing systemd units..."
+    scp "${MEMBRANE_DIR}/hbbs-membrane.service" "$remote:/etc/systemd/system/"
+    scp "${MEMBRANE_DIR}/hbbr-membrane.service" "$remote:/etc/systemd/system/"
+    ssh "$remote" "systemctl daemon-reload && systemctl enable --now hbbs-membrane && sleep 2 && systemctl enable --now hbbr-membrane"
+
+    local pubkey
+    pubkey=$(ssh "$remote" "cat /opt/membrane/rustdesk/id_ed25519.pub 2>/dev/null || echo 'not-generated-yet'")
+    log "  RustDesk deployed."
+    log "  Public key: $pubkey"
+    log ""
+    log "  Client config: set ID Server and Relay Server to $(echo "$remote" | cut -d@ -f2)"
+    log "  Paste this public key into the RustDesk client 'Key' field."
+}
+
+status_rustdesk() {
+    local remote="$1"
+
+    log "RustDesk status:"
+    for svc in hbbs-membrane hbbr-membrane; do
+        local state
+        state=$(ssh "$remote" "systemctl is-active $svc 2>/dev/null || echo 'not-found'")
+        log "  $svc: $state"
+    done
+
+    local pubkey
+    pubkey=$(ssh "$remote" "cat /opt/membrane/rustdesk/id_ed25519.pub 2>/dev/null || echo 'absent'")
+    log "  Public key: $pubkey"
+
+    ssh "$remote" "ss -tlnp 2>/dev/null | grep -E ':(21115|21116|21117)' | sed 's/^/  Listening: /' || echo '  RustDesk ports: not listening'"
+}
+
 # ── Mode: provision ──────────────────────────────────────────────────
 
 do_provision() {
@@ -488,9 +571,14 @@ do_deploy() {
             ;;
         tower)
             deploy_tower_composition "$REMOTE"
+            deploy_rustdesk "$REMOTE"
+            ;;
+        rustdesk)
+            deploy_channel_2_relay "$REMOTE"
+            deploy_rustdesk "$REMOTE"
             ;;
         *)
-            die "Unknown composition: $COMPOSITION. Use relay or tower."
+            die "Unknown composition: $COMPOSITION. Use relay, tower, or rustdesk."
             ;;
     esac
 
@@ -509,11 +597,18 @@ do_status() {
 
     local has_tower
     has_tower=$(ssh "$REMOTE" "test -f /etc/systemd/system/beardog-membrane.service && echo yes || echo no")
+    local has_rustdesk
+    has_rustdesk=$(ssh "$REMOTE" "test -f /etc/systemd/system/hbbs-membrane.service && echo yes || echo no")
 
     if [[ "$has_tower" == "yes" ]]; then
         status_tower_composition "$REMOTE"
     else
         status_channel_2_relay "$REMOTE"
+    fi
+
+    if [[ "$has_rustdesk" == "yes" ]]; then
+        log ""
+        status_rustdesk "$REMOTE"
     fi
 
     log ""
@@ -554,17 +649,73 @@ do_teardown() {
     log "  Droplet destroyed."
 }
 
+# ── Mode: keys ───────────────────────────────────────────────────────
+# Multi-gate SSH key management. Each authorized key gets a tagged
+# comment for audit: "# gate:<name> added:<date>"
+
+do_keys() {
+    [[ -n "$REMOTE" ]] || die "No remote specified. Usage: deploy_membrane.sh keys <add|list|revoke> root@<ip> [options]"
+    local action="${KEYS_ACTION:-list}"
+
+    case "$action" in
+        add)
+            [[ -n "${KEY_NAME:-}" ]] || die "No --name specified for key"
+            [[ -n "${KEY_PUBKEY:-}" ]] || die "No --pubkey specified"
+            local tag="# gate:${KEY_NAME} added:$(date +%Y-%m-%d)"
+
+            if ssh "$REMOTE" "grep -q '${KEY_NAME}' /root/.ssh/authorized_keys 2>/dev/null"; then
+                log "Key for '$KEY_NAME' already authorized."
+                return 0
+            fi
+
+            log "Authorizing key for gate: $KEY_NAME"
+            ssh "$REMOTE" "echo '${KEY_PUBKEY} ${tag}' >> /root/.ssh/authorized_keys"
+            log "  Key added. Tag: $tag"
+            ;;
+        list)
+            log "Authorized keys on $REMOTE:"
+            ssh "$REMOTE" "cat /root/.ssh/authorized_keys" | while IFS= read -r line; do
+                local comment
+                comment=$(echo "$line" | awk '{for(i=3;i<=NF;i++) printf "%s ", $i; print ""}' | sed 's/ *$//')
+                local keytype
+                keytype=$(echo "$line" | awk '{print $1}')
+                local fingerprint
+                fingerprint=$(echo "$line" | awk '{print $2}' | head -c 20)
+                log "  ${keytype} ...${fingerprint}...  ${comment}"
+            done
+            ;;
+        revoke)
+            [[ -n "${KEY_NAME:-}" ]] || die "No --name specified for revocation"
+            log "Revoking key for gate: $KEY_NAME"
+            ssh "$REMOTE" "sed -i '/${KEY_NAME}/d' /root/.ssh/authorized_keys"
+            log "  Key revoked."
+            ;;
+        *)
+            die "Unknown keys action: $action. Use add, list, or revoke."
+            ;;
+    esac
+}
+
 # ── Argument parsing ─────────────────────────────────────────────────
 
 [[ $# -ge 1 ]] || { usage; exit 1; }
 
 MODE="$1"; shift
 
+KEYS_ACTION=""
+KEY_NAME=""
+KEY_PUBKEY=""
+
+if [[ "$MODE" == "keys" && $# -ge 1 && "$1" != --* && "$1" != *@* ]]; then
+    KEYS_ACTION="$1"; shift
+fi
+
 while [[ $# -gt 0 ]]; do
     case "$1" in
-        --region)    DROPLET_REGION="$2"; shift 2 ;;
-        --size)      DROPLET_SIZE="$2"; shift 2 ;;
-        --name)      DROPLET_NAME="$2"; shift 2 ;;
+        --region)        DROPLET_REGION="$2"; shift 2 ;;
+        --size)          DROPLET_SIZE="$2"; shift 2 ;;
+        --name)          if [[ "$MODE" == "keys" ]]; then KEY_NAME="$2"; else DROPLET_NAME="$2"; fi; shift 2 ;;
+        --pubkey)        KEY_PUBKEY="$2"; shift 2 ;;
         --ssh-key)       SSH_KEY_FINGERPRINT="$2"; shift 2 ;;
         --composition)   COMPOSITION="$2"; shift 2 ;;
         --dry-run)       DRY_RUN=true; shift ;;
@@ -583,7 +734,8 @@ case "$MODE" in
     provision) do_provision ;;
     deploy)    do_deploy ;;
     status)    do_status ;;
+    keys)      do_keys ;;
     teardown)  do_teardown ;;
     --help)    usage ;;
-    *)         die "Unknown mode: $MODE. Use provision, deploy, status, or teardown." ;;
+    *)         die "Unknown mode: $MODE. Use provision, deploy, status, keys, or teardown." ;;
 esac

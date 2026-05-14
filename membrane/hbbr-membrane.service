@@ -1,0 +1,44 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+#
+# RustDesk Relay Server (hbbr) — cellMembrane co-host
+#
+# Relays remote desktop traffic when direct P2P connection fails.
+# All traffic is RustDesk-encrypted; the relay sees only opaque bytes.
+#
+# Port: TCP 21117
+#
+# See: wateringHole/MEMBRANE_CHANNEL_ARCHITECTURE.md (Channel 2b: RustDesk)
+#
+# Install:
+#   cp hbbr-membrane.service /etc/systemd/system/
+#   systemctl daemon-reload
+#   systemctl enable --now hbbr-membrane
+
+[Unit]
+Description=RustDesk Relay Server (cellMembrane)
+Documentation=https://rustdesk.com/docs/en/self-host/rustdesk-server-oss/install/
+After=network-online.target hbbs-membrane.service
+Wants=network-online.target
+
+StartLimitIntervalSec=60
+StartLimitBurst=5
+
+[Service]
+Type=simple
+ExecStart=/opt/membrane/hbbr
+WorkingDirectory=/opt/membrane/rustdesk
+
+Restart=always
+RestartSec=5
+
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/membrane/rustdesk
+
+MemoryMax=64M
+CPUQuota=25%
+
+[Install]
+WantedBy=multi-user.target
