@@ -338,7 +338,7 @@ particle_profile = "balanced"
 proto_nucleate = "nucleus_atomics_validate"
 required_atomics = ["tower", "node", "nest", "meta_tier"]
 tests = 641
-note = "Wave 12: deep debt sweep + safety. L8 guideStone, 77 graphs, 419-method registry, 27 scenarios, 73.3% exercised. Zero panics in production."
+note = "Wave 13: ecosystem reconciliation. L8 guideStone, 77 graphs, 427-method registry, 27 scenarios, 73.3% exercised. Zero panics in production."
 
 # =============================================================================
 # NICHES — Per-spring primal composition requirements
@@ -351,8 +351,8 @@ note = "Wave 12: deep debt sweep + safety. L8 guideStone, 77 graphs, 419-method 
 
 [niches.hotspring]
 name = "hotSpring QCD"
-primals = ["beardog", "songbird", "skunkbat", "toadstool", "barracuda", "coralreef", "nestgate", "rhizocrypt", "loamspine", "sweetgrass"]
-description = "Full NUCLEUS — df64 GPU compute, fleet dispatch, gauge config provenance, audit/defense"
+primals = ["beardog", "songbird", "toadstool", "barracuda", "coralreef", "nestgate", "rhizocrypt", "loamspine", "sweetgrass"]
+description = "Full NUCLEUS — df64 GPU compute, fleet dispatch, gauge config provenance"
 composition = "nucleus"
 
 [niches.neuralspring]
