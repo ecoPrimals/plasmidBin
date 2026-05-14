@@ -159,10 +159,10 @@ arch = ["x86_64-unknown-linux-musl", "aarch64-unknown-linux-musl", "armv7-unknow
 
 [primals.sourdough]
 name = "sourDough"
-description = "Scaffolding — starter culture, core traits, genomeBin tooling"
-latest = "0.1.0"
+description = "Scaffolding — starter culture, core traits, genomeBin tooling, sign/verify, composition validation"
+latest = "0.3.0"
 phase = 2
-capabilities = ["scaffold", "validate", "genomebin", "doctor"]
+capabilities = ["scaffold", "validate", "genomebin", "doctor", "sign", "verify", "layout", "systemd"]
 ecobin_grade = "A++"
 
 [primals.sweetgrass]
@@ -337,8 +337,8 @@ evolution = "composing"
 particle_profile = "balanced"
 proto_nucleate = "nucleus_atomics_validate"
 required_atomics = ["tower", "node", "nest", "meta_tier"]
-tests = 641
-note = "Wave 13: ecosystem reconciliation. L8 guideStone, 77 graphs, 427-method registry, 27 scenarios, 73.3% exercised. Zero panics in production."
+tests = 651
+note = "Wave 14: Dark Forest Glacial Gate (5-pillar security standard), deployment pipeline validation. L8 guideStone, 78 graphs, 427-method registry, 29 scenarios, 73.3% exercised. Zero panics in production."
 
 # =============================================================================
 # NICHES — Per-spring primal composition requirements
