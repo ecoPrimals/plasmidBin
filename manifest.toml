@@ -351,8 +351,8 @@ note = "Unique: its domain IS composition — primalspring_primal is a coordinat
 
 [niches.hotspring]
 name = "hotSpring QCD"
-primals = ["beardog", "songbird", "toadstool", "barracuda", "coralreef", "nestgate", "rhizocrypt", "loamspine", "sweetgrass"]
-description = "Full NUCLEUS — df64 GPU compute, fleet dispatch, gauge config provenance"
+primals = ["beardog", "songbird", "skunkbat", "toadstool", "barracuda", "coralreef", "nestgate", "rhizocrypt", "loamspine", "sweetgrass"]
+description = "Full NUCLEUS — df64 GPU compute, fleet dispatch, gauge config provenance, audit/defense"
 composition = "nucleus"
 
 [niches.neuralspring]
