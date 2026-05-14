@@ -11,10 +11,10 @@
 #   Tier 2 SHOULD: x86_64-pc-windows-gnu, aarch64-linux-android, x86_64-apple-darwin (check-only), aarch64-apple-darwin (check-only)
 #   Tier 3 NICE:   riscv64gc-unknown-linux-musl, wasm32-wasip1 (check-only)
 #
-# Updated: 2026-04-19 (Phase 45 — upstream evolution validated, gaps closed)
+# Updated: 2026-05-13 (genomeBin v5.3.0 — 418-method registry, Tower LIVE, all cross-arch gaps closed)
 
 # =============================================================================
-# PRIMALS — Tower Atomic (electron: beardog + songbird)
+# PRIMALS — Tower Atomic (electron: beardog + songbird + skunkbat)
 # =============================================================================
 
 [primals.beardog]

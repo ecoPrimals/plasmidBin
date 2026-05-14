@@ -3,7 +3,7 @@
 Full cross-architecture binary depot for the ecoPrimals sovereign compute stack.
 
 **Owner**: primalSpring (syntheticChemistry/primalSpring)
-**Release**: v2026.04.21 (Phase 45b — genomeBin v5.1, 46 binaries, capability symlink automation, petalTongue `live` mode)
+**Release**: v2026.05.13 (genomeBin v5.3.0, 49 binaries, Tower LIVE, lithoSpore artifact, 418-method registry)
 **License**: AGPL-3.0-or-later
 
 ---
@@ -15,7 +15,7 @@ It distributes pre-built, statically-linked, stripped binaries for all NUCLEUS p
 across every plausible Rust target — ready to deploy on Linux (x86_64, ARM64, ARMv7,
 RISC-V), Windows, Android, and validated for macOS (cargo check, no osxcross).
 
-**46 binaries shipped across 6 target triples.**
+**49 binaries shipped across 6 target triples.**
 
 Layout: `primals/{target-triple}/{binary}` (genomeBin standard)
 Legacy symlinks: `primals/{binary}` -> `x86_64-unknown-linux-musl/{binary}`
@@ -39,24 +39,24 @@ Legacy symlinks: `primals/{binary}` -> `x86_64-unknown-linux-musl/{binary}`
 |--------|-------------|--------------|------------|---------|---------|---------|
 | beardog | FULL | FULL | FULL | - | - | check |
 | songbird | FULL | FULL | FULL | - | FULL | check |
-| nestgate | FULL | lib-only | lib-only | - | lib-only | check |
-| toadstool | FULL | FULL | 32bit-ovf | - | - | check |
+| nestgate | FULL | FULL | FULL | - | check | check |
+| toadstool | FULL | FULL | FULL | - | - | check |
 | squirrel | FULL | FULL | FULL | - | - | check |
-| biomeos | FULL | FULL | 32bit-ovf | - | lib-only | check |
+| biomeos | FULL | FULL | FULL | - | lib-only | check |
 | barracuda | FULL | FULL | FULL | FULL | FULL | check |
 | coralreef | FULL | FULL | FULL | - | - | check |
 | rhizocrypt | FULL | FULL | FULL | - | FULL | check |
 | loamspine | FULL | FULL | FULL | - | FULL | check |
 | sweetgrass | FULL | FULL | FULL | - | FULL | check |
 | petaltongue | FULL | FULL | FULL | - | - | check |
-| skunkbat | lib-only | lib-only | lib-only | - | lib-only | lib-only |
+| skunkbat | FULL | FULL | FULL | - | - | check |
 | primalspring_primal | FULL | FULL | FULL | - | - | FULL |
 
-### Documented Gaps
+### Documented Gaps (Resolved)
 
-- **nestgate**: Library-only crate on non-x86_64 targets (workspace structure)
-- **toadstool on armv7**: 32-bit usize overflow in GPU allocation constant (4GB > u32::MAX)
-- **biomeos on armv7**: 32-bit usize overflow in cast.rs (1 << 53 overflows on 32-bit)
+- ~~**nestgate**: cross-arch binary gap closed (Session 43y)~~
+- ~~**toadstool on armv7**: 32-bit overflow fixed~~
+- ~~**biomeos on armv7**: 32-bit overflow fixed~~
 - **macOS**: cargo check passes for 8/14 primals (proves pure Rust), no osxcross for linking
 - **RISC-V**: All primals cargo-check pass, musl sysroot incomplete for linking most primals
 
@@ -162,10 +162,10 @@ sporeGarden/            — Products (gen4 consumers, public)
 ### NUCLEUS Atomic Model
 
 ```
-Tower (electron)   = beardog + songbird           (trust boundary)
+Tower (electron)   = beardog + songbird + skunkbat  (trust boundary)
 Node  (proton)     = Tower + toadstool + barracuda + coralreef  (compute)
 Nest  (neutron)    = Tower + nestgate + rhizocrypt + loamspine + sweetgrass  (storage)
-NUCLEUS (atom)     = Tower + Node + Nest           (9 unique primals)
+NUCLEUS (atom)     = Tower + Node + Nest           (10 unique primals)
 Meta-tier          = biomeos + squirrel + petaltongue  (orchestration, AI, UI)
 ```
 
@@ -186,7 +186,7 @@ Each spring has a **niche composition** — the primals it needs deployed:
 | wetSpring | Full (12 primals) | `niche-wetspring` |
 | airSpring | NUCLEUS (9 primals) | `niche-airspring` |
 | groundSpring | NUCLEUS (9 primals) | `niche-groundspring` |
-| healthSpring | Tower + Nest + Meta (8 primals) | `niche-healthspring` |
+| healthSpring | Full + Meta (12 primals) | `niche-healthspring` |
 | ludoSpring | Full + Meta (12 primals, **pure composition**) | `cell_launcher.sh ludospring` |
 | esotericWebb | Full + Meta (11 primals, **pure composition**) | `cell_launcher.sh esotericwebb` |
 
@@ -223,8 +223,7 @@ plasmidBin/
 ├── validate_mesh.sh        # Multi-node mesh health + BirdSong exchange
 ├── stop_gate.sh            # Stop primals on a gate
 ├── update.sh               # Check for upstream updates
-├── primals/                # x86_64 binaries (gitignored)
-│   └── aarch64/            # aarch64 binaries (gitignored)
+├── primals/                # {target-triple}/{binary} layout (gitignored)
 └── receipts/               # Harvest receipts
 ```
 
@@ -298,7 +297,7 @@ All binaries must pass:
 - **Stripped** — no debug info (`strip -s` or `[profile.release] strip = true`)
 - **Checksummed** — blake3 hash in `checksums.toml`
 - **Zero C deps** — no openssl, no ring, no libc in application code
-- **Named simply** — `primals/{name}` (x86_64) or `primals/aarch64/{name}`
+- **Named simply** — `primals/{target-triple}/{name}` (legacy symlinks: `primals/{name}` → x86_64-unknown-linux-musl)
 
 ### Quick self-check for primal teams
 

@@ -632,21 +632,21 @@ graph = "profiles/tower.toml"
 [atomics.node]
 name = "Node Atomic"
 particle = "proton"
-primals = ["beardog", "songbird", "toadstool", "barracuda", "coralreef"]
+primals = ["beardog", "songbird", "skunkbat", "toadstool", "barracuda", "coralreef"]
 description = "Compute substrate — dispatch + execute + compile"
 graph = "profiles/node.toml"
 
 [atomics.nest]
 name = "Nest Atomic"
 particle = "neutron"
-primals = ["beardog", "songbird", "nestgate", "rhizocrypt", "loamspine", "sweetgrass"]
+primals = ["beardog", "songbird", "skunkbat", "nestgate", "rhizocrypt", "loamspine", "sweetgrass"]
 description = "Storage + provenance — content-addressed data + lineage"
 graph = "profiles/nest.toml"
 
 [atomics.nucleus]
 name = "Full NUCLEUS"
-primals = ["beardog", "songbird", "toadstool", "barracuda", "coralreef", "nestgate", "rhizocrypt", "loamspine", "sweetgrass"]
-description = "Full atom — Tower + Node + Nest (9 unique primals)"
+primals = ["beardog", "songbird", "skunkbat", "toadstool", "barracuda", "coralreef", "nestgate", "rhizocrypt", "loamspine", "sweetgrass"]
+description = "Full atom — Tower + Node + Nest (10 unique primals)"
 graph = "profiles/nucleus.toml"
 
 [atomics.meta_tier]
@@ -656,7 +656,7 @@ description = "Cross-atomic — orchestration, AI, UI (operate at all levels)"
 
 [atomics.nucleus_full]
 name = "NUCLEUS + Meta"
-primals = ["beardog", "songbird", "toadstool", "barracuda", "coralreef", "nestgate", "rhizocrypt", "loamspine", "sweetgrass", "biomeos", "squirrel", "petaltongue"]
+primals = ["beardog", "songbird", "skunkbat", "toadstool", "barracuda", "coralreef", "nestgate", "rhizocrypt", "loamspine", "sweetgrass", "biomeos", "squirrel", "petaltongue"]
 description = "Full NUCLEUS atom + all meta-tier primals"
 graph = "profiles/full.toml"
 

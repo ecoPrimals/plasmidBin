@@ -7,23 +7,28 @@
 # Usage:
 #   ./doctor.sh              # Full check
 #   ./doctor.sh --quick      # Prerequisites + inventory only (no checksums)
+#   ./doctor.sh --freshness  # Compare local ecoBins against latest GitHub Release
 #   ./doctor.sh --json       # Machine-readable output
 
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+GITHUB_REPO="ecoPrimals/plasmidBin"
 
 QUICK=false
 JSON=false
+FRESHNESS=false
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --quick) QUICK=true; shift ;;
         --json)  JSON=true; shift ;;
+        --freshness) FRESHNESS=true; shift ;;
         --help)
-            echo "Usage: $0 [--quick] [--json]"
-            echo "  --quick   Skip checksum verification"
-            echo "  --json    Machine-readable JSON output"
+            echo "Usage: $0 [--quick] [--freshness] [--json]"
+            echo "  --quick      Skip checksum verification"
+            echo "  --freshness  Compare local ecoBins against latest GitHub Release"
+            echo "  --json       Machine-readable JSON output"
             exit 0
             ;;
         *) echo "Unknown option: $1"; exit 1 ;;
@@ -233,11 +238,32 @@ if ! $JSON; then echo ""; fi
 if ! $JSON; then echo "=== Atomic Composition Validation ==="; fi
 
 PRIMALS_DIR="$SCRIPT_DIR/primals"
-# Phase 31 atomic definitions
-ATOMIC_TOWER="beardog songbird"
-ATOMIC_NODE="beardog songbird toadstool barracuda coralreef"
-ATOMIC_NEST="beardog songbird nestgate rhizocrypt loamspine sweetgrass"
-ATOMIC_META="biomeos squirrel petaltongue"
+MANIFEST="$SCRIPT_DIR/manifest.toml"
+
+# Derive atomic definitions from manifest.toml [atomics.*] sections.
+# Falls back to hardcoded values if manifest parsing fails.
+parse_atomic_primals() {
+    local atomic="$1"
+    if [[ -f "$MANIFEST" ]]; then
+        local primals
+        primals=$(grep -A1 "^\[atomics\.$atomic\]" "$MANIFEST" 2>/dev/null | \
+            grep 'primals' | grep -oP '"\K[a-z]+(?=")' | tr '\n' ' ') || primals=""
+        if [[ -n "$primals" ]]; then
+            echo "$primals"
+            return
+        fi
+    fi
+    echo ""
+}
+
+ATOMIC_TOWER=$(parse_atomic_primals "tower")
+ATOMIC_NODE=$(parse_atomic_primals "node")
+ATOMIC_NEST=$(parse_atomic_primals "nest")
+ATOMIC_META=$(parse_atomic_primals "meta_tier")
+[[ -z "$ATOMIC_TOWER" ]] && ATOMIC_TOWER="beardog songbird skunkbat"
+[[ -z "$ATOMIC_NODE" ]] && ATOMIC_NODE="beardog songbird skunkbat toadstool barracuda coralreef"
+[[ -z "$ATOMIC_NEST" ]] && ATOMIC_NEST="beardog songbird skunkbat nestgate rhizocrypt loamspine sweetgrass"
+[[ -z "$ATOMIC_META" ]] && ATOMIC_META="biomeos squirrel petaltongue"
 
 check_atomic() {
     local name="$1"
@@ -248,7 +274,7 @@ check_atomic() {
     local missing_list=""
 
     for p in "${primals[@]}"; do
-        if [[ -f "$PRIMALS_DIR/$p" ]]; then
+        if [[ -f "$PRIMALS_DIR/$p" ]] || [[ -f "$PRIMALS_DIR/x86_64-unknown-linux-musl/$p" ]]; then
             present=$((present + 1))
         else
             missing_list+=" $p"
@@ -269,7 +295,8 @@ check_atomic "Node (proton)" $ATOMIC_NODE
 check_atomic "Nest (neutron)" $ATOMIC_NEST
 check_atomic "Meta-tier" $ATOMIC_META
 
-NUCLEUS_PRIMALS="beardog songbird toadstool barracuda coralreef nestgate rhizocrypt loamspine sweetgrass"
+NUCLEUS_PRIMALS=$(parse_atomic_primals "nucleus")
+[[ -z "$NUCLEUS_PRIMALS" ]] && NUCLEUS_PRIMALS="beardog songbird skunkbat toadstool barracuda coralreef nestgate rhizocrypt loamspine sweetgrass"
 check_atomic "NUCLEUS (atom)" $NUCLEUS_PRIMALS
 
 if ! $JSON; then echo ""; fi
@@ -320,6 +347,97 @@ if ! $QUICK && command -v b3sum >/dev/null 2>&1 && [[ -f "$SCRIPT_DIR/checksums.
             CHECKSUMS_FAILED=$((CHECKSUMS_FAILED + 1))
         fi
     done
+
+    if ! $JSON; then echo ""; fi
+fi
+
+# ── ecoBin freshness (local vs GitHub Release) ────────────────────────────────
+# Compares local binary checksums against the checksums.toml from the latest
+# GitHub Release to detect stale ecoBins. Requires curl + b3sum.
+
+if $FRESHNESS && command -v b3sum >/dev/null 2>&1 && command -v curl >/dev/null 2>&1; then
+    if ! $JSON; then echo "=== ecoBin Freshness (local vs GitHub Release) ==="; fi
+
+    ARCH=$(uname -m)
+    case "$ARCH" in
+        x86_64)  FRESH_TRIPLE="x86_64-unknown-linux-musl" ;;
+        aarch64) FRESH_TRIPLE="aarch64-unknown-linux-musl" ;;
+        armv7l)  FRESH_TRIPLE="armv7-unknown-linux-musleabihf" ;;
+        *)       FRESH_TRIPLE="$ARCH-unknown-linux-musl" ;;
+    esac
+
+    FRESH_STALE=0
+    FRESH_CURRENT=0
+    FRESH_MISSING=0
+
+    RELEASE_CHECKSUMS=$(mktemp)
+    trap 'rm -f "$RELEASE_CHECKSUMS"' EXIT
+
+    LATEST_TAG=$(curl -sf --max-time 10 "https://api.github.com/repos/$GITHUB_REPO/releases/latest" \
+        | grep -oP '"tag_name"\s*:\s*"\K[^"]+' | head -1) || LATEST_TAG=""
+
+    if [[ -z "$LATEST_TAG" ]]; then
+        check "GitHub API" warn "could not resolve latest release tag"
+    else
+        CHECKSUMS_URL="https://github.com/$GITHUB_REPO/releases/download/$LATEST_TAG/checksums.toml"
+        if ! curl -sfL --max-time 15 -o "$RELEASE_CHECKSUMS" "$CHECKSUMS_URL" 2>/dev/null; then
+            RELEASE_CHECKSUMS=""
+            check "Release checksums" warn "not found in $LATEST_TAG — searching recent releases"
+            for search_tag in $(curl -sf --max-time 10 "https://api.github.com/repos/$GITHUB_REPO/releases?per_page=5" \
+                | grep -oP '"tag_name"\s*:\s*"\K[^"]+'); do
+                CHECKSUMS_URL="https://github.com/$GITHUB_REPO/releases/download/$search_tag/checksums.toml"
+                RELEASE_CHECKSUMS=$(mktemp)
+                if curl -sfL --max-time 15 -o "$RELEASE_CHECKSUMS" "$CHECKSUMS_URL" 2>/dev/null; then
+                    LATEST_TAG="$search_tag"
+                    break
+                fi
+                rm -f "$RELEASE_CHECKSUMS"
+                RELEASE_CHECKSUMS=""
+            done
+        fi
+
+        if [[ -n "$RELEASE_CHECKSUMS" && -f "$RELEASE_CHECKSUMS" ]]; then
+            if ! $JSON; then echo "  Comparing against release: $LATEST_TAG"; echo ""; fi
+
+            for name in beardog songbird nestgate toadstool barracuda coralreef squirrel petaltongue biomeos rhizocrypt loamspine sweetgrass skunkbat; do
+                bin="$SCRIPT_DIR/primals/x86_64-unknown-linux-musl/$name"
+                [[ ! -f "$bin" ]] && bin="$SCRIPT_DIR/primals/$name"
+                if [[ ! -f "$bin" ]]; then
+                    FRESH_MISSING=$((FRESH_MISSING + 1))
+                    continue
+                fi
+
+                section="primals.$name"
+                release_hash=$(grep -A5 "^\[$section\]" "$RELEASE_CHECKSUMS" 2>/dev/null | \
+                    grep "\"$FRESH_TRIPLE\"" | grep -oP '"\K[a-f0-9]{64}' | head -1) || release_hash=""
+
+                if [[ -z "$release_hash" ]]; then
+                    check "$name" warn "no release checksum for $FRESH_TRIPLE"
+                    continue
+                fi
+
+                local_hash=$(b3sum --no-names "$bin")
+
+                if [[ "$local_hash" == "$release_hash" ]]; then
+                    check "$name" pass "CURRENT ($LATEST_TAG)"
+                    FRESH_CURRENT=$((FRESH_CURRENT + 1))
+                else
+                    check "$name" warn "STALE (local differs from $LATEST_TAG)"
+                    FRESH_STALE=$((FRESH_STALE + 1))
+                fi
+            done
+
+            if ! $JSON; then
+                echo ""
+                echo "  Current: $FRESH_CURRENT  Stale: $FRESH_STALE  Missing: $FRESH_MISSING"
+                if [[ $FRESH_STALE -gt 0 ]]; then
+                    echo "  Run: ./fetch.sh --force --all   to update stale ecoBins"
+                fi
+            fi
+        else
+            check "Release checksums" warn "checksums.toml not found in any recent release"
+        fi
+    fi
 
     if ! $JSON; then echo ""; fi
 fi
