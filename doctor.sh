@@ -369,6 +369,7 @@ if $FRESHNESS && command -v b3sum >/dev/null 2>&1 && command -v curl >/dev/null 
     FRESH_STALE=0
     FRESH_CURRENT=0
     FRESH_MISSING=0
+    FRESH_ITEMS=""
 
     RELEASE_CHECKSUMS=$(mktemp)
     trap 'rm -f "$RELEASE_CHECKSUMS"' EXIT
@@ -421,9 +422,13 @@ if $FRESHNESS && command -v b3sum >/dev/null 2>&1 && command -v curl >/dev/null 
                 if [[ "$local_hash" == "$release_hash" ]]; then
                     check "$name" pass "CURRENT ($LATEST_TAG)"
                     FRESH_CURRENT=$((FRESH_CURRENT + 1))
+                    [[ -n "$FRESH_ITEMS" ]] && FRESH_ITEMS+=","
+                    FRESH_ITEMS+="{\"primal\":\"$name\",\"status\":\"current\",\"release\":\"$LATEST_TAG\"}"
                 else
                     check "$name" warn "STALE (local differs from $LATEST_TAG)"
                     FRESH_STALE=$((FRESH_STALE + 1))
+                    [[ -n "$FRESH_ITEMS" ]] && FRESH_ITEMS+=","
+                    FRESH_ITEMS+="{\"primal\":\"$name\",\"status\":\"stale\",\"release\":\"$LATEST_TAG\"}"
                 fi
             done
 
@@ -445,7 +450,11 @@ fi
 # ── Summary ──────────────────────────────────────────────────────────────────
 
 if $JSON; then
-    echo "{\"pass\":$PASS,\"warn\":$WARN,\"fail\":$FAIL,\"x86_64_count\":$X86_COUNT,\"x86_64_ecobin\":$X86_ECOBIN,\"aarch64_count\":$ARM_COUNT,\"aarch64_ecobin\":$ARM_ECOBIN}"
+    FRESHNESS_JSON=""
+    if $FRESHNESS; then
+        FRESHNESS_JSON=",\"freshness\":{\"release\":\"${LATEST_TAG:-unknown}\",\"current\":${FRESH_CURRENT:-0},\"stale\":${FRESH_STALE:-0},\"missing\":${FRESH_MISSING:-0},\"items\":[${FRESH_ITEMS:-}]}"
+    fi
+    echo "{\"pass\":$PASS,\"warn\":$WARN,\"fail\":$FAIL,\"x86_64_count\":$X86_COUNT,\"x86_64_ecobin\":$X86_ECOBIN,\"aarch64_count\":$ARM_COUNT,\"aarch64_ecobin\":$ARM_ECOBIN${FRESHNESS_JSON}}"
 else
     echo "=== Summary ==="
     echo "  Pass: $PASS"
