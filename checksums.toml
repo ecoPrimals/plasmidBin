@@ -33,9 +33,9 @@
 # =============================================================================
 
 [primals.toadstool]
-"x86_64-unknown-linux-musl" = "6f37e34e0a446816e555323b9998a2ff6fd54bb92bb5b4257d132d2bee2602e3"
-"aarch64-unknown-linux-musl" = "2bcb731d32d7cf510505e3f5c1f32c7b9d22934db848b3b667047ff6e2b5c595"
-"armv7-unknown-linux-musleabihf" = "44c9948a53452d1e4f1aeca69b94fbc11749903ca4276739325cf435311f1099"
+"x86_64-unknown-linux-musl" = "6e600d5bca4620d9d551bc76f0e5859084dac25baffe9b708a9ca337f3d151ee"
+"aarch64-unknown-linux-musl" = "683c7cf78f2fdece657b8c456cb340ecf3ab38b955a0ce71f16391e157f91863"
+"armv7-unknown-linux-musleabihf" = "021f52b72f01b97a3175b58b490975447bb77843d47dc1180741237006c48587"
 
 [primals.barracuda]
 "x86_64-unknown-linux-musl" = "c6ab2e6285a8b53d6254b9ca61a7b1f89ff43ccbb6329710357247481e034f69"
