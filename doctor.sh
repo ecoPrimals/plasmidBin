@@ -153,13 +153,13 @@ for name in beardog songbird nestgate toadstool barracuda coralreef squirrel pet
     fi
     X86_COUNT=$((X86_COUNT + 1))
 
-    file_out=$(file "$bin" 2>/dev/null)
+    file_out=$(file -L "$bin" 2>/dev/null)
     is_static=false
     is_stripped=false
     if echo "$file_out" | grep -qE "statically linked|static-pie"; then is_static=true; fi
     if ! echo "$file_out" | grep -q "not stripped"; then is_stripped=true; fi
 
-    sz=$(du -h "$bin" | cut -f1)
+    sz=$(du -hL "$bin" | cut -f1)
 
     if $is_static && $is_stripped; then
         check "$name" pass "${sz}, static, stripped"
@@ -183,13 +183,13 @@ for name in beardog songbird squirrel toadstool biomeos barracuda coralreef; do
     fi
     ARM_COUNT=$((ARM_COUNT + 1))
 
-    file_out=$(file "$bin" 2>/dev/null)
+    file_out=$(file -L "$bin" 2>/dev/null)
     is_static=false
     is_stripped=false
-    if echo "$file_out" | grep -q "statically linked"; then is_static=true; fi
+    if echo "$file_out" | grep -qE "statically linked|static-pie"; then is_static=true; fi
     if ! echo "$file_out" | grep -q "not stripped"; then is_stripped=true; fi
 
-    sz=$(du -h "$bin" | cut -f1)
+    sz=$(du -hL "$bin" | cut -f1)
 
     if $is_static && $is_stripped; then
         check "$name (aarch64)" pass "${sz}, static, stripped"
@@ -209,12 +209,12 @@ if ! $JSON; then echo "=== Coordination Primal ==="; fi
 
 bin="$SCRIPT_DIR/primals/primalspring_primal"
 if [[ -f "$bin" ]]; then
-    file_out=$(file "$bin" 2>/dev/null)
+    file_out=$(file -L "$bin" 2>/dev/null)
     is_static=false
     is_stripped=false
     if echo "$file_out" | grep -qE "statically linked|static-pie"; then is_static=true; fi
     if ! echo "$file_out" | grep -q "not stripped"; then is_stripped=true; fi
-    sz=$(du -h "$bin" | cut -f1)
+    sz=$(du -hL "$bin" | cut -f1)
     if $is_static && $is_stripped; then
         check "primalspring_primal" pass "${sz}, static, stripped"
     elif $is_static; then

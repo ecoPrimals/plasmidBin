@@ -201,6 +201,24 @@ resolve_release_tag() {
     fi
 }
 
+# Resolve fallback release tags (up to CASCADE_DEPTH recent releases).
+# Incremental releases only ship updated binaries; unchanged primals must be
+# fetched from older releases. This avoids the "ecoBin harvest lag" problem.
+CASCADE_DEPTH=5
+
+resolve_fallback_tags() {
+    if [[ -n "$RELEASE_TAG" ]]; then
+        return
+    fi
+
+    if has_gh; then
+        gh release list --repo "$GITHUB_REPO" --limit "$CASCADE_DEPTH" --json tagName -q '.[].tagName' 2>/dev/null || true
+    else
+        local url="https://api.github.com/repos/$GITHUB_REPO/releases?per_page=$CASCADE_DEPTH"
+        curl -sf --max-time 10 "$url" 2>/dev/null | grep -oP '"tag_name"\s*:\s*"\K[^"]+' || true
+    fi
+}
+
 download_from_release() {
     local tag="$1"
     local asset_name="$2"
@@ -247,15 +265,25 @@ echo "Arch: $CURRENT_ARCH"
 TAG=$(resolve_release_tag)
 MIRROR=$(get_mirror_url)
 
+FALLBACK_TAGS=()
+while IFS= read -r ftag; do
+    [[ -n "$ftag" && "$ftag" != "$TAG" ]] && FALLBACK_TAGS+=("$ftag")
+done < <(resolve_fallback_tags)
+
 if [[ -z "$TAG" ]]; then
     echo "WARNING: Could not resolve release tag. Trying mirror only."
 fi
 
 echo "Release: ${TAG:-<none>}"
+if [[ ${#FALLBACK_TAGS[@]} -gt 0 ]]; then
+    echo "Cascade: ${FALLBACK_TAGS[*]}"
+fi
 if [[ -n "$MIRROR" ]]; then
     echo "Mirror:  $MIRROR"
 fi
 echo ""
+
+CASCADED=0
 
 if [[ ! -f "$SOURCES_FILE" ]]; then
     echo "ERROR: $SOURCES_FILE not found"
@@ -299,6 +327,22 @@ for source_id in $(list_sources); do
         elif download_from_release "$TAG" "$asset_name_plain" "$local_path"; then
             got_it=true
         fi
+    fi
+
+    if ! $got_it && [[ ${#FALLBACK_TAGS[@]} -gt 0 ]]; then
+        for fallback_tag in "${FALLBACK_TAGS[@]}"; do
+            if download_from_release "$fallback_tag" "$asset_name_arch" "$local_path"; then
+                echo -n "(cascade: $fallback_tag) "
+                got_it=true
+                CASCADED=$((CASCADED + 1))
+                break
+            elif download_from_release "$fallback_tag" "$asset_name_plain" "$local_path"; then
+                echo -n "(cascade: $fallback_tag) "
+                got_it=true
+                CASCADED=$((CASCADED + 1))
+                break
+            fi
+        done
     fi
 
     if ! $got_it && [[ -n "$MIRROR" ]]; then
@@ -369,6 +413,9 @@ echo "  Downloaded: $DOWNLOADED"
 echo "  Verified:   $VERIFIED"
 echo "  Skipped:    $SKIPPED"
 echo "  Failed:     $FAILED"
+if [[ $CASCADED -gt 0 ]]; then
+    echo "  Cascaded:   $CASCADED (from older releases)"
+fi
 if [[ $CHECKSUM_FAIL -gt 0 ]]; then
     echo "  Checksum failures: $CHECKSUM_FAIL"
 fi
