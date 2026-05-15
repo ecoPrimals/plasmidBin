@@ -351,43 +351,43 @@ note = "Wave 14: Dark Forest Glacial Gate (5-pillar security standard), deployme
 
 [niches.hotspring]
 name = "hotSpring QCD"
-primals = ["beardog", "songbird", "toadstool", "barracuda", "coralreef", "nestgate", "rhizocrypt", "loamspine", "sweetgrass"]
+primals = ["beardog", "songbird", "skunkbat", "toadstool", "barracuda", "coralreef", "nestgate", "rhizocrypt", "loamspine", "sweetgrass"]
 description = "Full NUCLEUS — df64 GPU compute, fleet dispatch, gauge config provenance"
 composition = "nucleus"
 
 [niches.neuralspring]
 name = "neuralSpring Inference"
-primals = ["beardog", "songbird", "toadstool", "barracuda", "coralreef", "biomeos", "squirrel"]
+primals = ["beardog", "songbird", "skunkbat", "toadstool", "barracuda", "coralreef", "biomeos", "squirrel"]
 description = "Node + Meta — WGSL shader inference, model routing via Squirrel"
 composition = "science"
 
 [niches.wetspring]
 name = "wetSpring Life Science"
-primals = ["beardog", "songbird", "toadstool", "barracuda", "coralreef", "nestgate", "rhizocrypt", "loamspine", "sweetgrass", "biomeos", "squirrel", "petaltongue"]
+primals = ["beardog", "songbird", "skunkbat", "toadstool", "barracuda", "coralreef", "nestgate", "rhizocrypt", "loamspine", "sweetgrass", "biomeos", "squirrel", "petaltongue"]
 description = "Full NUCLEUS + Meta — spectral analysis, time-series storage, provenance"
 composition = "full"
 
 [niches.airspring]
 name = "airSpring Ecology"
-primals = ["beardog", "songbird", "toadstool", "barracuda", "coralreef", "nestgate", "rhizocrypt", "loamspine", "sweetgrass"]
+primals = ["beardog", "songbird", "skunkbat", "toadstool", "barracuda", "coralreef", "nestgate", "rhizocrypt", "loamspine", "sweetgrass"]
 description = "Full NUCLEUS — PDE solvers, IoT sensor storage, measurement provenance"
 composition = "nucleus"
 
 [niches.groundspring]
 name = "groundSpring Geoscience"
-primals = ["beardog", "songbird", "toadstool", "barracuda", "coralreef", "nestgate", "rhizocrypt", "loamspine", "sweetgrass"]
+primals = ["beardog", "songbird", "skunkbat", "toadstool", "barracuda", "coralreef", "nestgate", "rhizocrypt", "loamspine", "sweetgrass"]
 description = "Full NUCLEUS — statistical shaders, geospatial storage, calibration provenance"
 composition = "nucleus"
 
 [niches.healthspring]
 name = "healthSpring Clinical"
-primals = ["beardog", "songbird", "toadstool", "barracuda", "coralreef", "nestgate", "rhizocrypt", "loamspine", "sweetgrass", "biomeos", "squirrel", "petaltongue"]
+primals = ["beardog", "songbird", "skunkbat", "toadstool", "barracuda", "coralreef", "nestgate", "rhizocrypt", "loamspine", "sweetgrass", "biomeos", "squirrel", "petaltongue"]
 description = "Full NUCLEUS + Meta — dual-tower enclave, ionic bonds, Tier 2 compute dispatch, live visualization"
 composition = "full"
 
 [niches.ludospring]
 name = "ludoSpring Game Science"
-primals = ["beardog", "songbird", "toadstool", "barracuda", "coralreef", "nestgate", "rhizocrypt", "loamspine", "sweetgrass", "biomeos", "squirrel", "petaltongue"]
+primals = ["beardog", "songbird", "skunkbat", "toadstool", "barracuda", "coralreef", "nestgate", "rhizocrypt", "loamspine", "sweetgrass", "biomeos", "squirrel", "petaltongue"]
 description = "Full NUCLEUS + Meta — pure composition, 60Hz tick, scene push/poll, provenance trio"
 composition = "full"
 composition_model = "pure"
