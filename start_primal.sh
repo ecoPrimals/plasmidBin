@@ -49,7 +49,9 @@ PRIMAL_BIN=""
 usage() {
     echo "Usage: $0 <primal-name> [OPTIONS]"
     echo ""
-    echo "Primals: beardog, songbird, nestgate, toadstool, squirrel, biomeos, barracuda, coralreef, petaltongue, sweetgrass, rhizocrypt, loamspine, skunkbat, primalspring_primal"
+    echo "Primals: beardog, songbird, toadstool, barracuda, coralreef, nestgate,"
+    echo "         rhizocrypt, loamspine, sweetgrass, biomeos, squirrel, petaltongue,"
+    echo "         skunkbat, primalspring_primal, ludospring"
     echo ""
     echo "Generic options (mapped to per-primal CLI):"
     echo "  --tcp-port PORT        TCP port"
@@ -94,42 +96,17 @@ while [[ $# -gt 0 ]]; do
 done
 
 # ── Resolve binary path ─────────────────────────────────────────────────────
-# genomeBin layout: primals/{target-triple}/binary
-# Falls back to legacy flat layout (primals/binary, primals/aarch64/binary)
-
-detect_target_triple() {
-    local machine os kernel
-    machine=$(uname -m)
-    kernel=$(uname -s | tr '[:upper:]' '[:lower:]')
-    case "$kernel" in
-        linux)
-            case "$machine" in
-                x86_64)  echo "x86_64-unknown-linux-musl" ;;
-                aarch64) echo "aarch64-unknown-linux-musl" ;;
-                armv7l)  echo "armv7-unknown-linux-musleabihf" ;;
-                riscv64) echo "riscv64gc-unknown-linux-musl" ;;
-                *)       echo "${machine}-unknown-linux-musl" ;;
-            esac ;;
-        darwin)
-            case "$machine" in
-                x86_64)  echo "x86_64-apple-darwin" ;;
-                arm64)   echo "aarch64-apple-darwin" ;;
-                *)       echo "${machine}-apple-darwin" ;;
-            esac ;;
-        *)  echo "${machine}-unknown-${kernel}" ;;
-    esac
-}
 
 if [[ -z "$PRIMAL_BIN" ]]; then
-    TARGET_TRIPLE=$(detect_target_triple)
-    if [[ -f "$SCRIPT_DIR/primals/$TARGET_TRIPLE/$PRIMAL" ]]; then
-        PRIMAL_BIN="$SCRIPT_DIR/primals/$TARGET_TRIPLE/$PRIMAL"
+    ARCH=$(uname -m)
+    if [[ "$ARCH" == "aarch64" && -f "$SCRIPT_DIR/primals/aarch64/$PRIMAL" ]]; then
+        PRIMAL_BIN="$SCRIPT_DIR/primals/aarch64/$PRIMAL"
     elif [[ -f "$SCRIPT_DIR/primals/$PRIMAL" ]]; then
         PRIMAL_BIN="$SCRIPT_DIR/primals/$PRIMAL"
     else
         echo "ERROR: Binary not found for $PRIMAL"
-        echo "  Checked: $SCRIPT_DIR/primals/$TARGET_TRIPLE/$PRIMAL"
-        echo "  Checked: $SCRIPT_DIR/primals/$PRIMAL (legacy symlink)"
+        echo "  Checked: $SCRIPT_DIR/primals/$PRIMAL"
+        [[ "$ARCH" == "aarch64" ]] && echo "  Checked: $SCRIPT_DIR/primals/aarch64/$PRIMAL"
         exit 1
     fi
 fi
@@ -169,14 +146,6 @@ case "$PRIMAL" in
         fi
         [[ -n "$FAMILY_ID" ]] && ARGS+=(--family-id "$FAMILY_ID")
         [[ -n "$TCP_PORT" ]] && ARGS+=(--listen "$TCP_BIND:$TCP_PORT")
-        # BearDog expects NODE_ID + BEARDOG_NODE_ID for identity
-        [[ -n "$NODE_ID" ]] && export BEARDOG_NODE_ID="$NODE_ID"
-        [[ -z "${NODE_ID:-}" ]] && export NODE_ID="$(hostname -s 2>/dev/null || echo 'gate')"
-        [[ -z "${BEARDOG_NODE_ID:-}" ]] && export BEARDOG_NODE_ID="$NODE_ID"
-        # BTSP requires FAMILY_SEED env (not just --family-id)
-        if [[ -n "$FAMILY_ID" ]] && [[ -z "${BEARDOG_FAMILY_SEED:-}" ]] && [[ -z "${FAMILY_SEED:-}" ]]; then
-            export BEARDOG_FAMILY_SEED="plasmidbin-${FAMILY_ID}"
-        fi
         ;;
 
     songbird)
@@ -184,7 +153,6 @@ case "$PRIMAL" in
         [[ -n "$TCP_PORT" ]] && ARGS+=(--port "$TCP_PORT")
         [[ -n "$SOCKET_PATH" ]] && ARGS+=(--socket "$SOCKET_PATH")
         if [[ -n "$BEARDOG_SOCKET" ]]; then
-            ARGS+=(--beardog-socket "$BEARDOG_SOCKET")
             export BEARDOG_SOCKET
             export BEARDOG_MODE=direct
             export SONGBIRD_SECURITY_PROVIDER=beardog
@@ -193,7 +161,7 @@ case "$PRIMAL" in
 
     squirrel)
         ARGS+=(server)
-        [[ -n "$TCP_PORT" ]] && ARGS+=(--port "$TCP_PORT")
+        [[ -n "$TCP_PORT" ]] && ARGS+=(--port "$TCP_PORT" --bind "$TCP_BIND")
         [[ -n "$SOCKET_PATH" ]] && ARGS+=(--socket "$SOCKET_PATH")
         export SQUIRREL_MODE=server
         ;;
@@ -234,22 +202,13 @@ case "$PRIMAL" in
         ;;
 
     petaltongue)
-        # Modes: live (native GPU + IPC), server (headless IPC), web (HTTP UI).
-        # PETALTONGUE_MODE env selects mode; defaults to server for headless deploys.
-        PT_MODE="${PETALTONGUE_MODE:-server}"
-        [[ -n "$SOCKET_PATH" ]] && export PETALTONGUE_SOCKET="$SOCKET_PATH"
-        case "$PT_MODE" in
-            live)
-                ARGS+=(live)
-                [[ -n "$TCP_PORT" ]] && ARGS+=(--port "$TCP_PORT")
-                ;;
-            web)
-                ARGS+=(web --bind "${TCP_BIND:-0.0.0.0}:${TCP_PORT:-8080}")
-                ;;
-            *)
-                ARGS+=(server)
-                ;;
-        esac
+        # petalTongue `web` serves HTTP (with --bind), `server` is UDS-only.
+        # For composition testing, prefer `web` with TCP.
+        if [[ -n "$TCP_PORT" ]]; then
+            ARGS+=(web --bind "$TCP_BIND:$TCP_PORT")
+        else
+            ARGS+=(server)
+        fi
         ;;
 
     ludospring)
@@ -265,28 +224,31 @@ case "$PRIMAL" in
         [[ -n "$TCP_PORT" ]] && ARGS+=(--port "$TCP_PORT")
         ;;
 
-    barracuda)
-        ARGS+=(server)
+    sweetgrass|rhizocrypt|loamspine)
+        ARGS+=(serve)
+        [[ -n "$SOCKET_PATH" ]] && ARGS+=(--socket "$SOCKET_PATH")
         [[ -n "$TCP_PORT" ]] && ARGS+=(--port "$TCP_PORT")
+        ;;
+
+    barracuda)
+        ARGS+=(serve)
+        [[ -n "$TCP_PORT" ]] && ARGS+=(--port "$TCP_PORT")
+        [[ -n "$SOCKET_PATH" ]] && ARGS+=(--socket "$SOCKET_PATH")
         [[ -n "$FAMILY_ID" ]] && export BARRACUDA_FAMILY_ID="$FAMILY_ID"
+        [[ -n "$TCP_PORT" ]] && export BARRACUDA_IPC_HOST="0.0.0.0"
         ;;
 
     coralreef)
-        ARGS+=(server)
-        [[ -n "$SOCKET_PATH" ]] && ARGS+=(--tarpc-bind "unix://$SOCKET_PATH")
-        [[ -n "$TCP_PORT" ]] && ARGS+=(--rpc-bind "$TCP_BIND:$TCP_PORT")
-        ;;
-
-    rhizocrypt)
-        ARGS+=(server)
-        [[ -n "$SOCKET_PATH" ]] && ARGS+=(--unix "$SOCKET_PATH")
+        ARGS+=(serve)
         [[ -n "$TCP_PORT" ]] && ARGS+=(--port "$TCP_PORT")
+        [[ -n "$SOCKET_PATH" ]] && ARGS+=(--socket "$SOCKET_PATH")
         ;;
 
-    sweetgrass|loamspine|skunkbat)
-        ARGS+=(server)
+    skunkbat)
+        ARGS+=(serve)
         [[ -n "$SOCKET_PATH" ]] && ARGS+=(--socket "$SOCKET_PATH")
         [[ -n "$TCP_PORT" ]] && ARGS+=(--port "$TCP_PORT")
+        [[ -n "$FAMILY_ID" ]] && export SKUNKBAT_FAMILY_ID="$FAMILY_ID"
         ;;
 
     *)
@@ -296,51 +258,6 @@ case "$PRIMAL" in
         [[ -n "$TCP_PORT" ]] && export "${PRIMAL^^}_PORT=$TCP_PORT"
         ;;
 esac
-
-# ── Capability symlink creation ───────────────────────────────────────────────
-# After launch, create well-known capability symlinks so discovery tools can
-# find primals by capability name (e.g. security.sock -> beardog-*.sock).
-# Primals create some of these themselves, but not all. This fills the gaps.
-
-create_capability_symlinks() {
-    local sock_dir="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/biomeos"
-    [[ -d "$sock_dir" ]] || return 0
-    local fid="${FAMILY_ID:+-$FAMILY_ID}"
-    local primal_sock
-
-    # Resolve the actual socket: family-qualified or plain
-    if [[ -n "$SOCKET_PATH" ]] && [[ -S "$SOCKET_PATH" ]]; then
-        primal_sock="$(basename "$SOCKET_PATH")"
-    elif [[ -S "$sock_dir/${PRIMAL}${fid}.sock" ]]; then
-        primal_sock="${PRIMAL}${fid}.sock"
-    else
-        return 0
-    fi
-
-    local -a caps=()
-    case "$PRIMAL" in
-        beardog)       caps=(security crypto btsp ed25519 x25519) ;;
-        songbird)      caps=(discovery network) ;;
-        toadstool)     caps=(compute) ;;
-        barracuda)     caps=(tensor math) ;;
-        coralreef)     caps=(shader) ;;
-        nestgate)      caps=(storage) ;;
-        squirrel)      caps=(ai) ;;
-        petaltongue)   caps=(visualization ui) ;;
-        rhizocrypt)    caps=(dag memory) ;;
-        loamspine)     caps=(ledger) ;;
-        sweetgrass)    caps=(attribution provenance commit) ;;
-        ludospring)    caps=(game) ;;
-    esac
-
-    for cap in "${caps[@]}"; do
-        local link="$sock_dir/${cap}.sock"
-        if [[ ! -e "$link" ]] || [[ -L "$link" ]]; then
-            ln -sf "$primal_sock" "$link" 2>/dev/null && \
-                echo "  symlink: ${cap}.sock -> $primal_sock"
-        fi
-    done
-}
 
 # ── Launch ───────────────────────────────────────────────────────────────────
 
@@ -364,7 +281,6 @@ else
     sleep 2
     if kill -0 "$PID" 2>/dev/null; then
         echo "  status: running"
-        create_capability_symlinks
     else
         echo "  status: FAILED (check $LOG_FILE)"
         tail -5 "$LOG_FILE" 2>/dev/null || true

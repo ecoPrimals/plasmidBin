@@ -154,14 +154,23 @@ fi
 
 PRIMALS_DIR="$SCRIPT_DIR/primals"
 
+CURRENT_ARCH=$(uname -m)
+case "$CURRENT_ARCH" in
+    x86_64)  CURRENT_ARCH="x86_64-unknown-linux-musl" ;;
+    aarch64) CURRENT_ARCH="aarch64-unknown-linux-musl" ;;
+    armv7l)  CURRENT_ARCH="armv7-unknown-linux-musleabihf" ;;
+esac
+
 for p in $PRIMALS; do
     bin=""
     if [[ -f "$PRIMALS_DIR/$p" ]]; then
         bin="$PRIMALS_DIR/$p"
+    elif [[ -f "$PRIMALS_DIR/$CURRENT_ARCH/$p" ]]; then
+        bin="$PRIMALS_DIR/$CURRENT_ARCH/$p"
     fi
 
     if [[ -z "$bin" ]]; then
-        check "$p binary" fail "not found in primals/"
+        check "$p binary" fail "not found in primals/ or primals/$CURRENT_ARCH/"
         continue
     fi
 

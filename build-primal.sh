@@ -114,7 +114,7 @@ ARCH=$(arch_short)
 
 build_one() {
     local id="$1"
-    local repo binary_name is_private
+    local repo binary_name is_private build_args needs_sibling
 
     repo=$(parse_toml_value "$SOURCES_FILE" "sources.$id" "repo" 2>/dev/null) || true
     binary_name=$(parse_toml_value "$SOURCES_FILE" "sources.$id" "binary_name" 2>/dev/null) || true

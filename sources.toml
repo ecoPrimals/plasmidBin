@@ -19,7 +19,7 @@
 #   - Validating composition readiness before release
 #   - Finding gaps to report upstream to primal teams
 #
-# Updated: 2026-04-11
+# Updated: 2026-04-14
 
 # =============================================================================
 # PRIMALS — Tower Atomic (electron: trust boundary)
@@ -88,7 +88,6 @@ assets = ["sweetgrass"]
 repo = "ecoPrimals/biomeOS"
 tag_pattern = "v{version}"
 assets = ["biomeos"]
-build_args = "-p biomeos-unibin"
 
 [sources.squirrel]
 repo = "ecoPrimals/squirrel"
@@ -109,12 +108,25 @@ repo = "ecoPrimals/skunkBat"
 private = true
 tag_pattern = "v{version}"
 assets = ["skunkbat"]
-build_args = "-p skunk-bat-server"
-note = "Threat intelligence — private source, public binary via plasmidBin releases. Standalone build (GAP-28 resolved)."
+note = "Threat intelligence — private source, public binary via plasmidBin releases"
 
 # =============================================================================
-# SPRINGS & COMPOSITIONS — NOT distributed via plasmidBin
+# COORDINATION PRIMAL (from primalSpring)
 # =============================================================================
-# Springs (primalSpring, hotSpring, etc.) are validation targets, not primals.
-# Compositions (esotericWebb, etc.) consume primals — they don't ship here.
-# Only ecoPrimals/ org primals belong in plasmidBin.
+
+[sources.primalspring]
+repo = "syntheticChemistry/primalSpring"
+tag_pattern = "v{version}"
+assets = ["primalspring_primal"]
+binary_name = "primalspring_primal"
+note = "primalSpring's domain IS composition — this is a primal, not a spring binary"
+
+# =============================================================================
+# SPOREGARDEN — gen4 consumers (ecosystem awareness)
+# =============================================================================
+
+[sources.esotericwebb]
+repo = "sporeGarden/esotericWebb"
+tag_pattern = "v{version}"
+assets = ["esotericwebb"]
+binary_name = "esotericwebb"

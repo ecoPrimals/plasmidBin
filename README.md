@@ -1,152 +1,117 @@
-# plasmidBin — Sovereign Binary Distribution (genomeBin Depot)
+# plasmidBin — Sovereign Binary Distribution
 
-Full cross-architecture binary depot for the ecoPrimals sovereign compute stack.
+Public distribution of ecoPrimals musl-static ecoBin binaries.
 
 **Owner**: primalSpring (syntheticChemistry/primalSpring)
-**Release**: v2026.05.13 (genomeBin v5.3.0, 49 binaries, Tower LIVE, lithoSpore artifact, 418-method registry)
+**Release**: v2026.04.13 (Phase 40 — NUCLEUS Complete)
 **License**: AGPL-3.0-or-later
 
 ---
 
 ## What This Is
 
-plasmidBin is the **genomeBin-compliant binary depot** for the ecoPrimals ecosystem.
-It distributes pre-built, statically-linked, stripped binaries for all NUCLEUS primals
-across every plausible Rust target — ready to deploy on Linux (x86_64, ARM64, ARMv7,
-RISC-V), Windows, Android, and validated for macOS (cargo check, no osxcross).
+plasmidBin is the **binary release channel** for the ecoPrimals sovereign
+compute stack. It distributes pre-built, statically-linked, stripped binaries
+for all NUCLEUS primals — ready to deploy on any Linux machine without
+dependencies.
 
-**49 binaries shipped across 6 target triples.**
+**primalSpring owns plasmidBin.** It harvests, validates, and releases
+binaries. It finds gaps for upstream primal teams and standardizes
+compositions for downstream springs.
 
-Layout: `primals/{target-triple}/{binary}` (genomeBin standard)
-Legacy symlinks: `primals/{binary}` -> `x86_64-unknown-linux-musl/{binary}`
+Some primals have private source repos (bearDog, skunkBat). Their binaries
+ship publicly here — stripped static ELF with no debug info. Source will be
+public when polished for release.
 
-## Target Matrix (ecoBin Architecture Standard v3.0)
+## Binary Inventory (v2026.04.13 — Phase 40 NUCLEUS Complete)
 
-| Target Triple | Tier | Linker | Primals | Status |
-|---------------|------|--------|---------|--------|
-| x86_64-unknown-linux-musl | Tier 1 MUST | musl-tools | 13/14 | Full |
-| aarch64-unknown-linux-musl | Tier 1 MUST | aarch64-linux-gnu-gcc | 12/14 | Full |
-| armv7-unknown-linux-musleabihf | Tier 1 MUST | arm-linux-gnueabihf-gcc | 10/14 | Full |
-| x86_64-pc-windows-gnu | Tier 2 SHOULD | x86_64-w64-mingw32-gcc | 1 (barraCuda) | Partial |
-| aarch64-linux-android | Tier 2 SHOULD | NDK clang | 5 | Partial |
-| riscv64gc-unknown-linux-musl | Tier 3 NICE | riscv64-linux-gnu-gcc | 1 (primalspring) | Check+Link |
-| x86_64-apple-darwin | Tier 2 SHOULD | (check-only) | 8 check-pass | Check Only |
-| aarch64-apple-darwin | Tier 2 SHOULD | (check-only) | 8 check-pass | Check Only |
+All 13 x86_64 primals: **musl-static, stripped, blake3 verified.**
+**13/13 primals ALIVE**, exp094 parity checks PASS. All LD gaps RESOLVED.
 
-### Per-Primal Coverage
+### NUCLEUS Atom (9 primals)
 
-| Primal | x86_64-musl | aarch64-musl | armv7-musl | windows | android | riscv64 |
-|--------|-------------|--------------|------------|---------|---------|---------|
-| beardog | FULL | FULL | FULL | - | - | check |
-| songbird | FULL | FULL | FULL | - | FULL | check |
-| nestgate | FULL | FULL | FULL | - | check | check |
-| toadstool | FULL | FULL | FULL | - | - | check |
-| squirrel | FULL | FULL | FULL | - | - | check |
-| biomeos | FULL | FULL | FULL | - | lib-only | check |
-| barracuda | FULL | FULL | FULL | FULL | FULL | check |
-| coralreef | FULL | FULL | FULL | - | - | check |
-| rhizocrypt | FULL | FULL | FULL | - | FULL | check |
-| loamspine | FULL | FULL | FULL | - | FULL | check |
-| sweetgrass | FULL | FULL | FULL | - | FULL | check |
-| petaltongue | FULL | FULL | FULL | - | - | check |
-| skunkbat | FULL | FULL | FULL | - | - | check |
-| primalspring_primal | FULL | FULL | FULL | - | - | FULL |
+| Binary | Atomic | Size | Version | Status |
+|--------|--------|------|---------|--------|
+| beardog | Tower | 7.5M | 0.9.0 | static, stripped |
+| songbird | Tower | 21M | 0.2.1 | static, stripped |
+| toadstool | Node | 11M | 0.1.0 | static, stripped, BTSP auto-detect |
+| barracuda | Node | 4.6M | 0.3.12 | static, stripped, JSON-RPC + tarpc |
+| coralreef | Node | 8.0M | 0.1.0 | static, stripped |
+| nestgate | Nest | 5.9M | 0.1.0 | static, stripped |
+| rhizocrypt | Nest | 5.5M | 0.14.0-dev | static, stripped, UDS enabled |
+| loamspine | Nest | 4.5M | 0.9.16 | static, stripped, UDS-first |
+| sweetgrass | Nest | 13M | 0.7.27 | static, stripped |
 
-### Documented Gaps (Resolved)
+### Meta-Tier (3 primals)
 
-- ~~**nestgate**: cross-arch binary gap closed (Session 43y)~~
-- ~~**toadstool on armv7**: 32-bit overflow fixed~~
-- ~~**biomeos on armv7**: 32-bit overflow fixed~~
-- **macOS**: cargo check passes for 8/14 primals (proves pure Rust), no osxcross for linking
-- **RISC-V**: All primals cargo-check pass, musl sysroot incomplete for linking most primals
+| Binary | Size | Version | Status |
+|--------|------|---------|--------|
+| biomeos | 17M | 0.1.0 | static, stripped |
+| squirrel | 3.5M | 0.1.0 | static, stripped |
+| petaltongue | 28M | 1.6.6 | static, stripped, --socket flag |
+
+### Defense
+
+| Binary | Size | Version | Status |
+|--------|------|---------|--------|
+| skunkbat | 2.2M | 0.1.0 | static, stripped |
+
+**Total deployment footprint**: ~131M for the complete sovereign stack.
+
+### aarch64 (Pixel/GrapheneOS/ARM servers)
+
+| Binary | Size | Status |
+|--------|------|--------|
+| beardog | 5.6M | static, stripped |
+| songbird | 13M | static, stripped |
+| toadstool | 13M | static, stripped |
+| squirrel | 4.9M | static, stripped |
+| biomeos | 14M | static, not stripped |
 
 ## Quick Start
-
-### Build from source (full target matrix)
-
-```bash
-# Build Tier 1 MUST targets (Linux x86_64 + aarch64 + armv7)
-./scripts/build_ecosystem_genomeBin.sh --tier1
-
-# Build all tiers
-./scripts/build_ecosystem_genomeBin.sh --all
-
-# Build + harvest into plasmidBin
-./scripts/build_ecosystem_genomeBin.sh --tier1 --harvest
-
-# Build a single target
-./scripts/build_ecosystem_genomeBin.sh --target aarch64-linux-android
-```
 
 ### Fetch binaries (consumer)
 
 ```bash
+# Clone plasmidBin
 git clone https://github.com/ecoPrimals/plasmidBin.git
 cd plasmidBin
-./fetch.sh --all           # Fetch all binaries from latest GitHub Release
-./fetch.sh --primal beardog # Fetch a single primal
-./doctor.sh                # Verify installation
+
+# Fetch all binaries from latest GitHub Release
+./fetch.sh --all
+
+# Fetch a single primal
+./fetch.sh --primal beardog
+
+# Verify installation
+./doctor.sh
 ```
 
 ### Validate a composition
 
 ```bash
-./validate_composition.sh nucleus          # NUCLEUS atom (9 primals)
-./validate_composition.sh niche-hotspring  # What hotSpring needs
-./validate_composition.sh full             # Full stack (12+ primals)
+# Validate NUCLEUS atom (9 primals)
+./validate_composition.sh nucleus
+
+# Validate what a spring needs
+./validate_composition.sh niche-hotspring
+./validate_composition.sh niche-neuralspring
+
+# Validate full stack (12 primals)
+./validate_composition.sh full
 ```
 
-### Deploy a Cell (Recommended — Cold-Start from plasmidBin)
-
-Cell graphs define complete primal compositions for a domain. No primalSpring
-source needed — everything lives in plasmidBin.
+### Deploy to a remote gate
 
 ```bash
-# Clone plasmidBin on any Linux machine
-git clone https://github.com/ecoPrimals/plasmidBin.git
-cd plasmidBin
+# Push Tower to a friend's machine
+./deploy_gate.sh friend@192.168.1.42
 
-# See available cells
-./cell_launcher.sh list
-
-# Deploy ludoSpring (game science — 12 primals, petalTongue live)
-./cell_launcher.sh ludospring start
-
-# Deploy esotericWebb (CRPG garden — 11 primals)
-./cell_launcher.sh esotericwebb start
-
-# Check health
-./cell_launcher.sh ludospring status
-
-# Stop
-./cell_launcher.sh ludospring stop
-
-# Dry-run (show plan without starting)
-./cell_launcher.sh ludospring start --dry-run
-
-# Override family identity and seed
-FAMILY_ID=myteam BEARDOG_FAMILY_SEED=$(head -c 32 /dev/urandom | xxd -p) \
-  ./cell_launcher.sh ludospring start
-```
-
-Cell graphs live in `cells/`. Primals start in dependency order via
-`start_primal.sh`, which auto-detects your architecture. BTSP seeds are
-auto-generated from `/dev/urandom` if not provided.
-
-### Deploy Individual Primals
-
-```bash
-# Local machine (auto-detects target triple)
-./start_primal.sh beardog --tcp-port 9100
-
-# Remote gate via SSH
+# Push full NUCLEUS
 ./deploy_gate.sh friend@192.168.1.42 --composition full
 
-# Pixel/GrapheneOS via ADB (uses aarch64-unknown-linux-musl binaries)
+# Deploy to Pixel via ADB
 ./deploy_pixel.sh --composition tower --dark-forest
-
-# benchScale Docker lab
-cd ../benchScale && ./scripts/deploy-ecoprimals.sh --lab my-lab --plasmidbin /path/to/plasmidBin
 ```
 
 ## Architecture
@@ -162,10 +127,10 @@ sporeGarden/            — Products (gen4 consumers, public)
 ### NUCLEUS Atomic Model
 
 ```
-Tower (electron)   = beardog + songbird + skunkbat  (trust boundary)
+Tower (electron)   = beardog + songbird           (trust boundary)
 Node  (proton)     = Tower + toadstool + barracuda + coralreef  (compute)
 Nest  (neutron)    = Tower + nestgate + rhizocrypt + loamspine + sweetgrass  (storage)
-NUCLEUS (atom)     = Tower + Node + Nest           (10 unique primals)
+NUCLEUS (atom)     = Tower + Node + Nest           (9 unique primals)
 Meta-tier          = biomeos + squirrel + petaltongue  (orchestration, AI, UI)
 ```
 
@@ -186,19 +151,8 @@ Each spring has a **niche composition** — the primals it needs deployed:
 | wetSpring | Full (12 primals) | `niche-wetspring` |
 | airSpring | NUCLEUS (9 primals) | `niche-airspring` |
 | groundSpring | NUCLEUS (9 primals) | `niche-groundspring` |
-| healthSpring | Full + Meta (12 primals) | `niche-healthspring` |
-| ludoSpring | Full + Meta (12 primals, **pure composition**) | `cell_launcher.sh ludospring` |
-| esotericWebb | Full + Meta (11 primals, **pure composition**) | `cell_launcher.sh esotericwebb` |
-
-### Cell Deployment (Pure Composition)
-
-Springs that have reached the **pure composition** stage deploy entirely through
-primal composition — no spring binary at all. The cell graph defines the primal
-topology; domain science is served by existing primals (barraCuda for math,
-petalTongue for UI, provenance trio for sessions).
-
-Cell graphs: `cells/*.toml`
-Launcher: `cell_launcher.sh`
+| healthSpring | Tower + Nest + Meta (8 primals) | `niche-healthspring` |
+| ludoSpring | Node + Meta (8 primals) | `niche-ludospring` |
 
 ## Structure
 
@@ -208,8 +162,6 @@ plasmidBin/
 ├── sources.toml            # GitHub repo map for each primal
 ├── checksums.toml          # Blake3 checksums per binary per arch
 ├── ports.env               # TCP port defaults + composition definitions
-├── cell_launcher.sh        # Deploy a cell graph (cold-start, portable)
-├── cells/                  # Cell graphs for spring/garden compositions
 ├── doctor.sh               # Health check (prereqs, binaries, checksums, atomics)
 ├── validate_composition.sh # Validate any composition or spring niche
 ├── fetch.sh                # Download binaries from GitHub Releases
@@ -218,58 +170,51 @@ plasmidBin/
 ├── deploy_pixel.sh         # Deploy to Pixel/GrapheneOS via ADB
 ├── bootstrap_gate.sh       # Self-contained bootstrap for fresh machines
 ├── start_primal.sh         # Unified primal startup (generic flags → per-primal CLI)
+├── nucleus_launcher.sh     # Full NUCLEUS startup + Phase 5 registry seeding
 ├── seed_workflow.sh        # Dark Forest seed lifecycle
 ├── validate_gate.sh        # Remote gate health check (TCP JSON-RPC)
 ├── validate_mesh.sh        # Multi-node mesh health + BirdSong exchange
 ├── stop_gate.sh            # Stop primals on a gate
 ├── update.sh               # Check for upstream updates
-├── primals/                # {target-triple}/{binary} layout (gitignored)
+├── primals/                # x86_64 binaries (gitignored)
+│   └── aarch64/            # aarch64 binaries (gitignored)
 └── receipts/               # Harvest receipts
 ```
 
-## CI/CD: plasmidBin as Sole Paid Hub
+## Release Workflow (primalSpring)
 
-plasmidBin is the **only repository with paid GitHub Actions minutes**. Primal
-repos run free-tier lint/test (`ci.yml`) and dispatch to plasmidBin on push
-(`notify-plasmidbin.yml`). plasmidBin's `auto-harvest.yml` handles:
-
-- **3-arch matrix builds** (x86_64, aarch64, armv7 — Tier 1 MUST targets)
-- **Per-primal concurrency** (independent primals build in parallel)
-- **Serialized consolidation** (checksums commit + GitHub Release upload)
-
-See `CONTEXT.md` for the full architecture, cost model, and future
-distribution channel roadmap (CDN, OCI, apt/deb, Nix).
-
-## Release Workflow
-
-### Automated (Primary)
-
-Every push to `main` in a primal repo triggers `auto-harvest.yml` via
-`repository_dispatch`. Builds run on paid runners, consolidate with rebase
-retry, and upload to GitHub Releases automatically. Weekly full sweeps catch
-any missed updates.
-
-### Manual
+primalSpring owns the release cycle:
 
 ```bash
-# Rebuild a single primal
-gh workflow run auto-harvest.yml -f primal=beardog --repo ecoPrimals/plasmidBin
-
-# Full sweep
-gh workflow run auto-harvest.yml -f primal=all --repo ecoPrimals/plasmidBin
-```
-
-### Local (primalSpring)
-
-```bash
-# Build all primals from source (musl-static)
+# 1. Build all primals from source (musl-static)
 ./scripts/build_ecosystem_musl.sh --harvest
 
-# Validate the full composition
+# 2. Validate the full composition
 cd plasmidBin && ./doctor.sh && ./validate_composition.sh full
 
-# Cut a release
-./harvest.sh --release v2026.05.03
+# 3. Cut a release
+./harvest.sh --release v2026.04.13
+```
+
+### NUCLEUS Launcher — Full Composition Startup
+
+`nucleus_launcher.sh` starts primals in dependency order, waits for health,
+then seeds Songbird's registry (Phase 5) so springs can discover capabilities:
+
+```bash
+# Start a full NUCLEUS with registry seeding
+./nucleus_launcher.sh --family-id abc123 --composition nucleus
+
+# Start NUCLEUS + Meta-Tier (12 primals)
+./nucleus_launcher.sh --family-id abc123 --composition full --dark-forest
+
+# Re-seed the registry without restarting primals
+./nucleus_launcher.sh --family-id abc123 --seed-only
+
+# Springs discover capabilities programmatically after seeding:
+curl -s http://127.0.0.1:9200/rpc \
+  -H 'Content-Type: application/json' \
+  -d '{"jsonrpc":"2.0","method":"ipc.resolve","params":{"capability":"tensor"},"id":1}'
 ```
 
 ### What primalSpring validates before release
@@ -279,6 +224,7 @@ cd plasmidBin && ./doctor.sh && ./validate_composition.sh full
 - All blake3 checksums match
 - All atomic compositions validate (Tower, Node, Nest, NUCLEUS, Meta)
 - All spring niche compositions have required primals present
+- **exp094** composition parity: 19/19 PASS (Tower, Node, Nest, Cross-Atomic)
 
 ### Finding gaps for upstream
 
@@ -297,7 +243,7 @@ All binaries must pass:
 - **Stripped** — no debug info (`strip -s` or `[profile.release] strip = true`)
 - **Checksummed** — blake3 hash in `checksums.toml`
 - **Zero C deps** — no openssl, no ring, no libc in application code
-- **Named simply** — `primals/{target-triple}/{name}` (legacy symlinks: `primals/{name}` → x86_64-unknown-linux-musl)
+- **Named simply** — `primals/{name}` (x86_64) or `primals/aarch64/{name}`
 
 ### Quick self-check for primal teams
 
@@ -308,28 +254,19 @@ file target/x86_64-unknown-linux-musl/release/YOUR_PRIMAL
 b3sum --no-names target/x86_64-unknown-linux-musl/release/YOUR_PRIMAL
 ```
 
-## Interactive Compositions (petalTongue `live` Mode)
-
-petalTongue supports a `live` subcommand that runs the IPC server and native
-egui window in the same process, sharing `VisualizationState`. This enables
-interactive garden products where primals push `visualization.render.scene`
-over UDS and the native GPU-accelerated window renders in real time.
-
-```bash
-# Launch petalTongue in live mode
-petaltongue live --socket $XDG_RUNTIME_DIR/biomeos/petaltongue-myfamily.sock
-
-# Deploy graphs set mode = "live" for the petaltongue node
-# See: infra/wateringHole/LIVE_GUI_COMPOSITION_PATTERN.md
-```
-
 ## Transport
 
-Primals use Unix sockets by default. TCP is fallback only.
+All 12 primals now support UDS. TCP is fallback for cross-gate only.
 
-1. **Unix sockets** (Linux) — `$XDG_RUNTIME_DIR/biomeos/<primal>.sock`
+1. **Unix sockets** (Linux) — `$XDG_RUNTIME_DIR/biomeos/<primal>-{family}.sock`
 2. **Abstract sockets** (Android) — `@primal_name`
 3. **TCP** (cross-gate, ADB) — ports in `ports.env`
+
+As of Phase 40, all primals bind UDS sockets at standard paths:
+- barraCuda: `math-{family}.sock` (symlinked from `barracuda-{family}.sock`)
+- rhizoCrypt: `rhizocrypt-{family}.sock` (UDS enabled since S37)
+- loamSpine: UDS-first, TCP opt-in via `--listen`
+- petalTongue: UDS via `--socket` CLI flag
 
 ## Private Source, Public Binary
 

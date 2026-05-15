@@ -23,7 +23,6 @@ SOURCES_FILE="$SCRIPT_DIR/sources.toml"
 MANIFEST_FILE="$SCRIPT_DIR/manifest.toml"
 CHECKSUMS_FILE="$SCRIPT_DIR/checksums.toml"
 PRIMALS_DIR="$SCRIPT_DIR/primals"
-SPRINGS_DIR="$SCRIPT_DIR/springs"
 PRODUCTS_DIR="$SCRIPT_DIR/products"
 
 DRY_RUN=false
@@ -116,12 +115,10 @@ get_manifest_version() {
 
 target_dir_for() {
     local id="$1"
-    if parse_toml_value "$MANIFEST_FILE" "primals.$id" "latest" >/dev/null 2>&1; then
-        echo "$PRIMALS_DIR"
-    elif parse_toml_value "$MANIFEST_FILE" "sporegarden.$id" "latest" >/dev/null 2>&1; then
+    if parse_toml_value "$MANIFEST_FILE" "sporegarden.$id" "latest" >/dev/null 2>&1; then
         echo "$PRODUCTS_DIR"
     else
-        echo "$SPRINGS_DIR"
+        echo "$PRIMALS_DIR"
     fi
 }
 
@@ -146,12 +143,10 @@ get_expected_checksum() {
     local dest_dir
     dest_dir=$(target_dir_for "$id")
     local section_prefix
-    if [[ "$dest_dir" == "$PRIMALS_DIR" ]]; then
-        section_prefix="primals"
-    elif [[ "$dest_dir" == "$PRODUCTS_DIR" ]]; then
+    if [[ "$dest_dir" == "$PRODUCTS_DIR" ]]; then
         section_prefix="products"
     else
-        section_prefix="springs"
+        section_prefix="primals"
     fi
     local bin_name
     bin_name=$(binary_name_for "$id")
@@ -180,15 +175,15 @@ verify_checksum() {
     fi
 }
 
-# Detect current architecture as full Rust target triple matching checksums.toml keys
+# Detect current architecture as target triple fragment
 detect_arch() {
     local machine
     machine=$(uname -m)
     case "$machine" in
-        x86_64)  echo "x86_64-unknown-linux-musl" ;;
-        aarch64) echo "aarch64-unknown-linux-musl" ;;
-        armv7l)  echo "armv7-unknown-linux-musleabihf" ;;
-        *)       echo "$machine-unknown-linux-musl" ;;
+        x86_64)  echo "x86_64-linux-musl" ;;
+        aarch64) echo "aarch64-linux-musl" ;;
+        armv7l)  echo "armv7-linux-musleabihf" ;;
+        *)       echo "$machine-linux-musl" ;;
     esac
 }
 
@@ -348,7 +343,7 @@ if [[ ! -f "$SOURCES_FILE" ]]; then
     exit 1
 fi
 
-mkdir -p "$PRIMALS_DIR" "$SPRINGS_DIR" "$PRODUCTS_DIR"
+mkdir -p "$PRIMALS_DIR" "$PRODUCTS_DIR"
 
 for source_id in $(list_sources); do
     if [[ -n "$FILTER" && "$source_id" != "$FILTER" ]]; then

@@ -324,6 +324,52 @@ jobs:
           echo "--- Release assets ---"
           ls -lh "$STAGING/"
 
+      - name: Carry forward assets from previous release
+        id: carryforward
+        env:
+          GH_TOKEN: ${{ secrets.PLASMIDBIN_HARVEST_PAT }}
+        run: |
+          TAG="${{ needs.prepare.outputs.tag }}"
+          PRIMAL="${{ needs.prepare.outputs.primal }}"
+          STAGING="${{ steps.assets.outputs.staging }}"
+
+          if [[ "$PRIMAL" == "all" ]]; then
+            echo "Full sweep — no carry-forward needed"
+            echo "carried=0" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          PREV_TAG=$(gh release list --repo ecoPrimals/plasmidBin -L 5 \
+            | awk '{print $NF}' | grep -v "^${TAG}$" | head -1 || true)
+          if [[ -z "$PREV_TAG" ]]; then
+            echo "No previous release found — skipping carry-forward"
+            echo "carried=0" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "Carrying forward missing assets from $PREV_TAG to $TAG"
+          CARRIED=0
+          PREV_ASSETS=$(gh release view "$PREV_TAG" --repo ecoPrimals/plasmidBin \
+            | grep "^asset:" | awk '{print $2}' || true)
+          for asset_name in $PREV_ASSETS; do
+            [[ "$asset_name" == "checksums.toml" ]] && continue
+            if [[ -f "$STAGING/$asset_name" ]]; then
+              echo "  SKIP $asset_name (rebuilt in this run)"
+              continue
+            fi
+            echo "  CARRY $asset_name"
+            gh release download "$PREV_TAG" \
+              --repo ecoPrimals/plasmidBin \
+              --pattern "$asset_name" \
+              --dir "$STAGING" || {
+                echo "  WARN: failed to download $asset_name from $PREV_TAG"
+                continue
+              }
+            CARRIED=$((CARRIED + 1))
+          done
+          echo "Carried forward $CARRIED assets from $PREV_TAG"
+          echo "carried=$CARRIED" >> "$GITHUB_OUTPUT"
+
       - name: Upload to GitHub Release
         env:
           GH_TOKEN: ${{ secrets.PLASMIDBIN_HARVEST_PAT }}
@@ -331,6 +377,7 @@ jobs:
           TAG="${{ needs.prepare.outputs.tag }}"
           NOTES="${{ needs.prepare.outputs.notes }}"
           STAGING="${{ steps.assets.outputs.staging }}"
+          CARRIED="${{ steps.carryforward.outputs.carried }}"
 
           ASSETS=()
           for f in "$STAGING"/*; do
@@ -340,6 +387,10 @@ jobs:
           if [[ ${#ASSETS[@]} -eq 0 ]]; then
             echo "No assets to upload"
             exit 0
+          fi
+
+          if [[ -n "$CARRIED" && "$CARRIED" -gt 0 ]]; then
+            NOTES="$NOTES (carried forward $CARRIED unchanged assets)"
           fi
 
           if gh release view "$TAG" --repo ecoPrimals/plasmidBin >/dev/null 2>&1; then

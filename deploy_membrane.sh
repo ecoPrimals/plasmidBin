@@ -47,6 +47,7 @@ DROPLET_IMAGE="debian-12-x64"
 DROPLET_REGION="nyc1"
 
 DRY_RUN=false
+VALIDATE_AFTER=false
 MODE=""
 REMOTE=""
 SSH_KEY_FINGERPRINT=""
@@ -81,6 +82,7 @@ Options:
   --pubkey KEY           Public key string (for keys add)
   --ssh-key FP           SSH key fingerprint for droplet access
   --composition COMP     Deployment composition: relay, tower, or rustdesk
+  --validate             Run post-deploy composition verification
   --dry-run              Show plan without executing
   --help                 Show this help
 
@@ -411,7 +413,9 @@ status_tower_composition() {
 # RustDesk is an AGPL-3.0 symbiotic partner providing sovereign remote
 # desktop for geo-delocalized gates.
 
-RUSTDESK_VER="1.1.15"
+RUSTDESK_VER_FROM_MANIFEST=$(grep -A5 '^\[membrane.rustdesk\]' "$SCRIPT_DIR/manifest.toml" 2>/dev/null \
+    | grep '^version' | head -1 | sed 's/.*= *"\(.*\)"/\1/' || true)
+RUSTDESK_VER="${RUSTDESK_VER_FROM_MANIFEST:-1.1.15}"
 RUSTDESK_URL="https://github.com/rustdesk/rustdesk-server/releases/download/${RUSTDESK_VER}/rustdesk-server-linux-amd64.zip"
 
 deploy_rustdesk() {
@@ -583,11 +587,64 @@ do_deploy() {
     esac
 
     log ""
-    log "Deployment complete. Run status to verify:"
-    log "  ./deploy_membrane.sh status $REMOTE"
+    if $VALIDATE_AFTER; then
+        log "Running post-deploy verification..."
+        log ""
+        verify_composition "$REMOTE"
+    else
+        log "Deployment complete. Run status to verify:"
+        log "  ./deploy_membrane.sh status $REMOTE"
+        log "  (or add --validate to deploy for automatic post-deploy checks)"
+    fi
 }
 
 # ── Mode: status ─────────────────────────────────────────────────────
+
+verify_composition() {
+    local remote="$1"
+    local verify_fail=0
+
+    log "Composition verification:"
+
+    for primal in beardog songbird skunkbat; do
+        local bin_path="/opt/membrane/$primal"
+        local exists
+        exists=$(ssh "$remote" "test -x '$bin_path' && echo yes || echo no")
+        if [[ "$exists" == "yes" ]]; then
+            local version
+            version=$(ssh "$remote" "'$bin_path' --version 2>/dev/null || echo 'unknown'")
+            log "  $primal: present ($version)"
+        else
+            log "  $primal: MISSING"
+            verify_fail=$((verify_fail + 1))
+        fi
+    done
+
+    local ufw_rules
+    ufw_rules=$(ssh "$remote" "ufw status 2>/dev/null | grep -cE '22/tcp|3478|21115|21116|21117' || echo 0")
+    log "  UFW rules matching composition: $ufw_rules"
+
+    local unexpected
+    unexpected=$(ssh "$remote" "ufw status 2>/dev/null | grep ALLOW | grep -cvE '22/tcp|3478|21115|21116|21117' || echo 0")
+    if [[ "$unexpected" -gt 0 ]]; then
+        log "  WARNING: $unexpected UFW rules outside expected composition ports"
+    fi
+
+    for svc in beardog-membrane songbird-relay skunkbat-membrane; do
+        local active
+        active=$(ssh "$remote" "systemctl is-active $svc 2>/dev/null || echo inactive")
+        if [[ "$active" != "active" ]]; then
+            log "  WARNING: $svc is $active"
+            verify_fail=$((verify_fail + 1))
+        fi
+    done
+
+    if [[ "$verify_fail" -eq 0 ]]; then
+        log "  Composition verification: ALL PASS"
+    else
+        log "  Composition verification: $verify_fail issue(s)"
+    fi
+}
 
 do_status() {
     [[ -n "$REMOTE" ]] || die "No remote specified. Usage: deploy_membrane.sh status root@<ip>"
@@ -612,6 +669,11 @@ do_status() {
     fi
 
     log ""
+    if [[ "$has_tower" == "yes" ]]; then
+        verify_composition "$REMOTE"
+        log ""
+    fi
+
     log "Channel 1 (Signal/DNS): not yet deployed"
     log "Channel 3 (Surface/TLS): not yet deployed"
 
@@ -718,6 +780,7 @@ while [[ $# -gt 0 ]]; do
         --pubkey)        KEY_PUBKEY="$2"; shift 2 ;;
         --ssh-key)       SSH_KEY_FINGERPRINT="$2"; shift 2 ;;
         --composition)   COMPOSITION="$2"; shift 2 ;;
+        --validate)      VALIDATE_AFTER=true; shift ;;
         --dry-run)       DRY_RUN=true; shift ;;
         --help)          usage; exit 0 ;;
         *)

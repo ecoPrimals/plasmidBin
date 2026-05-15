@@ -30,7 +30,6 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 CHECKSUMS_FILE="$SCRIPT_DIR/checksums.toml"
 PRIMALS_DIR="$SCRIPT_DIR/primals"
-SPRINGS_DIR="$SCRIPT_DIR/springs"
 
 GITHUB_REPO="ecoPrimals/plasmidBin"
 
@@ -43,23 +42,57 @@ SOURCE_DIR=""
 HARVESTED=0
 SKIPPED=0
 FAILED=0
-UNCHANGED=0
 
 # Harvest maps keyed by arch. Format: "artifact-name:category/local-name"
 # artifact-name matches build_ecosystem_musl.sh output: {binary}-{arch}-linux-musl
 # Harvest maps: PRIMALS ONLY.
 # Springs do not ship binaries via plasmidBin — they compose primals.
 # The only exception is primalspring_primal (coordination primal).
-# Core primal names — used to auto-generate harvest maps for any target triple.
-CORE_PRIMAL_NAMES=(beardog songbird toadstool barracuda coralreef nestgate rhizocrypt loamspine sweetgrass biomeos squirrel petaltongue skunkbat)
+HARVEST_MAP_X86_64=(
+    # Tower Atomic
+    "beardog-x86_64-linux-musl:primals/beardog"
+    "songbird-x86_64-linux-musl:primals/songbird"
+    # Node Atomic additions
+    "toadstool-x86_64-linux-musl:primals/toadstool"
+    "barracuda-x86_64-linux-musl:primals/barracuda"
+    "coralreef-x86_64-linux-musl:primals/coralreef"
+    # Nest Atomic additions
+    "nestgate-x86_64-linux-musl:primals/nestgate"
+    "rhizocrypt-x86_64-linux-musl:primals/rhizocrypt"
+    "loamspine-x86_64-linux-musl:primals/loamspine"
+    "sweetgrass-x86_64-linux-musl:primals/sweetgrass"
+    # Meta-Tier
+    "biomeos-x86_64-linux-musl:primals/biomeos"
+    "squirrel-x86_64-linux-musl:primals/squirrel"
+    "petaltongue-x86_64-linux-musl:primals/petaltongue"
+    # Defense
+    "skunkbat-x86_64-linux-musl:primals/skunkbat"
+    # Coordination primal
+    "primalspring_primal-x86_64-linux-musl:primals/primalspring_primal"
+)
 
-# Legacy harvest maps kept for backward compatibility with old --arch x86_64/aarch64
-HARVEST_MAP_X86_64=()
-HARVEST_MAP_AARCH64=()
-for p in "${CORE_PRIMAL_NAMES[@]}"; do
-    HARVEST_MAP_X86_64+=("${p}-x86_64-linux-musl:primals/x86_64-unknown-linux-musl/${p}")
-    HARVEST_MAP_AARCH64+=("${p}-aarch64-linux-musl:primals/aarch64-unknown-linux-musl/${p}")
-done
+HARVEST_MAP_AARCH64=(
+    # Tower Atomic
+    "beardog-aarch64-linux-musl:primals/aarch64/beardog"
+    "songbird-aarch64-linux-musl:primals/aarch64/songbird"
+    # Node Atomic additions
+    "toadstool-aarch64-linux-musl:primals/aarch64/toadstool"
+    "barracuda-aarch64-linux-musl:primals/aarch64/barracuda"
+    "coralreef-aarch64-linux-musl:primals/aarch64/coralreef"
+    # Nest Atomic additions
+    "nestgate-aarch64-linux-musl:primals/aarch64/nestgate"
+    "rhizocrypt-aarch64-linux-musl:primals/aarch64/rhizocrypt"
+    "loamspine-aarch64-linux-musl:primals/aarch64/loamspine"
+    "sweetgrass-aarch64-linux-musl:primals/aarch64/sweetgrass"
+    # Meta-Tier
+    "biomeos-aarch64-linux-musl:primals/aarch64/biomeos"
+    "squirrel-aarch64-linux-musl:primals/aarch64/squirrel"
+    "petaltongue-aarch64-linux-musl:primals/aarch64/petaltongue"
+    # Defense
+    "skunkbat-aarch64-linux-musl:primals/aarch64/skunkbat"
+    # Coordination primal
+    "primalspring_primal-aarch64-linux-musl:primals/aarch64/primalspring_primal"
+)
 
 usage() {
     echo "Usage: $0 [OPTIONS]"
@@ -92,54 +125,36 @@ detect_arch() {
     case "$machine" in
         x86_64)  echo "x86_64" ;;
         aarch64) echo "aarch64" ;;
-        armv7l)  echo "armv7" ;;
         *)       echo "$machine" ;;
     esac
 }
 
-# Resolve ARCH to a full target triple. Accepts both short names (x86_64) and
-# full triples (x86_64-unknown-linux-musl).
-resolve_target_triple() {
+arch_to_triple() {
     case "$1" in
-        x86_64)                          echo "x86_64-unknown-linux-musl" ;;
-        aarch64)                         echo "aarch64-unknown-linux-musl" ;;
-        armv7)                           echo "armv7-unknown-linux-musleabihf" ;;
-        riscv64)                         echo "riscv64gc-unknown-linux-musl" ;;
-        *-unknown-*|*-apple-*|*-linux-*|*-pc-*|wasm32-*) echo "$1" ;; # already a full triple
-        *)                               echo "$1-unknown-linux-musl" ;;
+        x86_64)  echo "x86_64-linux-musl" ;;
+        aarch64) echo "aarch64-linux-musl" ;;
+        *)       echo "$1-linux-musl" ;;
     esac
 }
-
-FILTER="${FILTER,,}"
 
 if [[ -z "$ARCH" ]]; then
     ARCH=$(detect_arch)
 fi
 
-ARCH_TRIPLE=$(resolve_target_triple "$ARCH")
+ARCH_TRIPLE=$(arch_to_triple "$ARCH")
 
 if [[ -z "$SOURCE_DIR" ]]; then
-    # Try target-triple layout first, fall back to short arch name
-    if [[ -d "/tmp/primalspring-deploy/primals/$ARCH_TRIPLE" ]]; then
-        SOURCE_DIR="/tmp/primalspring-deploy/primals/$ARCH_TRIPLE"
-    else
-        SOURCE_DIR="/tmp/primalspring-deploy/primals/$ARCH"
-    fi
+    SOURCE_DIR="/tmp/primalspring-deploy/primals/$ARCH"
 fi
 
-# Build harvest map for the target. For known legacy short names, use the
-# pre-built maps. For any target triple, build dynamically.
-arch_short="${ARCH_TRIPLE%%-*}"
+# Select the right harvest map for the target arch
 case "$ARCH" in
-    x86_64|x86_64-unknown-linux-musl)
-        HARVEST_MAP=("${HARVEST_MAP_X86_64[@]}") ;;
-    aarch64|aarch64-unknown-linux-musl)
-        HARVEST_MAP=("${HARVEST_MAP_AARCH64[@]}") ;;
+    x86_64)  HARVEST_MAP=("${HARVEST_MAP_X86_64[@]}") ;;
+    aarch64) HARVEST_MAP=("${HARVEST_MAP_AARCH64[@]}") ;;
     *)
-        HARVEST_MAP=()
-        for p in "${CORE_PRIMAL_NAMES[@]}"; do
-            HARVEST_MAP+=("${p}-${arch_short}-linux-musl:primals/${ARCH_TRIPLE}/${p}")
-        done
+        echo "ERROR: Unsupported architecture: $ARCH"
+        echo "  Supported: x86_64, aarch64"
+        exit 1
         ;;
 esac
 
@@ -162,54 +177,21 @@ is_static_elf() {
 
 # Select strip binary — cross-arch needs cross-strip
 select_strip() {
-    case "$ARCH_TRIPLE" in
-        aarch64-unknown-linux-musl|aarch64-linux-*)
+    case "$ARCH" in
+        aarch64)
             if command -v aarch64-linux-gnu-strip >/dev/null 2>&1; then
                 echo "aarch64-linux-gnu-strip"
-            else echo ""; fi ;;
-        armv7-*)
-            if command -v arm-linux-gnueabihf-strip >/dev/null 2>&1; then
-                echo "arm-linux-gnueabihf-strip"
-            else echo ""; fi ;;
-        riscv64*)
-            if command -v riscv64-linux-gnu-strip >/dev/null 2>&1; then
-                echo "riscv64-linux-gnu-strip"
-            else echo ""; fi ;;
-        x86_64-pc-windows-gnu)
-            if command -v x86_64-w64-mingw32-strip >/dev/null 2>&1; then
-                echo "x86_64-w64-mingw32-strip"
-            else echo ""; fi ;;
+            else
+                echo ""
+            fi
+            ;;
         *)
-            echo "strip" ;;
+            echo "strip"
+            ;;
     esac
 }
 
 STRIP_BIN=$(select_strip)
-
-lookup_checksum() {
-    local section="$1"
-    local arch="$2"
-    local in_section=false
-    local section_header
-    section_header=$(echo "$section" | sed 's/\./\\./g')
-
-    [[ -f "$CHECKSUMS_FILE" ]] || return 1
-
-    while IFS= read -r line; do
-        if [[ "$line" =~ ^\[${section_header}\] ]]; then
-            in_section=true
-            continue
-        fi
-        if $in_section && [[ "$line" =~ ^\[ ]]; then
-            break
-        fi
-        if $in_section && [[ "$line" =~ ^\"${arch}\"[[:space:]]*=[[:space:]]*\"(.*)\" ]]; then
-            echo "${BASH_REMATCH[1]}"
-            return 0
-        fi
-    done < "$CHECKSUMS_FILE"
-    return 1
-}
 
 update_checksum() {
     local section="$1"
@@ -285,7 +267,10 @@ if [[ ! -d "$SOURCE_DIR" ]]; then
     exit 1
 fi
 
-mkdir -p "$PRIMALS_DIR/$ARCH_TRIPLE" "$SPRINGS_DIR"
+mkdir -p "$PRIMALS_DIR"
+if [[ "$ARCH" == "aarch64" ]]; then
+    mkdir -p "$PRIMALS_DIR/aarch64"
+fi
 
 RELEASE_ASSETS=()
 
@@ -334,27 +319,16 @@ for entry in "${HARVEST_MAP[@]}"; do
         continue
     fi
 
-    # Skip if the computed hash matches the existing checksums.toml entry
-    case "$dest_rel" in
-        primals/*) _chk_section="primals.${local_name}" ;;
-        springs/*) _chk_section="springs.${local_name}" ;;
-        *)         _chk_section="primals.${local_name}" ;;
-    esac
-    existing_hash=$(lookup_checksum "$_chk_section" "$ARCH_TRIPLE" 2>/dev/null) || existing_hash=""
-    if [[ -n "$existing_hash" && "$existing_hash" == "$hash" ]]; then
-        echo "UNCHANGED  ${size}  blake3=${hash:0:16}... (matches checksums.toml)"
-        rm -f "$stripped_tmp"
-        UNCHANGED=$((UNCHANGED + 1))
-        continue
-    fi
-
     cp "$stripped_tmp" "$local_dest"
 
-    # Checksum section: primals.{name} or springs.{name} — arch is the key, not part of section
+    # Checksum section uses the base primal name (without arch subdir)
+    checksum_section="${category##*/aarch64/}"
+    checksum_section="${checksum_section%%aarch64/*}"
+    # Normalize: primals/aarch64 -> primals, springs/aarch64 -> springs
     case "$dest_rel" in
-        primals/*) checksum_section="primals.${local_name}" ;;
-        springs/*) checksum_section="springs.${local_name}" ;;
-        *)         checksum_section="primals.${local_name}" ;;
+        primals/aarch64/*) checksum_section="primals.${local_name}" ;;
+        springs/aarch64/*) checksum_section="springs.${local_name}" ;;
+        *)                 checksum_section="$(echo "$category" | tr '/' '.').${local_name}" ;;
     esac
     update_checksum "$checksum_section" "$ARCH_TRIPLE" "$hash"
 
@@ -396,10 +370,9 @@ fi
 
 echo ""
 echo "Summary:"
-echo "  Harvested:  $HARVESTED"
-echo "  Unchanged:  $UNCHANGED"
-echo "  Skipped:    $SKIPPED"
-echo "  Failed:     $FAILED"
+echo "  Harvested: $HARVESTED"
+echo "  Skipped:   $SKIPPED"
+echo "  Failed:    $FAILED"
 
 if [[ $FAILED -gt 0 ]]; then
     exit 1

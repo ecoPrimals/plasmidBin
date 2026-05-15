@@ -44,7 +44,7 @@ usage() {
     echo "  --family-id ID       Family ID for covalent bonding (REQUIRED)"
     echo "  --beacon-seed B64    Base64-encoded .beacon.seed (for Dark Forest)"
     echo "  --node-id ID         Node name (default: hostname-gate)"
-    echo "  --composition NAME   tower|compute|node|full (default: tower)"
+    echo "  --composition NAME   tower|node|nest|nucleus|full (default: tower)"
     echo "  --dark-forest        Enable Dark Forest beacon mode"
     echo "  --install-dir DIR    Install directory (default: /opt/plasmidBin)"
     echo "  --skip-fetch         Don't fetch binaries (use existing)"
@@ -93,26 +93,38 @@ else
     NESTGATE_PORT="${NESTGATE_PORT:-9300}"
     TOADSTOOL_PORT="${TOADSTOOL_PORT:-9400}"
     SQUIRREL_PORT="${SQUIRREL_PORT:-9500}"
+    PETALTONGUE_PORT="${PETALTONGUE_PORT:-9600}"
+    RHIZOCRYPT_PORT="${RHIZOCRYPT_PORT:-9700}"
+    LOAMSPINE_PORT="${LOAMSPINE_PORT:-9710}"
+    SWEETGRASS_PORT="${SWEETGRASS_PORT:-9720}"
+    CORALREEF_PORT="${CORALREEF_PORT:-9730}"
+    BARRACUDA_PORT="${BARRACUDA_PORT:-9740}"
     BIOMEOS_PORT="${BIOMEOS_PORT:-9800}"
     primals_for_composition() {
         case "$1" in
             tower)   echo "beardog songbird" ;;
-            compute) echo "beardog songbird toadstool" ;;
-            node)    echo "beardog songbird toadstool squirrel" ;;
-            nest)    echo "beardog songbird nestgate" ;;
-            full)    echo "beardog songbird nestgate toadstool squirrel biomeos" ;;
+            node)    echo "beardog songbird toadstool barracuda coralreef" ;;
+            nest)    echo "beardog songbird nestgate rhizocrypt loamspine sweetgrass" ;;
+            nucleus) echo "beardog songbird toadstool barracuda coralreef nestgate rhizocrypt loamspine sweetgrass" ;;
+            full)    echo "beardog songbird toadstool barracuda coralreef nestgate rhizocrypt loamspine sweetgrass biomeos squirrel petaltongue" ;;
             *)       echo "ERROR: Unknown composition: $1" >&2; return 1 ;;
         esac
     }
     port_for_primal() {
         case "$1" in
-            beardog)   echo "$BEARDOG_PORT" ;;
-            songbird)  echo "$SONGBIRD_PORT" ;;
-            nestgate)  echo "$NESTGATE_PORT" ;;
-            toadstool) echo "$TOADSTOOL_PORT" ;;
-            squirrel)  echo "$SQUIRREL_PORT" ;;
-            biomeos)   echo "$BIOMEOS_PORT" ;;
-            *)         echo "0" ;;
+            beardog)      echo "$BEARDOG_PORT" ;;
+            songbird)     echo "$SONGBIRD_PORT" ;;
+            nestgate)     echo "$NESTGATE_PORT" ;;
+            toadstool)    echo "$TOADSTOOL_PORT" ;;
+            squirrel)     echo "$SQUIRREL_PORT" ;;
+            petaltongue)  echo "$PETALTONGUE_PORT" ;;
+            rhizocrypt)   echo "$RHIZOCRYPT_PORT" ;;
+            loamspine)    echo "$LOAMSPINE_PORT" ;;
+            sweetgrass)   echo "$SWEETGRASS_PORT" ;;
+            coralreef)    echo "$CORALREEF_PORT" ;;
+            barracuda)    echo "$BARRACUDA_PORT" ;;
+            biomeos)      echo "$BIOMEOS_PORT" ;;
+            *)            echo "0" ;;
         esac
     }
 fi
@@ -238,73 +250,72 @@ fi
 
 mkdir -p "$RUNTIME_DIR/biomeos"
 
-for p in $PRIMALS; do
-    PORT=$(port_for_primal "$p")
+# If nucleus_launcher.sh is available and composition is complex, delegate to it
+if [[ -x "$INSTALL_DIR/nucleus_launcher.sh" ]] && [[ "$COMPOSITION" != "tower" ]]; then
+    echo "  Delegating to nucleus_launcher.sh for $COMPOSITION..."
+    if ! $DRY_RUN; then
+        DF_FLAG=""
+        $DARK_FOREST && DF_FLAG="--dark-forest"
+        "$INSTALL_DIR/nucleus_launcher.sh" \
+            --family-id "$FAMILY_ID" \
+            --node-id "$NODE_ID" \
+            --composition "$COMPOSITION" \
+            $DF_FLAG
+    fi
+else
+    # Inline startup for Tower composition or when launcher is unavailable
+    for p in $PRIMALS; do
+        PORT=$(port_for_primal "$p")
+        SOCKET="$RUNTIME_DIR/biomeos/${p}-${FAMILY_ID}.sock"
 
-    case "$p" in
-        beardog)
-            echo "  Starting beardog (UDS + TCP $PORT)..."
+        if [[ -x "$INSTALL_DIR/start_primal.sh" ]]; then
+            echo "  Starting $p (TCP $PORT)..."
             if ! $DRY_RUN; then
-                SOCKET="$RUNTIME_DIR/biomeos/beardog-$FAMILY_ID.sock"
-                nohup "$INSTALL_DIR/primals/beardog" server \
+                DF_FLAG=""
+                $DARK_FOREST && DF_FLAG="--dark-forest"
+                "$INSTALL_DIR/start_primal.sh" "$p" \
+                    --tcp-port "$PORT" \
                     --socket "$SOCKET" \
                     --family-id "$FAMILY_ID" \
-                    --listen "0.0.0.0:$PORT" \
-                    > /tmp/beardog.log 2>&1 &
-                echo "    PID: $!"
-                sleep 2
+                    --log-file "/tmp/${p}.log" \
+                    $DF_FLAG || true
             fi
-            ;;
-        songbird)
-            echo "  Starting songbird (HTTP $PORT + UDS)..."
-            if ! $DRY_RUN; then
-                export BEARDOG_SOCKET="$RUNTIME_DIR/biomeos/beardog-$FAMILY_ID.sock"
-                export BEARDOG_MODE=direct
-                export SONGBIRD_SECURITY_PROVIDER=beardog
-                nohup "$INSTALL_DIR/primals/songbird" server \
-                    --port "$PORT" \
-                    --socket "$RUNTIME_DIR/biomeos/songbird-$FAMILY_ID.sock" \
-                    > /tmp/songbird.log 2>&1 &
-                echo "    PID: $!"
-                sleep 2
-            fi
-            ;;
-        nestgate)
-            echo "  Starting nestgate (UDS)..."
-            if ! $DRY_RUN; then
-                export NESTGATE_FAMILY_ID="$FAMILY_ID"
-                export NESTGATE_JWT_SECRET="plasmidbin-$NODE_ID-$FAMILY_ID"
-                nohup "$INSTALL_DIR/primals/nestgate" daemon \
-                    --socket-only --dev \
-                    > /tmp/nestgate.log 2>&1 &
-                echo "    PID: $!"
-                sleep 2
-            fi
-            ;;
-        toadstool)
-            echo "  Starting toadstool (capabilities)..."
-            if ! $DRY_RUN; then
-                export TOADSTOOL_FAMILY_ID="$FAMILY_ID"
-                export TOADSTOOL_NODE_ID="$NODE_ID"
-                export TOADSTOOL_SECURITY_WARNING_ACKNOWLEDGED=1
-                "$INSTALL_DIR/primals/toadstool" capabilities 2>/dev/null | head -3 || true
-            fi
-            ;;
-        squirrel)
-            echo "  Starting squirrel (HTTP $PORT + UDS)..."
-            if ! $DRY_RUN; then
-                export SQUIRREL_MODE=server
-                nohup "$INSTALL_DIR/primals/squirrel" server \
-                    --port "$PORT" \
-                    --bind 0.0.0.0 \
-                    --socket "$RUNTIME_DIR/biomeos/squirrel-$FAMILY_ID.sock" \
-                    > /tmp/squirrel.log 2>&1 &
-                echo "    PID: $!"
-                sleep 2
-            fi
-            ;;
-    esac
-done
+        else
+            # Fallback: direct startup for Tower primals
+            case "$p" in
+                beardog)
+                    echo "  Starting beardog (UDS + TCP $PORT)..."
+                    if ! $DRY_RUN; then
+                        nohup "$INSTALL_DIR/primals/beardog" server \
+                            --socket "$SOCKET" \
+                            --family-id "$FAMILY_ID" \
+                            --listen "0.0.0.0:$PORT" \
+                            > /tmp/beardog.log 2>&1 &
+                        echo "    PID: $!"
+                        sleep 2
+                    fi
+                    ;;
+                songbird)
+                    echo "  Starting songbird (HTTP $PORT + UDS)..."
+                    if ! $DRY_RUN; then
+                        export BEARDOG_SOCKET="$RUNTIME_DIR/biomeos/beardog-$FAMILY_ID.sock"
+                        export BEARDOG_MODE=direct
+                        export SONGBIRD_SECURITY_PROVIDER=beardog
+                        nohup "$INSTALL_DIR/primals/songbird" server \
+                            --port "$PORT" \
+                            --socket "$SOCKET" \
+                            > /tmp/songbird.log 2>&1 &
+                        echo "    PID: $!"
+                        sleep 2
+                    fi
+                    ;;
+                *)
+                    echo "  WARNING: No inline handler for $p — use nucleus_launcher.sh"
+                    ;;
+            esac
+        fi
+    done
+fi
 
 echo ""
 
