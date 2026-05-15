@@ -1,0 +1,43 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+#
+# Membrane Channel 3: TLS Surface — Caddy reverse proxy
+#
+# Terminates TLS, handles ACME certs, routes requests:
+#   - Static/cached content -> local NestGate cache
+#   - Git/API/auth requests -> BearDog (BTSP tunnel to gate)
+#
+# Stability note: Caddy is a transitional solution. Songbird will
+# eventually absorb TLS termination as a primal capability.
+#
+# See: wateringHole/MEMBRANE_CHANNEL_ARCHITECTURE.md (Channel 3)
+#
+# Install:
+#   cp caddy-tls.service /etc/systemd/system/
+#   systemctl daemon-reload
+#   systemctl enable --now caddy-tls
+
+[Unit]
+Description=Channel 3 TLS Surface (Membrane — ACME + Reverse Proxy)
+Documentation=https://primals.eco
+After=network-online.target beardog-membrane.service
+Wants=network-online.target
+StartLimitIntervalSec=60
+StartLimitBurst=5
+
+[Service]
+Type=simple
+ExecStart=/opt/membrane/caddy run --config /etc/membrane/Caddyfile
+ExecReload=/opt/membrane/caddy reload --config /etc/membrane/Caddyfile
+
+Restart=always
+RestartSec=5
+
+AmbientCapabilities=CAP_NET_BIND_SERVICE
+NoNewPrivileges=true
+PrivateTmp=true
+
+MemoryMax=128M
+CPUQuota=25%
+
+[Install]
+WantedBy=multi-user.target
