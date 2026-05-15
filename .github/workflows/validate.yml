@@ -2,9 +2,8 @@
 #
 # validate.yml — plasmidBin metadata integrity checks
 #
-# Runs on every push and PR. Validates that all metadata.toml files
-# are well-formed, manifest.lock is consistent, ports have no conflicts,
-# and binaries (when fetched) match their checksums.
+# Validates manifest.toml, checksums.toml, ports.env, sources.toml
+# consistency and all shell script syntax on every push/PR.
 
 name: Validate Metadata
 
@@ -23,56 +22,68 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Validate metadata.toml structure
+      - name: Validate manifest.toml structure
         run: |
-          shopt -s nullglob
           errors=0
-          count=0
 
-          for meta in */metadata.toml; do
-            count=$((count + 1))
-            dir=$(dirname "$meta")
-            echo "--- $meta ---"
-
-            for field in name version domain description license; do
-              if ! grep -q "^${field}\s*=" "$meta"; then
-                echo "  MISSING: [primal].${field}"
-                errors=$((errors + 1))
-              fi
-            done
-
-            if ! grep -q '^\[provenance\]' "$meta"; then
-              echo "  MISSING: [provenance] section"
-              errors=$((errors + 1))
-            fi
-
-            if ! grep -q '^\[builds\.' "$meta"; then
-              echo "  MISSING: [builds.*] section (no architecture defined)"
-              errors=$((errors + 1))
-            fi
-
-            license=$(grep -m1 '^license\s*=' "$meta" | sed 's/.*"\(.*\)".*/\1/')
-            if [[ "$license" == *"-only"* ]]; then
-              echo "  WARN: license is '$license' — should be -or-later per ecosystem standard"
-            fi
-
-            echo "  OK"
-          done
-
-          if [[ $errors -gt 0 ]]; then
-            echo ""
-            echo "FAILED: $errors metadata error(s)"
+          if [[ ! -f manifest.toml ]]; then
+            echo "FAIL: manifest.toml not found"
             exit 1
           fi
 
-          echo ""
-          echo "All $count metadata.toml file(s) valid."
+          for section in '\[manifest\]' '\[primals\.' '\[atomics\.' '\[springs\.'; do
+            if ! grep -q "$section" manifest.toml; then
+              echo "MISSING section: $section in manifest.toml"
+              errors=$((errors + 1))
+            fi
+          done
+
+          primal_count=$(grep -c '^\[primals\.' manifest.toml || true)
+          echo "manifest.toml: $primal_count primal entries"
+          if [[ "$primal_count" -lt 13 ]]; then
+            echo "WARN: expected at least 13 primals, found $primal_count"
+          fi
+
+          if [[ $errors -gt 0 ]]; then
+            echo "FAILED: $errors manifest structure error(s)"
+            exit 1
+          fi
+          echo "manifest.toml structure OK"
+
+      - name: Validate checksums.toml
+        run: |
+          errors=0
+
+          if [[ ! -f checksums.toml ]]; then
+            echo "FAIL: checksums.toml not found"
+            exit 1
+          fi
+
+          while IFS='=' read -r key val; do
+            key=$(echo "$key" | xargs)
+            val=$(echo "$val" | xargs | tr -d '"')
+            [[ -z "$val" ]] && continue
+            [[ "$key" =~ ^# ]] && continue
+            [[ "$key" =~ ^\[ ]] && continue
+
+            if ! echo "$val" | grep -qE '^[0-9a-f]{64}$'; then
+              echo "BAD HASH: $key = $val (not 64 hex chars)"
+              errors=$((errors + 1))
+            fi
+          done < checksums.toml
+
+          if [[ $errors -gt 0 ]]; then
+            echo "FAILED: $errors checksum format error(s)"
+            exit 1
+          fi
+
+          entry_count=$(grep -cE '^[a-z].*= "[0-9a-f]{64}"' checksums.toml || true)
+          echo "checksums.toml: $entry_count hash entries, all valid BLAKE3 format"
 
       - name: Check port conflicts
         run: |
           source ports.env
 
-          # Collect all port assignments
           declare -A ports
           errors=0
 
@@ -93,47 +104,49 @@ jobs:
 
           echo "No port conflicts. ${#ports[@]} ports assigned."
 
-      - name: Validate manifest.lock consistency
+      - name: Validate sources.toml completeness
         run: |
-          shopt -s nullglob
           errors=0
 
-          for meta in */metadata.toml; do
-            dir=$(dirname "$meta")
-            name=$(grep -m1 'name\s*=' "$meta" | sed 's/.*"\(.*\)".*/\1/')
-            version=$(grep -m1 'version\s*=' "$meta" | sed 's/.*"\(.*\)".*/\1/')
+          if [[ ! -f sources.toml ]]; then
+            echo "FAIL: sources.toml not found"
+            exit 1
+          fi
 
-            # Check presence in manifest.lock
-            if ! grep -q "\[primals\.${name}\]\|\[springs\.${name}\]" manifest.lock; then
-              echo "WARN: $name not in manifest.lock"
-              continue
-            fi
+          manifest_primals=$(grep '^\[primals\.' manifest.toml | sed 's/\[primals\.\(.*\)\]/\1/' | sort)
+          source_entries=$(grep '^\[sources\.' sources.toml | sed 's/\[sources\.\(.*\)\]/\1/' | sort)
 
-            # Check version matches
-            lock_version=$(grep -A5 "\[primals\.${name}\]\|\[springs\.${name}\]" manifest.lock \
-              | grep -m1 'version\s*=' | sed 's/.*"\(.*\)".*/\1/')
-            if [[ "$version" != "$lock_version" ]]; then
-              echo "MISMATCH: $name — metadata=$version, lock=$lock_version"
+          for primal in $manifest_primals; do
+            if ! echo "$source_entries" | grep -qw "$primal"; then
+              echo "MISSING: primal '$primal' in manifest but not in sources.toml"
               errors=$((errors + 1))
             fi
           done
 
           if [[ $errors -gt 0 ]]; then
-            echo "FAILED: $errors version mismatch(es) between metadata.toml and manifest.lock"
-            echo "Run harvest.sh --no-release to regenerate manifest.lock"
-            exit 1
+            echo "WARN: $errors primal(s) in manifest without source entries"
           fi
 
-          echo "manifest.lock consistent with all metadata.toml files."
+          echo "sources.toml: $(echo "$source_entries" | wc -l) entries"
 
-      - name: Validate start_primal.sh syntax
-        run: bash -n start_primal.sh && echo "start_primal.sh syntax OK"
+      - name: Validate shell script syntax
+        run: |
+          errors=0
+          for script in *.sh membrane/*.sh; do
+            [[ -f "$script" ]] || continue
+            if bash -n "$script" 2>&1; then
+              echo "  OK: $script"
+            else
+              echo "  FAIL: $script"
+              errors=$((errors + 1))
+            fi
+          done
 
-      - name: Validate fetch.sh syntax
-        run: bash -n fetch.sh && echo "fetch.sh syntax OK"
-
-      - name: Validate harvest.sh syntax
-        run: bash -n harvest.sh && echo "harvest.sh syntax OK"
+          if [[ $errors -gt 0 ]]; then
+            echo "FAILED: $errors script syntax error(s)"
+            exit 1
+          fi
+          echo "All shell scripts pass syntax check."
 
       - name: Dry-run fetch (check asset availability)
         if: github.event_name == 'push'

@@ -1,0 +1,17 @@
+[workspace]
+
+[package]
+name = "plasmidbin-validate"
+version = "0.1.0"
+edition = "2021"
+license = "AGPL-3.0-or-later"
+description = "Typed validation for plasmidBin metadata: manifest, checksums, ports, sources"
+
+[[bin]]
+name = "plasmidbin-validate"
+path = "src/main.rs"
+
+[dependencies]
+toml = "0.8"
+serde = { version = "1", features = ["derive"] }
+regex = "1"

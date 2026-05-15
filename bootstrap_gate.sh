@@ -99,14 +99,15 @@ else
     SWEETGRASS_PORT="${SWEETGRASS_PORT:-9720}"
     CORALREEF_PORT="${CORALREEF_PORT:-9730}"
     BARRACUDA_PORT="${BARRACUDA_PORT:-9740}"
+    SKUNKBAT_PORT="${SKUNKBAT_PORT:-9750}"
     BIOMEOS_PORT="${BIOMEOS_PORT:-9800}"
     primals_for_composition() {
         case "$1" in
-            tower)   echo "beardog songbird" ;;
-            node)    echo "beardog songbird toadstool barracuda coralreef" ;;
-            nest)    echo "beardog songbird nestgate rhizocrypt loamspine sweetgrass" ;;
-            nucleus) echo "beardog songbird toadstool barracuda coralreef nestgate rhizocrypt loamspine sweetgrass" ;;
-            full)    echo "beardog songbird toadstool barracuda coralreef nestgate rhizocrypt loamspine sweetgrass biomeos squirrel petaltongue" ;;
+            tower)   echo "beardog songbird skunkbat" ;;
+            node)    echo "beardog songbird skunkbat toadstool barracuda coralreef" ;;
+            nest)    echo "beardog songbird skunkbat nestgate rhizocrypt loamspine sweetgrass" ;;
+            nucleus) echo "beardog songbird skunkbat toadstool barracuda coralreef nestgate rhizocrypt loamspine sweetgrass" ;;
+            full)    echo "beardog songbird skunkbat toadstool barracuda coralreef nestgate rhizocrypt loamspine sweetgrass biomeos squirrel petaltongue" ;;
             *)       echo "ERROR: Unknown composition: $1" >&2; return 1 ;;
         esac
     }
@@ -123,6 +124,7 @@ else
             sweetgrass)   echo "$SWEETGRASS_PORT" ;;
             coralreef)    echo "$CORALREEF_PORT" ;;
             barracuda)    echo "$BARRACUDA_PORT" ;;
+            skunkbat)     echo "$SKUNKBAT_PORT" ;;
             biomeos)      echo "$BIOMEOS_PORT" ;;
             *)            echo "0" ;;
         esac

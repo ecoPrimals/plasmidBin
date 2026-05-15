@@ -22,16 +22,15 @@ binaries from GitHub Releases, and start compositions with `./start_primal.sh`.
 
 ## Technical Facts
 
-- **Language:** Bash (scripts), TOML (metadata)
-- **License:** AGPL-3.0-or-later (scripts). Individual binaries carry their own
-  license metadata in `metadata.toml`.
-- **Binary format:** musl-static ELF, PIE-enabled, x86_64-linux (aarch64 planned)
-- **Integrity:** SHA-256 checksums in `metadata.toml`, verified by `fetch.sh`
+- **Language:** Bash (scripts) + Rust (`validate/` crate), TOML (metadata)
+- **License:** AGPL-3.0-or-later
+- **Binary format:** musl-static ELF, stripped, cross-compiled (x86_64, aarch64, armv7)
+- **Integrity:** BLAKE3 checksums in `checksums.toml`, verified by `fetch.sh`
 - **Primals tracked:** 13 (beardog, songbird, nestgate, toadstool, squirrel,
   biomeos, petaltongue, rhizocrypt, loamspine, sweetgrass, coralreef,
-  barracuda, sourdough)
-- **Springs tracked:** 6 (ludospring, groundspring, healthspring, neuralspring,
-  wetspring, primalspring)
+  barracuda, skunkbat)
+- **Springs tracked:** 8 (primalspring, hotspring, healthspring, wetspring,
+  neuralspring, ludospring, groundspring, airspring)
 
 ## Key Files
 
@@ -41,8 +40,9 @@ binaries from GitHub Releases, and start compositions with `./start_primal.sh`.
 | `harvest.sh` | Build checksums, update metadata, create GitHub Release |
 | `start_primal.sh` | Unified startup wrapper — maps generic flags to per-primal CLI quirks |
 | `ports.env` | Canonical TCP port assignments (9100–9800) and composition definitions |
-| `manifest.lock` | Resolved versions for current deployment |
-| `*/metadata.toml` | Per-primal version, capabilities, provenance, checksum |
+| `manifest.toml` | Ecosystem genome: primals, springs, atomics, niches, binaries |
+| `checksums.toml` | BLAKE3 hashes per primal per target triple |
+| `sources.toml` | Maps primals to source repos with build metadata |
 
 ## How It Works
 
@@ -63,7 +63,7 @@ cp binary → plasmidBin/<name>/    cd plasmidBin
 
 plasmidBin defines standard compositions in `ports.env`:
 
-- **Tower:** beardog + songbird (security + networking foundation)
+- **Tower:** beardog + songbird + skunkbat (trust boundary)
 - **Compute:** tower + toadstool (+ hardware orchestration)
 - **Node:** compute + squirrel (+ AI coordination)
 - **Nest:** tower + nestgate (+ sovereign storage)
