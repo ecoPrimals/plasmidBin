@@ -23,6 +23,7 @@ SOURCES_FILE="$SCRIPT_DIR/sources.toml"
 MANIFEST_FILE="$SCRIPT_DIR/manifest.toml"
 CHECKSUMS_FILE="$SCRIPT_DIR/checksums.toml"
 PRIMALS_DIR="$SCRIPT_DIR/primals"
+SPRINGS_DIR="$SCRIPT_DIR/springs"
 PRODUCTS_DIR="$SCRIPT_DIR/products"
 
 GITHUB_REPO="ecoPrimals/plasmidBin"
@@ -43,7 +44,7 @@ usage() {
     echo "Usage: $0 [OPTIONS]"
     echo ""
     echo "Options:"
-    echo "  --all              Fetch all primals"
+    echo "  --all              Fetch all primals and springs"
     echo "  --primal NAME      Fetch a single primal/spring by name"
     echo "  --release TAG      Download from specific GitHub Release tag"
     echo "                     (default: latest release from $GITHUB_REPO)"
@@ -80,18 +81,30 @@ fi
 has_b3sum() { command -v b3sum >/dev/null 2>&1; }
 has_gh() { command -v gh >/dev/null 2>&1; }
 
-detect_arch() {
-    local machine
+detect_target_triple() {
+    local machine os kernel
     machine=$(uname -m)
-    case "$machine" in
-        x86_64)  echo "x86_64-unknown-linux-musl" ;;
-        aarch64) echo "aarch64-unknown-linux-musl" ;;
-        armv7l)  echo "armv7-unknown-linux-musleabihf" ;;
-        *)       echo "$machine-unknown-linux-musl" ;;
+    kernel=$(uname -s | tr '[:upper:]' '[:lower:]')
+    case "$kernel" in
+        linux)
+            case "$machine" in
+                x86_64)  echo "x86_64-unknown-linux-musl" ;;
+                aarch64) echo "aarch64-unknown-linux-musl" ;;
+                armv7l)  echo "armv7-unknown-linux-musleabihf" ;;
+                riscv64) echo "riscv64gc-unknown-linux-musl" ;;
+                *)       echo "${machine}-unknown-linux-musl" ;;
+            esac ;;
+        darwin)
+            case "$machine" in
+                x86_64)  echo "x86_64-apple-darwin" ;;
+                arm64)   echo "aarch64-apple-darwin" ;;
+                *)       echo "${machine}-apple-darwin" ;;
+            esac ;;
+        *)  echo "${machine}-unknown-${kernel}" ;;
     esac
 }
 
-CURRENT_ARCH=$(detect_arch)
+CURRENT_ARCH=$(detect_target_triple)
 
 parse_toml_value() {
     local file="$1"
@@ -129,31 +142,17 @@ list_sources() {
     grep -oP '^\[sources\.(\w+)\]' "$SOURCES_FILE" | sed 's/\[sources\.//;s/\]//'
 }
 
-arch_short() {
-    case "$CURRENT_ARCH" in
-        aarch64-linux-musl)  echo "aarch64" ;;
-        *)                   echo "" ;;
-    esac
-}
-
-ARCH_SUBDIR=$(arch_short)
-
 target_dir_for() {
     local id="$1"
-    local base_dir
-    if parse_toml_value "$MANIFEST_FILE" "primals.$id" "latest" >/dev/null 2>&1; then
-        base_dir="$PRIMALS_DIR"
-    elif parse_toml_value "$MANIFEST_FILE" "sporegarden.$id" "latest" >/dev/null 2>&1; then
-        base_dir="$PRODUCTS_DIR"
-    else
-        base_dir="$PRIMALS_DIR"
+    local base_dir="$PRIMALS_DIR"
+    if [[ -f "$MANIFEST_FILE" ]]; then
+        if parse_toml_value "$MANIFEST_FILE" "sporegarden.$id" "latest" >/dev/null 2>&1; then
+            base_dir="$PRODUCTS_DIR"
+        elif parse_toml_value "$MANIFEST_FILE" "springs.$id" "latest" >/dev/null 2>&1; then
+            base_dir="$SPRINGS_DIR"
+        fi
     fi
-    # x86_64 stays flat (backward compat), other arches get subdirectories
-    if [[ -n "$ARCH_SUBDIR" ]]; then
-        echo "$base_dir/$ARCH_SUBDIR"
-    else
-        echo "$base_dir"
-    fi
+    echo "$base_dir/$CURRENT_ARCH"
 }
 
 binary_name_for() {
@@ -170,14 +169,13 @@ binary_name_for() {
 get_expected_checksum() {
     local id="$1"
     local arch="$2"
-    # Checksum sections use the base category (primals/springs), not arch subdirs
-    local section_prefix
-    if parse_toml_value "$MANIFEST_FILE" "primals.$id" "latest" >/dev/null 2>&1; then
-        section_prefix="primals"
-    elif parse_toml_value "$MANIFEST_FILE" "sporegarden.$id" "latest" >/dev/null 2>&1; then
-        section_prefix="products"
-    else
-        section_prefix="primals"
+    local section_prefix="primals"
+    if [[ -f "$MANIFEST_FILE" ]]; then
+        if parse_toml_value "$MANIFEST_FILE" "sporegarden.$id" "latest" >/dev/null 2>&1; then
+            section_prefix="products"
+        elif parse_toml_value "$MANIFEST_FILE" "springs.$id" "latest" >/dev/null 2>&1; then
+            section_prefix="springs"
+        fi
     fi
     local bin_name
     bin_name=$(binary_name_for "$id")
@@ -200,6 +198,21 @@ resolve_release_tag() {
     else
         local url="https://api.github.com/repos/$GITHUB_REPO/releases/latest"
         curl -sf --max-time 10 "$url" 2>/dev/null | grep -oP '"tag_name"\s*:\s*"\K[^"]+' | head -1 || true
+    fi
+}
+
+# List recent release tags (up to 10) for multi-release asset search.
+# Partial releases (e.g. only 4/13 primals rebuilt) are common — assets
+# not found in the latest release may exist in an earlier one.
+resolve_recent_tags() {
+    if has_gh; then
+        gh release list --repo "$GITHUB_REPO" -L 10 2>/dev/null \
+            | awk '{print $NF}' \
+            | grep -oP 'v\d{4}\.\d{2}\.\d{2}' || true
+    else
+        local url="https://api.github.com/repos/$GITHUB_REPO/releases?per_page=10"
+        curl -sf --max-time 10 "$url" 2>/dev/null \
+            | grep -oP '"tag_name"\s*:\s*"\K[^"]+' || true
     fi
 }
 
@@ -248,12 +261,14 @@ echo "Arch: $CURRENT_ARCH"
 
 TAG=$(resolve_release_tag)
 MIRROR=$(get_mirror_url)
+RECENT_TAGS=$(resolve_recent_tags)
 
 if [[ -z "$TAG" ]]; then
     echo "WARNING: Could not resolve release tag. Trying mirror only."
 fi
 
-echo "Release: ${TAG:-<none>}"
+RECENT_COUNT=$(echo "$RECENT_TAGS" | grep -c . 2>/dev/null || echo 0)
+echo "Release: ${TAG:-<none>} ($RECENT_COUNT recent releases indexed)"
 if [[ -n "$MIRROR" ]]; then
     echo "Mirror:  $MIRROR"
 fi
@@ -264,10 +279,7 @@ if [[ ! -f "$SOURCES_FILE" ]]; then
     exit 1
 fi
 
-mkdir -p "$PRIMALS_DIR" "$PRODUCTS_DIR"
-if [[ -n "$ARCH_SUBDIR" ]]; then
-    mkdir -p "$PRIMALS_DIR/$ARCH_SUBDIR"
-fi
+mkdir -p "$PRIMALS_DIR/$CURRENT_ARCH" "$SPRINGS_DIR" "$PRODUCTS_DIR"
 
 for source_id in $(list_sources); do
     if ! $FETCH_ALL && [[ -n "$FILTER" && "$source_id" != "$FILTER" ]]; then
@@ -278,8 +290,10 @@ for source_id in $(list_sources); do
     bin_name=$(binary_name_for "$source_id")
     local_path="$dest_dir/$bin_name"
 
-    # The asset name on GitHub Releases matches the local binary name
-    asset_name="$bin_name"
+    # genomeBin asset naming: {name}-{triple} (multi-arch releases)
+    # Falls back to plain {name} for backward compatibility with older releases
+    asset_name_arch="${bin_name}-${CURRENT_ARCH}"
+    asset_name_plain="$bin_name"
 
     echo -n "  [$source_id] "
 
@@ -289,23 +303,51 @@ for source_id in $(list_sources); do
         continue
     fi
 
+    # --force: remove stale binary so curl writes fresh
+    if $FORCE && [[ -f "$local_path" ]]; then
+        rm -f "$local_path"
+    fi
+
     got_it=false
+    found_tag=""
 
     if [[ -n "$TAG" ]]; then
-        if download_from_release "$TAG" "$asset_name" "$local_path"; then
-            got_it=true
+        if download_from_release "$TAG" "$asset_name_arch" "$local_path"; then
+            got_it=true; found_tag="$TAG"
+        elif download_from_release "$TAG" "$asset_name_plain" "$local_path"; then
+            got_it=true; found_tag="$TAG"
+        fi
+    fi
+
+    # Search recent releases when asset is missing from the latest.
+    # Partial releases are common (only rebuilt primals get new assets).
+    if ! $got_it && [[ -z "$RELEASE_TAG" ]]; then
+        for older_tag in $RECENT_TAGS; do
+            [[ "$older_tag" == "$TAG" ]] && continue
+            if download_from_release "$older_tag" "$asset_name_arch" "$local_path"; then
+                got_it=true; found_tag="$older_tag"
+                break
+            elif download_from_release "$older_tag" "$asset_name_plain" "$local_path"; then
+                got_it=true; found_tag="$older_tag"
+                break
+            fi
+        done
+        if $got_it && [[ "$found_tag" != "$TAG" ]]; then
+            echo -n "(from $found_tag) "
         fi
     fi
 
     if ! $got_it && [[ -n "$MIRROR" ]]; then
         echo -n "(trying mirror) "
-        if download_from_mirror "$MIRROR" "$asset_name" "$local_path"; then
+        if download_from_mirror "$MIRROR" "$asset_name_arch" "$local_path"; then
+            got_it=true
+        elif download_from_mirror "$MIRROR" "$asset_name_plain" "$local_path"; then
             got_it=true
         fi
     fi
 
     if ! $got_it; then
-        echo "FAIL  could not download $asset_name"
+        echo "FAIL  could not download $bin_name (tried $asset_name_arch and $asset_name_plain across ${#RECENT_TAGS[@]:-1} releases)"
         FAILED=$((FAILED + 1))
         continue
     fi
@@ -338,6 +380,24 @@ for source_id in $(list_sources); do
 
     DOWNLOADED=$((DOWNLOADED + 1))
 done
+
+# Create backward-compat symlinks: primals/{name} -> {triple}/{name}
+# validate_composition.sh, doctor.sh, and legacy tooling expect flat primals/{name}.
+if ! $DRY_RUN && [[ -d "$PRIMALS_DIR/$CURRENT_ARCH" ]]; then
+    SYMLINKED=0
+    for bin in "$PRIMALS_DIR/$CURRENT_ARCH"/*; do
+        [[ -f "$bin" ]] || continue
+        name=$(basename "$bin")
+        link="$PRIMALS_DIR/$name"
+        if [[ ! -e "$link" ]] || [[ -L "$link" ]]; then
+            ln -sf "$CURRENT_ARCH/$name" "$link"
+            SYMLINKED=$((SYMLINKED + 1))
+        fi
+    done
+    if [[ $SYMLINKED -gt 0 ]]; then
+        echo "Symlinked: $SYMLINKED (primals/{name} -> $CURRENT_ARCH/{name})"
+    fi
+fi
 
 echo ""
 echo "Summary:"

@@ -283,10 +283,10 @@ evolution = "composed"
 particle_profile = "balanced"
 proto_nucleate = "airspring_ecology_proto_nucleate"
 required_atomics = ["node", "nest"]
-tests = 1389
+tests = 1435
 barracuda_depth = "composing"
 musl_static = true
-note = "v0.10.0: Zero actionable debt, 10 scenarios, 49 capabilities, guideStone L4, /tmp/ fallback eliminated, Squirrel dispatch wired."
+note = "v0.10.0: Wave 17 signal adoption (primal.announce + nest.store/nest.commit), 51 capabilities, 451-method registry sync, guideStone L4."
 
 [springs.groundspring]
 name = "groundSpring"
