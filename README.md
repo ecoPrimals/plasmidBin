@@ -101,6 +101,26 @@ cd plasmidBin
 ./validate_composition.sh full
 ```
 
+### Stage for USB / offline deployment
+
+```bash
+# Stage all 13 primals for USB (host architecture)
+./stage_usb.sh --dest /mnt/usb/ecoprimals
+
+# Stage NUCLEUS (9 primals) for x86_64
+./stage_usb.sh --dest /tmp/usb --arch x86_64 --composition nucleus
+
+# Dry run — show what would be staged
+./stage_usb.sh --dest /tmp/usb --dry-run
+
+# Stage with post-copy BLAKE3 verification
+./stage_usb.sh --dest /mnt/usb/ecoprimals --verify
+```
+
+Output: self-contained directory with `primals/<triple>/` layout, metadata
+files, and VERSION provenance. Ready for lithoSpore `litho assemble` or
+offline gate bootstrapping.
+
 ### Deploy to a remote gate
 
 ```bash
@@ -174,6 +194,7 @@ plasmidBin/
 ├── seed_workflow.sh        # Dark Forest seed lifecycle
 ├── validate_gate.sh        # Remote gate health check (TCP JSON-RPC)
 ├── validate_mesh.sh        # Multi-node mesh health + BirdSong exchange
+├── stage_usb.sh            # Stage primals for USB / offline (Tier 3)
 ├── stop_gate.sh            # Stop primals on a gate
 ├── update.sh               # Check for upstream updates
 ├── primals/                # x86_64 binaries (gitignored)

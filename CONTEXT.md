@@ -43,6 +43,7 @@ binaries from GitHub Releases, and start compositions with `./start_primal.sh`.
 | `manifest.toml` | Ecosystem genome: primals, springs, atomics, niches, binaries |
 | `checksums.toml` | BLAKE3 hashes per primal per target triple |
 | `sources.toml` | Maps primals to source repos with build metadata |
+| `stage_usb.sh` | Stage primals + metadata for USB / offline deployment (Tier 3) |
 
 ## How It Works
 
@@ -69,6 +70,20 @@ plasmidBin defines standard compositions in `ports.env`:
 - **Nest:** tower + nestgate (+ sovereign storage)
 - **Full NUCLEUS:** all primals + biomeos + petaltongue
 - **Storytelling:** beardog + songbird + biomeos + squirrel + petaltongue
+
+## USB / Offline Staging (Tier 3)
+
+`stage_usb.sh` exports a self-contained directory of primal binaries and
+metadata for offline deployment. This enables lithoSpore Tier 3 USB
+artifacts (full NUCLEUS composition without network access) and offline
+gate bootstrapping.
+
+The output follows the canonical genomeBin layout (`primals/<full-triple>/`)
+with `manifest.toml`, `checksums.toml`, `ports.env`, and a `VERSION` file
+containing staging provenance (commit, timestamp, arch, composition).
+
+lithoSpore's `resolve_binary()` detects the USB layout and resolves primal
+paths accordingly.
 
 ## What This Does NOT Do
 
