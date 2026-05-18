@@ -122,12 +122,12 @@ build_from_source = true
 
 [primals.coralreef]
 name = "coralReef"
-description = "Sovereign shader compiler — WGSL/SPIR-V/GLSL to native GPU binary, VFIO dispatch, coral-glowplug"
-latest = "0.1.0"
+description = "Sovereign shader compiler — WGSL/SPIR-V/GLSL to native GPU binary. Pure compiler primal, zero unsafe."
+latest = "0.2.0"
 phase = 1
-capabilities = ["shader", "spirv", "wgsl", "glsl", "naga", "compile", "vfio"]
+capabilities = ["shader", "spirv", "wgsl", "glsl", "naga", "compile", "gemm", "rayquery"]
 seed_fingerprint = "f918926384789dc22e39df3f99311c6f99c94b4b6b26317685202e251d46e134"
-ecobin_grade = "A+"
+ecobin_grade = "A++"
 arch = ["x86_64-unknown-linux-musl", "aarch64-unknown-linux-musl", "armv7-unknown-linux-musleabihf"]
 build_from_source = true
 
