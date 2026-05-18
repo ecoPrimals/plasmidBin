@@ -56,6 +56,22 @@ do_stop() {
     else
         echo "$still_running primals required force kill."
     fi
+
+    # Clean up stale sockets left by stopped primals
+    stale_cleaned=0
+    for sock_dir in "/run/user/$(id -u)/biomeos" "/run/user/$(id -u)/ecoprimals" "/tmp/biomeos"; do
+        [[ -d "$sock_dir" ]] || continue
+        for sock in "$sock_dir"/*.sock; do
+            [[ -e "$sock" ]] || continue
+            if ! fuser "$sock" >/dev/null 2>&1; then
+                rm -f "$sock"
+                stale_cleaned=$((stale_cleaned + 1))
+            fi
+        done
+    done
+    if [[ $stale_cleaned -gt 0 ]]; then
+        echo "Cleaned $stale_cleaned stale socket(s)."
+    fi
 }
 
 if [[ -z "$GATE" ]]; then

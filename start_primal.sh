@@ -259,6 +259,22 @@ case "$PRIMAL" in
         ;;
 esac
 
+# ── Pre-start stale socket cleanup ────────────────────────────────────────────
+# Remove any stale socket at the target path before the primal binds.
+# Prevents EADDRINUSE from prior crashes. See CAPABILITY_BASED_DISCOVERY_STANDARD §4.
+
+if [[ -n "$SOCKET_PATH" && -S "$SOCKET_PATH" ]]; then
+    if command -v fuser >/dev/null 2>&1; then
+        if ! fuser "$SOCKET_PATH" >/dev/null 2>&1; then
+            rm -f "$SOCKET_PATH"
+            echo "start_primal: removed stale socket $SOCKET_PATH"
+        fi
+    else
+        rm -f "$SOCKET_PATH"
+        echo "start_primal: removed pre-existing socket $SOCKET_PATH (no fuser to verify)"
+    fi
+fi
+
 # ── Launch ───────────────────────────────────────────────────────────────────
 
 echo "start_primal: $PRIMAL"

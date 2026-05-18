@@ -25,13 +25,13 @@
 #   4. ../plasmidBin            (parent)
 #   5. ../../plasmidBin         (grandparent — reaches here from phase2/biomeOS/)
 #
-# Updated: 2026-05-14
-# Version: 5.4.0 (Wave 12: deep debt sweep, compute trio absorption across all springs)
+# Updated: 2026-05-18
+# Version: 5.5.0 (Wave 22: stadial gate push — 13/13 primals absorbed, 456-method registry)
 
 [manifest]
-version = "5.4.0"
+version = "5.5.0"
 format = "genomeBin"
-generated = "2026-05-14T00:00:00Z"
+generated = "2026-05-18T00:00:00Z"
 checksum_algorithm = "blake3"
 # mirror_url = "https://bins.ecoprimals.dev/latest/"
 
@@ -98,8 +98,8 @@ arch = ["x86_64-unknown-linux-musl", "aarch64-unknown-linux-musl", "armv7-unknow
 
 [primals.toadstool]
 name = "ToadStool"
-description = "Compute dispatch — GPU/CPU/NPU orchestration, hardware discovery"
-latest = "0.1.0"
+description = "Compute dispatch — GPU/CPU/NPU orchestration, hardware discovery, DAG-aware fan-out"
+latest = "0.2.0"
 phase = 1
 capabilities = ["compute", "cpu", "gpu", "npu", "wasm", "orchestration"]
 seed_fingerprint = "01e0971af32a65252e8f00edfaa531824a778c9016611fd73934769ebcec4479"
@@ -168,7 +168,7 @@ ecobin_grade = "A++"
 [primals.sweetgrass]
 name = "sweetGrass"
 description = "Attribution — PROV-O provenance tracking, credit allocation, witness retention"
-latest = "0.7.27"
+latest = "0.7.37"
 phase = 2
 capabilities = ["provenance", "attribution", "prov-o"]
 seed_fingerprint = "a5a35b5fae27db041395790e16a868208d21ac2311e835b23f1e0ac6d281b63f"
@@ -204,6 +204,9 @@ description = "Defense — metadata-only threat detection, lineage verification,
 latest = "0.2.0"
 phase = 3
 capabilities = ["defense", "threat", "metadata", "lineage", "baseline", "health", "audit", "btsp"]
+# seed_fingerprint: MISSING — skunkBat v0.2.0 was promoted without harvest pipeline
+# generating a BLAKE3 fingerprint. Escalation: plasmidBin CI (auto-harvest.yml)
+# should populate this on the next skunkBat push. Do NOT manually generate.
 ecobin_grade = "A+"
 binary = "skunkbat"
 build_package = "skunk-bat-server"
@@ -286,7 +289,7 @@ required_atomics = ["node", "nest"]
 tests = 1435
 barracuda_depth = "composing"
 musl_static = true
-note = "v0.10.0: Wave 17 signal adoption (primal.announce + nest.store/nest.commit), 51 capabilities, 451-method registry sync, guideStone L4."
+note = "v0.10.0: Wave 22 signal adoption, 57 capabilities, 456-method registry sync, guideStone L4, --provenance-dir, 3 cross-tier parity validators."
 
 [springs.groundspring]
 name = "groundSpring"
@@ -338,7 +341,7 @@ particle_profile = "balanced"
 proto_nucleate = "nucleus_atomics_validate"
 required_atomics = ["tower", "node", "nest", "meta_tier"]
 tests = 651
-note = "Wave 14: Dark Forest Glacial Gate (5-pillar security standard), deployment pipeline validation. L8 guideStone, 78 graphs, 427-method registry, 29 scenarios, 73.3% exercised. Zero panics in production."
+note = "Wave 22: stadial gate coordinator, 456-method registry, 43 scenarios (10 tracks), 80+ deploy graphs, 14 atomic signal graphs. Zero panics in production. All 13 primals stadial-gate verified."
 
 # =============================================================================
 # NICHES — Per-spring primal composition requirements

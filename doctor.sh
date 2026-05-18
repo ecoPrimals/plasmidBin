@@ -447,6 +447,62 @@ if $FRESHNESS && command -v b3sum >/dev/null 2>&1 && command -v curl >/dev/null 
     if ! $JSON; then echo ""; fi
 fi
 
+# ── Stale socket detection ────────────────────────────────────────────────────
+# Sockets left behind by crashed primals cause discovery failures and ~100ms
+# timeouts per stale connection attempt. See CAPABILITY_BASED_DISCOVERY_STANDARD
+# v1.3.0 §5-6.
+
+if ! $JSON; then echo "=== Stale Socket Detection ==="; fi
+
+STALE_SOCKETS=0
+LIVE_SOCKETS=0
+SOCKET_DIRS=()
+
+if [[ -d "/run/user/$(id -u)/biomeos" ]]; then
+    SOCKET_DIRS+=("/run/user/$(id -u)/biomeos")
+fi
+if [[ -d "/tmp/biomeos" ]]; then
+    SOCKET_DIRS+=("/tmp/biomeos")
+fi
+
+for sock_dir in "${SOCKET_DIRS[@]}"; do
+    for sock in "$sock_dir"/*.sock; do
+        [[ -e "$sock" ]] || continue
+        if command -v fuser >/dev/null 2>&1; then
+            if fuser "$sock" >/dev/null 2>&1; then
+                LIVE_SOCKETS=$((LIVE_SOCKETS + 1))
+            else
+                STALE_SOCKETS=$((STALE_SOCKETS + 1))
+                check "$(basename "$sock")" warn "stale (no listener) — $sock"
+            fi
+        else
+            # No fuser; try a connect probe via python3 or socat
+            if command -v python3 >/dev/null 2>&1; then
+                if python3 -c "import socket; s=socket.socket(socket.AF_UNIX); s.settimeout(0.05); s.connect('$sock')" 2>/dev/null; then
+                    LIVE_SOCKETS=$((LIVE_SOCKETS + 1))
+                else
+                    STALE_SOCKETS=$((STALE_SOCKETS + 1))
+                    check "$(basename "$sock")" warn "stale (no listener) — $sock"
+                fi
+            fi
+        fi
+    done
+done
+
+if [[ $STALE_SOCKETS -eq 0 ]]; then
+    check "Socket health" pass "$LIVE_SOCKETS live, 0 stale"
+else
+    check "Socket health" warn "$LIVE_SOCKETS live, $STALE_SOCKETS stale"
+    if ! $JSON; then
+        echo "  Tip: remove stale sockets with:"
+        for sock_dir in "${SOCKET_DIRS[@]}"; do
+            echo "    fuser -s $sock_dir/*.sock 2>/dev/null || rm -f $sock_dir/*.sock"
+        done
+    fi
+fi
+
+if ! $JSON; then echo ""; fi
+
 # ── Summary ──────────────────────────────────────────────────────────────────
 
 if $JSON; then
@@ -454,7 +510,7 @@ if $JSON; then
     if $FRESHNESS; then
         FRESHNESS_JSON=",\"freshness\":{\"release\":\"${LATEST_TAG:-unknown}\",\"current\":${FRESH_CURRENT:-0},\"stale\":${FRESH_STALE:-0},\"missing\":${FRESH_MISSING:-0},\"items\":[${FRESH_ITEMS:-}]}"
     fi
-    echo "{\"pass\":$PASS,\"warn\":$WARN,\"fail\":$FAIL,\"x86_64_count\":$X86_COUNT,\"x86_64_ecobin\":$X86_ECOBIN,\"aarch64_count\":$ARM_COUNT,\"aarch64_ecobin\":$ARM_ECOBIN${FRESHNESS_JSON}}"
+    echo "{\"pass\":$PASS,\"warn\":$WARN,\"fail\":$FAIL,\"x86_64_count\":$X86_COUNT,\"x86_64_ecobin\":$X86_ECOBIN,\"aarch64_count\":$ARM_COUNT,\"aarch64_ecobin\":$ARM_ECOBIN,\"sockets_live\":$LIVE_SOCKETS,\"sockets_stale\":$STALE_SOCKETS${FRESHNESS_JSON}}"
 else
     echo "=== Summary ==="
     echo "  Pass: $PASS"
