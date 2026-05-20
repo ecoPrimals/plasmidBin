@@ -461,6 +461,9 @@ SOCKET_DIRS=()
 if [[ -d "/run/user/$(id -u)/biomeos" ]]; then
     SOCKET_DIRS+=("/run/user/$(id -u)/biomeos")
 fi
+if [[ -d "/run/user/$(id -u)/ecoprimals" ]]; then
+    SOCKET_DIRS+=("/run/user/$(id -u)/ecoprimals")
+fi
 if [[ -d "/tmp/biomeos" ]]; then
     SOCKET_DIRS+=("/tmp/biomeos")
 fi

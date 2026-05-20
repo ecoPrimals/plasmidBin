@@ -11,7 +11,7 @@
 #   Tier 2 SHOULD: x86_64-pc-windows-gnu, aarch64-linux-android, x86_64-apple-darwin (check-only), aarch64-apple-darwin (check-only)
 #   Tier 3 NICE:   riscv64gc-unknown-linux-musl, wasm32-wasip1 (check-only)
 #
-# Updated: 2026-05-15 (genomeBin v5.4.0 — 427-method registry, Dark Forest Gate, CI carry-forward)
+# Updated: 2026-05-20 (genomeBin v5.5.0 — 456-method registry, Wave 22 stadial gate, 13/13 primals)
 
 # =============================================================================
 # PRIMALS — Tower Atomic (electron: beardog + songbird + skunkbat)

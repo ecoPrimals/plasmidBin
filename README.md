@@ -3,7 +3,7 @@
 Public distribution of ecoPrimals musl-static ecoBin binaries.
 
 **Owner**: primalSpring (syntheticChemistry/primalSpring)
-**Release**: v2026.04.13 (Phase 40 — NUCLEUS Complete)
+**Release**: v2026.05.20 (v5.5.0 — Wave 22 stadial gate, 13/13 primals, 456-method registry)
 **License**: AGPL-3.0-or-later
 
 ---
@@ -23,7 +23,7 @@ Some primals have private source repos (bearDog, skunkBat). Their binaries
 ship publicly here — stripped static ELF with no debug info. Source will be
 public when polished for release.
 
-## Binary Inventory (v2026.04.13 — Phase 40 NUCLEUS Complete)
+## Binary Inventory (v5.5.0 — Wave 22 Stadial Gate)
 
 All 13 x86_64 primals: **musl-static, stripped, blake3 verified.**
 **13/13 primals ALIVE**, exp094 parity checks PASS. All LD gaps RESOLVED.
@@ -34,13 +34,13 @@ All 13 x86_64 primals: **musl-static, stripped, blake3 verified.**
 |--------|--------|------|---------|--------|
 | beardog | Tower | 7.5M | 0.9.0 | static, stripped |
 | songbird | Tower | 21M | 0.2.1 | static, stripped |
-| toadstool | Node | 11M | 0.1.0 | static, stripped, BTSP auto-detect |
-| barracuda | Node | 4.6M | 0.3.12 | static, stripped, JSON-RPC + tarpc |
-| coralreef | Node | 8.0M | 0.1.0 | static, stripped |
+| toadstool | Node | 11M | 0.2.0 | static, stripped, BTSP auto-detect |
+| barracuda | Node | 4.6M | 0.4.0 | static, stripped, JSON-RPC + tarpc |
+| coralreef | Node | 8.0M | 0.2.0 | static, stripped |
 | nestgate | Nest | 5.9M | 0.1.0 | static, stripped |
-| rhizocrypt | Nest | 5.5M | 0.14.0-dev | static, stripped, UDS enabled |
+| rhizocrypt | Nest | 5.5M | 0.14.0 | static, stripped, UDS enabled |
 | loamspine | Nest | 4.5M | 0.9.16 | static, stripped, UDS-first |
-| sweetgrass | Nest | 13M | 0.7.27 | static, stripped |
+| sweetgrass | Nest | 13M | 0.7.37 | static, stripped |
 
 ### Meta-Tier (3 primals)
 
@@ -54,7 +54,7 @@ All 13 x86_64 primals: **musl-static, stripped, blake3 verified.**
 
 | Binary | Size | Version | Status |
 |--------|------|---------|--------|
-| skunkbat | 2.2M | 0.1.0 | static, stripped |
+| skunkbat | 2.2M | 0.2.0 | static, stripped |
 
 **Total deployment footprint**: ~131M for the complete sovereign stack.
 
@@ -97,7 +97,7 @@ cd plasmidBin
 ./validate_composition.sh niche-hotspring
 ./validate_composition.sh niche-neuralspring
 
-# Validate full stack (12 primals)
+# Validate full stack (13 primals)
 ./validate_composition.sh full
 ```
 
@@ -214,7 +214,7 @@ primalSpring owns the release cycle:
 cd plasmidBin && ./doctor.sh && ./validate_composition.sh full
 
 # 3. Cut a release
-./harvest.sh --release v2026.04.13
+./harvest.sh --release v2026.05.20
 ```
 
 ### NUCLEUS Launcher — Full Composition Startup
@@ -277,7 +277,7 @@ b3sum --no-names target/x86_64-unknown-linux-musl/release/YOUR_PRIMAL
 
 ## Transport
 
-All 12 primals now support UDS. TCP is fallback for cross-gate only.
+All 13 primals now support UDS. TCP is fallback for cross-gate only.
 
 1. **Unix sockets** (Linux) — `$XDG_RUNTIME_DIR/biomeos/<primal>-{family}.sock`
 2. **Abstract sockets** (Android) — `@primal_name`

@@ -63,7 +63,15 @@ do_stop() {
         [[ -d "$sock_dir" ]] || continue
         for sock in "$sock_dir"/*.sock; do
             [[ -e "$sock" ]] || continue
-            if ! fuser "$sock" >/dev/null 2>&1; then
+            local is_stale=false
+            if command -v fuser >/dev/null 2>&1; then
+                fuser "$sock" >/dev/null 2>&1 || is_stale=true
+            elif command -v python3 >/dev/null 2>&1; then
+                python3 -c "import socket; s=socket.socket(socket.AF_UNIX); s.settimeout(0.05); s.connect('$sock')" 2>/dev/null || is_stale=true
+            else
+                is_stale=true
+            fi
+            if $is_stale; then
                 rm -f "$sock"
                 stale_cleaned=$((stale_cleaned + 1))
             fi

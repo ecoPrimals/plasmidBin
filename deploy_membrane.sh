@@ -81,7 +81,7 @@ Options:
   --name NAME            Droplet / gate name (context-dependent)
   --pubkey KEY           Public key string (for keys add)
   --ssh-key FP           SSH key fingerprint for droplet access
-  --composition COMP     Deployment composition: relay, tower, or rustdesk
+  --composition COMP     Deployment composition: relay, tower, nest, or rustdesk
   --validate             Run post-deploy composition verification
   --dry-run              Show plan without executing
   --help                 Show this help
@@ -90,6 +90,7 @@ Compositions:
   relay     Channel 2 only: Songbird TURN relay
   rustdesk  Songbird relay + RustDesk (hbbs+hbbr) remote desktop
   tower     Full Tower + RustDesk: BearDog + Songbird + SkunkBat + hbbs/hbbr
+  nest      Tower + Nest Atomic: adds NestGate + rhizoCrypt + loamSpine + sweetGrass
 
 Deployment Models (from MEMBRANE_CHANNEL_ARCHITECTURE.md):
   Model A: Single VPS, all channels on one box (default)
@@ -408,6 +409,166 @@ status_tower_composition() {
     ssh "$remote" "ss -tlnp 2>/dev/null | grep ':3478' | sed 's/^/  Listening: /' || echo '  Port 3478: not listening'"
 }
 
+# ── Nest Atomic expansion ────────────────────────────────────────────
+# Adds NestGate + provenance trio (rhizoCrypt, loamSpine, sweetGrass)
+# to an existing Tower deployment. Requires Tower already deployed.
+# Memory budget: trio primals ~5-15MB RSS each, fits 2GB VPS alongside
+# Tower + RustDesk + Caddy + petalTongue.
+#
+# Wave 29 (CM-1): cellMembrane Nest Atomic expansion
+
+NEST_PRIMALS="nestgate rhizocrypt loamspine sweetgrass"
+
+deploy_nest_composition() {
+    local remote="$1"
+
+    log "Nest expansion: adding NestGate + provenance trio to Tower"
+    log "  Primals: $NEST_PRIMALS"
+    log "  Source: GitHub Releases ($GITHUB_REPO)"
+    log ""
+
+    local has_tower
+    has_tower=$(ssh "$remote" "test -x $REMOTE_MEMBRANE_DIR/beardog && echo yes || echo no")
+    if [[ "$has_tower" != "yes" ]]; then
+        die "Nest composition requires Tower already deployed. Run: deploy_membrane.sh deploy $remote --composition tower"
+    fi
+
+    if $DRY_RUN; then
+        log "[dry-run] Would fetch nestgate, rhizocrypt, loamspine, sweetgrass from GitHub Releases"
+        log "[dry-run] Would generate systemd units for Nest primals"
+        log "[dry-run] Would open ports 9500 (NestGate), 9601 (rhizoCrypt), 9700 (loamSpine), 9850 (sweetGrass)"
+        log "[dry-run] Would enable and start Nest services"
+        return 0
+    fi
+
+    ssh "$remote" "mkdir -p $REMOTE_MEMBRANE_DIR /run/membrane"
+
+    for primal in $NEST_PRIMALS; do
+        if ssh "$remote" "test -x $REMOTE_MEMBRANE_DIR/$primal" 2>/dev/null; then
+            log "  $primal already present, skipping fetch"
+        else
+            remote_fetch_primal "$remote" "$primal"
+        fi
+    done
+
+    log "  Generating Nest systemd units..."
+    local family_seed
+    family_seed=$(ssh "$remote" "grep BEARDOG_FAMILY_SEED $REMOTE_MEMBRANE_DIR/tower.env 2>/dev/null | cut -d= -f2" || echo "")
+    if [[ -z "$family_seed" ]]; then
+        warn "Could not read FAMILY_SEED from tower.env — Nest primals will use default socket paths"
+    fi
+
+    ssh "$remote" "bash -s" <<NEST_UNITS
+set -euo pipefail
+FAMILY="\${1:-${family_seed:0:8}}"
+MEMBRANE_DIR="$REMOTE_MEMBRANE_DIR"
+
+cat > /etc/systemd/system/nestgate-membrane.service <<SVC
+[Unit]
+Description=NestGate — content-addressed storage (membrane)
+After=network.target beardog-membrane.service
+Wants=beardog-membrane.service
+
+[Service]
+Type=simple
+ExecStart=\$MEMBRANE_DIR/nestgate --socket /run/membrane/nestgate.sock --listen 0.0.0.0:9500 --data-dir /var/lib/membrane/nestgate
+Restart=on-failure
+RestartSec=5
+EnvironmentFile=-\$MEMBRANE_DIR/tower.env
+
+[Install]
+WantedBy=multi-user.target
+SVC
+
+cat > /etc/systemd/system/rhizocrypt-membrane.service <<SVC
+[Unit]
+Description=rhizoCrypt — ephemeral DAG sessions (membrane)
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=\$MEMBRANE_DIR/rhizocrypt --socket /run/membrane/rhizocrypt.sock --listen 0.0.0.0:9601
+Restart=on-failure
+RestartSec=5
+EnvironmentFile=-\$MEMBRANE_DIR/tower.env
+
+[Install]
+WantedBy=multi-user.target
+SVC
+
+cat > /etc/systemd/system/loamspine-membrane.service <<SVC
+[Unit]
+Description=loamSpine — permanent ledger (membrane)
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=\$MEMBRANE_DIR/loamspine --socket /run/membrane/loamspine.sock --listen 0.0.0.0:9700 --data-dir /var/lib/membrane/loamspine
+Restart=on-failure
+RestartSec=5
+EnvironmentFile=-\$MEMBRANE_DIR/tower.env
+
+[Install]
+WantedBy=multi-user.target
+SVC
+
+cat > /etc/systemd/system/sweetgrass-membrane.service <<SVC
+[Unit]
+Description=sweetGrass — attribution braids (membrane)
+After=network.target rhizocrypt-membrane.service loamspine-membrane.service
+Wants=rhizocrypt-membrane.service loamspine-membrane.service
+
+[Service]
+Type=simple
+ExecStart=\$MEMBRANE_DIR/sweetgrass --socket /run/membrane/sweetgrass.sock --listen 0.0.0.0:9850
+Restart=on-failure
+RestartSec=5
+EnvironmentFile=-\$MEMBRANE_DIR/tower.env
+
+[Install]
+WantedBy=multi-user.target
+SVC
+
+mkdir -p /var/lib/membrane/nestgate /var/lib/membrane/loamspine
+NEST_UNITS
+
+    log "  Opening firewall ports for Nest primals..."
+    ssh "$remote" "ufw allow 9500/tcp comment 'NestGate storage' >/dev/null 2>&1" || true
+    ssh "$remote" "ufw allow 9601/tcp comment 'rhizoCrypt DAG' >/dev/null 2>&1" || true
+    ssh "$remote" "ufw allow 9700/tcp comment 'loamSpine ledger' >/dev/null 2>&1" || true
+    ssh "$remote" "ufw allow 9850/tcp comment 'sweetGrass braids' >/dev/null 2>&1" || true
+
+    log "  Enabling Nest services..."
+    ssh "$remote" "systemctl daemon-reload"
+    ssh "$remote" "systemctl enable nestgate-membrane rhizocrypt-membrane loamspine-membrane sweetgrass-membrane"
+    ssh "$remote" "systemctl restart nestgate-membrane rhizocrypt-membrane loamspine-membrane sweetgrass-membrane" 2>/dev/null || true
+
+    log ""
+    log "  Nest expansion deployed."
+    log "    NestGate:   /run/membrane/nestgate.sock   + :9500  (storage)"
+    log "    rhizoCrypt: /run/membrane/rhizocrypt.sock + :9601  (DAG sessions)"
+    log "    loamSpine:  /run/membrane/loamspine.sock  + :9700  (ledger)"
+    log "    sweetGrass: /run/membrane/sweetgrass.sock + :9850  (attribution)"
+}
+
+status_nest_composition() {
+    local remote="$1"
+
+    log "Nest composition status:"
+    for svc in nestgate-membrane rhizocrypt-membrane loamspine-membrane sweetgrass-membrane; do
+        local state
+        state=$(ssh "$remote" "systemctl is-active $svc 2>/dev/null || echo 'not-found'")
+        local uptime
+        uptime=$(ssh "$remote" "systemctl show $svc --property=ActiveEnterTimestamp 2>/dev/null | cut -d= -f2" || echo "unknown")
+        log "  $svc: $state (since: $uptime)"
+    done
+
+    ssh "$remote" "ls -la /run/membrane/nestgate.sock /run/membrane/rhizocrypt.sock /run/membrane/loamspine.sock /run/membrane/sweetgrass.sock 2>/dev/null | sed 's/^/  Socket: /' || echo '  No Nest sockets found'"
+    for port in 9500 9601 9700 9850; do
+        ssh "$remote" "ss -tlnp 2>/dev/null | grep \":$port\" | sed 's/^/  Listening: /' || echo \"  Port $port: not listening\""
+    done
+}
+
 # ── RustDesk co-host deployment ──────────────────────────────────────
 # Installs hbbs (rendezvous) and hbbr (relay) alongside Songbird.
 # RustDesk is an AGPL-3.0 symbiotic partner providing sovereign remote
@@ -577,12 +738,17 @@ do_deploy() {
             deploy_tower_composition "$REMOTE"
             deploy_rustdesk "$REMOTE"
             ;;
+        nest)
+            deploy_tower_composition "$REMOTE"
+            deploy_rustdesk "$REMOTE"
+            deploy_nest_composition "$REMOTE"
+            ;;
         rustdesk)
             deploy_channel_2_relay "$REMOTE"
             deploy_rustdesk "$REMOTE"
             ;;
         *)
-            die "Unknown composition: $COMPOSITION. Use relay, tower, or rustdesk."
+            die "Unknown composition: $COMPOSITION. Use relay, tower, nest, or rustdesk."
             ;;
     esac
 
@@ -606,7 +772,12 @@ verify_composition() {
 
     log "Composition verification:"
 
-    for primal in beardog songbird skunkbat; do
+    local check_primals="beardog songbird skunkbat"
+    if ssh "$remote" "test -x /opt/membrane/nestgate" 2>/dev/null; then
+        check_primals="beardog songbird skunkbat nestgate rhizocrypt loamspine sweetgrass"
+    fi
+
+    for primal in $check_primals; do
         local bin_path="/opt/membrane/$primal"
         local exists
         exists=$(ssh "$remote" "test -x '$bin_path' && echo yes || echo no")
@@ -661,6 +832,13 @@ do_status() {
         status_tower_composition "$REMOTE"
     else
         status_channel_2_relay "$REMOTE"
+    fi
+
+    local has_nest
+    has_nest=$(ssh "$REMOTE" "test -f /etc/systemd/system/nestgate-membrane.service && echo yes || echo no")
+    if [[ "$has_nest" == "yes" ]]; then
+        log ""
+        status_nest_composition "$REMOTE"
     fi
 
     if [[ "$has_rustdesk" == "yes" ]]; then

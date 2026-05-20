@@ -53,7 +53,7 @@ usage() {
     echo "  nest          Tower + NestGate + Provenance Trio (storage + lineage)"
     echo "  nucleus       Tower + Node + Nest (9 primals)"
     echo "  meta          biomeOS + Squirrel + petalTongue"
-    echo "  full          NUCLEUS + Meta (12 primals)"
+    echo "  full          NUCLEUS + Meta (13 primals)"
     echo ""
     echo "Spring niche compositions (primals a spring needs):"
     echo "  niche-hotspring, niche-neuralspring, niche-wetspring,"
