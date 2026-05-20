@@ -1,70 +1,126 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-use std::collections::BTreeSet;
+//! Typed validation for `sources.toml` — GitHub source registry.
+
+use crate::types::Report;
+use serde::Deserialize;
+use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
 
+#[derive(Debug, Deserialize)]
+struct SourcesFile {
+    #[serde(default)]
+    sources: BTreeMap<String, SourceEntry>,
+}
+
+#[derive(Debug, Deserialize)]
+#[allow(dead_code)]
+struct SourceEntry {
+    repo: String,
+    tag_pattern: String,
+    #[serde(default)]
+    assets: Vec<String>,
+    #[serde(default)]
+    private: bool,
+    note: Option<String>,
+    binary_name: Option<String>,
+}
+
 pub struct SourcesReport {
-    pub passed: usize,
-    pub failed: usize,
+    pub report: Report,
     pub source_ids: BTreeSet<String>,
 }
 
-pub fn validate(root: &Path, manifest_primals: &BTreeSet<String>) -> SourcesReport {
+pub fn validate(root: &Path, _manifest_primals: &BTreeSet<String>) -> SourcesReport {
     let path = root.join("sources.toml");
-    let mut passed = 0usize;
-    let mut failed = 0usize;
+    let mut report = Report::default();
     let mut source_ids = BTreeSet::new();
 
     let content = match std::fs::read_to_string(&path) {
         Ok(c) => c,
         Err(e) => {
-            eprintln!("FAIL: cannot read {}: {e}", path.display());
-            return SourcesReport { passed: 0, failed: 1, source_ids };
+            report.fail(&format!("cannot read {}: {e}", path.display()));
+            return SourcesReport { report, source_ids };
         }
     };
 
-    let parsed: toml::Value = match toml::from_str(&content) {
-        Ok(v) => {
-            passed += 1;
-            println!("  PASS: sources.toml parses as valid TOML");
-            v
+    let sources: SourcesFile = match toml::from_str(&content) {
+        Ok(s) => {
+            report.pass("sources.toml parses as valid TOML with typed schema");
+            s
         }
         Err(e) => {
-            eprintln!("  FAIL: sources.toml parse error: {e}");
-            return SourcesReport { passed, failed: failed + 1, source_ids };
+            report.fail(&format!("sources.toml schema error: {e}"));
+            return SourcesReport { report, source_ids };
         }
     };
 
-    if let Some(sources) = parsed.get("sources").and_then(|s| s.as_table()) {
-        for (id, entry) in sources {
-            source_ids.insert(id.clone());
+    for (id, entry) in &sources.sources {
+        source_ids.insert(id.clone());
 
-            let has_repo = entry.get("repo").and_then(|v| v.as_str()).is_some();
-            let has_tag = entry.get("tag_pattern").and_then(|v| v.as_str()).is_some();
-
-            if has_repo && has_tag {
-                passed += 1;
-            } else {
-                failed += 1;
-                let missing: Vec<&str> = [
-                    (!has_repo).then_some("repo"),
-                    (!has_tag).then_some("tag_pattern"),
-                ].into_iter().flatten().collect();
-                eprintln!("  FAIL: sources.{id} missing: {}", missing.join(", "));
-            }
+        if !entry.repo.contains('/') {
+            report.fail(&format!("sources.{id}: repo '{}' not in org/repo format", entry.repo));
+            continue;
         }
-        println!("  PASS: {} source entries", source_ids.len());
-    } else {
-        failed += 1;
-        eprintln!("  FAIL: no [sources.*] sections found");
+
+        if !entry.tag_pattern.contains("{version}") {
+            report.fail(&format!("sources.{id}: tag_pattern '{}' missing {{version}} placeholder", entry.tag_pattern));
+            continue;
+        }
+
+        let detail = if entry.private { " (private)" } else { "" };
+        report.pass(&format!("sources.{id}: {}{detail}", entry.repo));
     }
 
-    // Cross-check: manifest primals should have sources
-    for mp in manifest_primals {
-        if !source_ids.contains(mp) {
-            eprintln!("  WARN: manifest primal '{mp}' has no source entry");
-        }
+    report.pass(&format!("{} source entries", source_ids.len()));
+
+    SourcesReport { report, source_ids }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn parses_typed_sources() {
+        let toml_str = r#"
+[sources.beardog]
+repo = "ecoPrimals/bearDog"
+private = true
+tag_pattern = "v{version}"
+assets = ["beardog"]
+note = "Crypto primitive"
+
+[sources.songbird]
+repo = "ecoPrimals/songBird"
+tag_pattern = "v{version}"
+assets = ["songbird"]
+"#;
+        let s: SourcesFile = toml::from_str(toml_str).unwrap();
+        assert_eq!(s.sources.len(), 2);
+        assert!(s.sources["beardog"].private);
+        assert!(!s.sources["songbird"].private);
     }
 
-    SourcesReport { passed, failed, source_ids }
+    #[test]
+    fn detects_bad_repo_format() {
+        let toml_str = r#"
+[sources.bad]
+repo = "noslash"
+tag_pattern = "v{version}"
+"#;
+        let s: SourcesFile = toml::from_str(toml_str).unwrap();
+        assert!(!s.sources["bad"].repo.contains('/'));
+    }
+
+    #[test]
+    fn detects_missing_version_placeholder() {
+        let toml_str = r#"
+[sources.bad]
+repo = "org/repo"
+tag_pattern = "latest"
+"#;
+        let s: SourcesFile = toml::from_str(toml_str).unwrap();
+        assert!(!s.sources["bad"].tag_pattern.contains("{version}"));
+    }
 }

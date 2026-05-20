@@ -1,24 +1,28 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-//
-//! plasmidbin-validate — typed validation for plasmidBin metadata.
+
+//! `plasmidbin-validate` — typed validation for plasmidBin metadata.
 //!
 //! Parses and cross-validates manifest.toml, checksums.toml, ports.env,
-//! and sources.toml. Replaces ad-hoc bash grep/sed parsing with structured
+//! and sources.toml using serde-derived typed structs instead of ad-hoc
+//! string parsing. Replaces legacy bash grep/sed validation with structured
 //! Rust validation that catches drift between metadata files.
+
+#![forbid(unsafe_code)]
 
 mod checksums;
 mod manifest;
 mod ports;
 mod sources;
+mod types;
 
 use std::path::PathBuf;
 use std::process::ExitCode;
+use types::Report;
 
 fn main() -> ExitCode {
     let root = std::env::args()
         .nth(1)
-        .map(PathBuf::from)
-        .unwrap_or_else(|| PathBuf::from("."));
+        .map_or_else(|| PathBuf::from("."), PathBuf::from);
 
     if !root.join("manifest.toml").exists() {
         eprintln!("ERROR: no manifest.toml found in {}", root.display());
@@ -26,74 +30,94 @@ fn main() -> ExitCode {
         return ExitCode::from(2);
     }
 
-    let mut total_passed = 0usize;
-    let mut total_failed = 0usize;
+    let mut total = Report::default();
 
-    // Phase 1: manifest.toml
     println!("=== manifest.toml ===");
     let manifest = manifest::validate(&root);
-    total_passed += manifest.passed;
-    total_failed += manifest.failed;
+    total.merge(&manifest.report);
 
-    // Phase 2: checksums.toml
     println!("\n=== checksums.toml ===");
     let cksum = checksums::validate(&root, &manifest.primal_ids);
-    total_passed += cksum.passed;
-    total_failed += cksum.failed;
+    total.merge(&cksum.report);
 
-    // Phase 3: ports.env
     println!("\n=== ports.env ===");
     let port = ports::validate(&root);
-    total_passed += port.passed;
-    total_failed += port.failed;
+    total.merge(&port.report);
 
-    // Phase 4: sources.toml
     println!("\n=== sources.toml ===");
     let src = sources::validate(&root, &manifest.primal_ids);
-    total_passed += src.passed;
-    total_failed += src.failed;
+    total.merge(&src.report);
 
-    // Phase 5: cross-validation
     println!("\n=== Cross-validation ===");
-    let manifest_set = &manifest.primal_ids;
-    let checksum_set = &cksum.primal_ids;
-    let source_set = &src.source_ids;
+    cross_validate(&manifest, &cksum, &src, &port, &mut total);
 
-    let in_manifest_not_checksums: Vec<_> = manifest_set.difference(checksum_set).collect();
-    let in_checksums_not_manifest: Vec<_> = checksum_set.difference(manifest_set).collect();
-
-    if in_manifest_not_checksums.is_empty() {
-        total_passed += 1;
-        println!("  PASS: all manifest primals have checksum entries");
-    } else {
-        eprintln!("  WARN: manifest primals without checksums: {:?}", in_manifest_not_checksums);
-    }
-
-    if in_checksums_not_manifest.is_empty() {
-        total_passed += 1;
-        println!("  PASS: all checksum entries have manifest primals");
-    } else {
-        eprintln!("  WARN: checksum entries without manifest primals: {:?}", in_checksums_not_manifest);
-    }
-
-    // Source entries may include non-primals (springs, products)
-    let primal_sources: Vec<_> = manifest_set.difference(source_set).collect();
-    if primal_sources.is_empty() {
-        total_passed += 1;
-        println!("  PASS: all manifest primals have source entries");
-    } else {
-        eprintln!("  WARN: manifest primals without source entries: {:?}", primal_sources);
-    }
-
-    // Summary
     println!("\n=== Summary ===");
-    println!("  {} passed, {} failed", total_passed, total_failed);
+    println!("  {total}");
 
-    if total_failed > 0 {
+    if total.failed > 0 {
         ExitCode::from(1)
     } else {
         ExitCode::from(0)
     }
+}
+
+fn cross_validate(
+    manifest: &manifest::ManifestReport,
+    cksum: &checksums::ChecksumReport,
+    src: &sources::SourcesReport,
+    ports: &ports::PortsReport,
+    report: &mut Report,
+) {
+    let m = &manifest.primal_ids;
+    let c = &cksum.primal_ids;
+    let s = &src.source_ids;
+
+    let in_manifest_not_checksums: Vec<_> = m.difference(c).collect();
+    if in_manifest_not_checksums.is_empty() {
+        report.pass("all manifest primals have checksum entries");
+    } else {
+        report.fail(&format!(
+            "manifest primals without checksums: {}",
+            fmt_ids(&in_manifest_not_checksums)
+        ));
+    }
+
+    let in_checksums_not_manifest: Vec<_> = c.difference(m).collect();
+    if in_checksums_not_manifest.is_empty() {
+        report.pass("all checksum entries map to manifest primals");
+    } else {
+        report.fail(&format!(
+            "checksum entries without manifest primals: {}",
+            fmt_ids(&in_checksums_not_manifest)
+        ));
+    }
+
+    let primal_sources_missing: Vec<_> = m.difference(s).collect();
+    if primal_sources_missing.is_empty() {
+        report.pass("all manifest primals have source entries");
+    } else {
+        report.fail(&format!(
+            "manifest primals without source entries: {}",
+            fmt_ids(&primal_sources_missing)
+        ));
+    }
+
+    for (id, port_num) in &ports.port_map {
+        if m.contains(id) || manifest.spring_ids.contains(id) {
+            continue;
+        }
+        if ["ludospring", "esotericwebb"].contains(&id.as_str()) {
+            continue;
+        }
+        report.fail(&format!("port assigned for '{id}' (:{port_num}) but not in manifest"));
+    }
+}
+
+fn fmt_ids<S: std::fmt::Display>(ids: &[S]) -> String {
+    ids.iter()
+        .map(std::string::ToString::to_string)
+        .collect::<Vec<_>>()
+        .join(", ")
 }
 
 #[cfg(test)]
@@ -104,21 +128,34 @@ mod tests {
     fn validate_repo_root() {
         let root = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("..");
         if !root.join("manifest.toml").exists() {
-            return; // skip if not in plasmidBin tree
+            return;
         }
 
         let manifest = manifest::validate(&root);
-        assert!(manifest.failed == 0, "manifest validation failures");
-        assert!(manifest.primal_ids.len() >= 13, "expected >= 13 primals");
+        assert!(
+            manifest.report.failed == 0,
+            "manifest validation failures: {} failed",
+            manifest.report.failed
+        );
+        assert!(
+            manifest.primal_ids.len() >= types::MIN_PRIMALS,
+            "expected >= {} primals, found {}",
+            types::MIN_PRIMALS,
+            manifest.primal_ids.len()
+        );
 
         let cksum = checksums::validate(&root, &manifest.primal_ids);
-        assert!(cksum.failed == 0, "checksum validation failures");
+        assert!(cksum.report.failed == 0, "checksum validation failures");
 
         let port = ports::validate(&root);
-        assert!(port.failed == 0, "port validation failures");
-        assert!(port.port_count >= 13, "expected >= 13 port assignments");
+        assert!(port.report.failed == 0, "port validation failures");
+        assert!(
+            port.port_count >= types::MIN_PRIMALS,
+            "expected >= {} port assignments",
+            types::MIN_PRIMALS
+        );
 
         let src = sources::validate(&root, &manifest.primal_ids);
-        assert!(src.failed == 0, "source validation failures");
+        assert!(src.report.failed == 0, "source validation failures");
     }
 }

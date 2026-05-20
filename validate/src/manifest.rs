@@ -1,107 +1,218 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-use std::collections::BTreeSet;
+//! Typed validation for `manifest.toml` — the ecosystem genome manifest.
+
+use crate::types::{Report, MIN_PRIMALS};
+use serde::Deserialize;
+use std::collections::BTreeMap;
 use std::path::Path;
 
+#[derive(Debug, Deserialize)]
+#[allow(dead_code)]
+pub struct ManifestFile {
+    pub manifest: ManifestMeta,
+    #[serde(default)]
+    pub primals: BTreeMap<String, PrimalEntry>,
+    #[serde(default)]
+    pub atomics: BTreeMap<String, AtomicDef>,
+    #[serde(default)]
+    pub springs: BTreeMap<String, SpringEntry>,
+    #[serde(default)]
+    pub binaries: BTreeMap<String, toml::Value>,
+    #[serde(default)]
+    pub membrane: BTreeMap<String, toml::Value>,
+}
+
+#[derive(Debug, Deserialize)]
+#[allow(dead_code)]
+pub struct ManifestMeta {
+    pub version: String,
+    pub format: String,
+    pub generated: String,
+    pub checksum_algorithm: String,
+}
+
+#[derive(Debug, Deserialize)]
+#[allow(dead_code)]
+pub struct PrimalEntry {
+    pub name: String,
+    pub description: String,
+    pub latest: String,
+    pub phase: u8,
+    #[serde(default)]
+    pub capabilities: Vec<String>,
+    pub seed_fingerprint: Option<String>,
+    pub ecobin_grade: Option<String>,
+    #[serde(default)]
+    pub stripped: Option<bool>,
+    #[serde(default)]
+    pub arch: Vec<String>,
+    #[serde(default)]
+    pub check_pass: Vec<String>,
+    #[serde(default)]
+    pub is_orchestrator: Option<bool>,
+    #[serde(default)]
+    pub modes: Vec<String>,
+    #[serde(default)]
+    pub build_from_source: Option<bool>,
+}
+
+#[derive(Debug, Deserialize)]
+#[allow(dead_code)]
+pub struct AtomicDef {
+    pub description: Option<String>,
+    #[serde(default)]
+    pub primals: Vec<String>,
+    #[serde(default)]
+    pub niches: BTreeMap<String, toml::Value>,
+}
+
+#[derive(Debug, Deserialize)]
+#[allow(dead_code)]
+pub struct SpringEntry {
+    pub name: Option<String>,
+    #[serde(flatten)]
+    pub extra: BTreeMap<String, toml::Value>,
+}
+
 pub struct ManifestReport {
-    pub passed: usize,
-    pub failed: usize,
-    pub primal_ids: BTreeSet<String>,
-    pub spring_ids: BTreeSet<String>,
+    pub report: Report,
+    pub primal_ids: std::collections::BTreeSet<String>,
+    pub spring_ids: std::collections::BTreeSet<String>,
 }
 
 pub fn validate(root: &Path) -> ManifestReport {
     let path = root.join("manifest.toml");
-    let mut passed = 0usize;
-    let mut failed = 0usize;
-    let mut primal_ids = BTreeSet::new();
-    let mut spring_ids = BTreeSet::new();
+    let mut report = Report::default();
+    let mut primal_ids = std::collections::BTreeSet::new();
+    let mut spring_ids = std::collections::BTreeSet::new();
 
     let content = match std::fs::read_to_string(&path) {
         Ok(c) => c,
         Err(e) => {
-            eprintln!("FAIL: cannot read {}: {e}", path.display());
-            return ManifestReport { passed: 0, failed: 1, primal_ids, spring_ids };
+            report.fail(&format!("cannot read {}: {e}", path.display()));
+            return ManifestReport { report, primal_ids, spring_ids };
         }
     };
 
-    let parsed: toml::Value = match toml::from_str(&content) {
-        Ok(v) => {
-            passed += 1;
-            println!("  PASS: manifest.toml parses as valid TOML");
-            v
+    let manifest: ManifestFile = match toml::from_str(&content) {
+        Ok(m) => {
+            report.pass("manifest.toml parses as valid TOML with typed schema");
+            m
         }
         Err(e) => {
-            eprintln!("  FAIL: manifest.toml parse error: {e}");
-            return ManifestReport { passed, failed: failed + 1, primal_ids, spring_ids };
+            report.fail(&format!("manifest.toml schema error: {e}"));
+            return ManifestReport { report, primal_ids, spring_ids };
         }
     };
 
-    // [manifest] section
-    if parsed.get("manifest").is_some() {
-        passed += 1;
-        println!("  PASS: [manifest] section present");
-    } else {
-        failed += 1;
-        eprintln!("  FAIL: [manifest] section missing");
-    }
+    report.pass(&format!("[manifest] version={}, format={}", manifest.manifest.version, manifest.manifest.format));
 
-    // [primals.*] sections
-    if let Some(primals) = parsed.get("primals").and_then(|p| p.as_table()) {
-        for (id, entry) in primals {
-            primal_ids.insert(id.clone());
+    for (id, entry) in &manifest.primals {
+        primal_ids.insert(id.clone());
 
-            let has_name = entry.get("name").and_then(|v| v.as_str()).is_some();
-            let has_latest = entry.get("latest").and_then(|v| v.as_str()).is_some();
-            let has_description = entry.get("description").and_then(|v| v.as_str()).is_some();
+        if entry.capabilities.is_empty() {
+            report.fail(&format!("primals.{id}: no capabilities declared"));
+        } else {
+            report.pass(&format!("primals.{id}: {} v{}, {} capabilities", entry.name, entry.latest, entry.capabilities.len()));
+        }
 
-            if has_name && has_latest && has_description {
-                passed += 1;
-            } else {
-                failed += 1;
-                let missing: Vec<&str> = [
-                    (!has_name).then_some("name"),
-                    (!has_latest).then_some("latest"),
-                    (!has_description).then_some("description"),
-                ].into_iter().flatten().collect();
-                eprintln!("  FAIL: primals.{id} missing: {}", missing.join(", "));
+        if let Some(ref fp) = entry.seed_fingerprint {
+            if !crate::types::is_valid_blake3_hex(fp) {
+                report.fail(&format!("primals.{id}: invalid seed_fingerprint format"));
             }
         }
-        println!("  PASS: {} primal entries in manifest", primal_ids.len());
-        if primal_ids.len() < 13 {
-            eprintln!("  WARN: expected at least 13 primals, found {}", primal_ids.len());
-        }
-    } else {
-        failed += 1;
-        eprintln!("  FAIL: no [primals.*] sections found");
     }
 
-    // [atomics.*] sections
-    if let Some(atomics) = parsed.get("atomics").and_then(|a| a.as_table()) {
-        for (name, entry) in atomics {
-            if let Some(primals_arr) = entry.get("primals").and_then(|p| p.as_array()) {
-                for p in primals_arr {
-                    if let Some(pname) = p.as_str() {
-                        if !primal_ids.contains(pname) {
-                            failed += 1;
-                            eprintln!("  FAIL: atomics.{name} references unknown primal '{pname}'");
-                        }
-                    }
-                }
-                passed += 1;
+    if primal_ids.len() >= MIN_PRIMALS {
+        report.pass(&format!("{} primal entries (>= {MIN_PRIMALS})", primal_ids.len()));
+    } else {
+        report.fail(&format!("only {} primal entries (expected >= {MIN_PRIMALS})", primal_ids.len()));
+    }
+
+    for (name, atomic) in &manifest.atomics {
+        let mut atomic_ok = true;
+        for p in &atomic.primals {
+            if !primal_ids.contains(p) {
+                report.fail(&format!("atomics.{name}: references unknown primal '{p}'"));
+                atomic_ok = false;
             }
         }
-        println!("  PASS: {} atomic definitions validated", atomics.len());
-    }
-
-    // [springs.*] sections
-    if let Some(springs) = parsed.get("springs").and_then(|s| s.as_table()) {
-        for id in springs.keys() {
-            spring_ids.insert(id.clone());
+        if atomic_ok {
+            report.pass(&format!("atomics.{name}: {} primals, all valid", atomic.primals.len()));
         }
-        println!("  PASS: {} spring entries in manifest", spring_ids.len());
-        passed += 1;
     }
 
-    ManifestReport { passed, failed, primal_ids, spring_ids }
+    for id in manifest.springs.keys() {
+        spring_ids.insert(id.clone());
+    }
+    if !spring_ids.is_empty() {
+        report.pass(&format!("{} spring entries", spring_ids.len()));
+    }
+
+    ManifestReport { report, primal_ids, spring_ids }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    const MINIMAL_MANIFEST: &str = r#"
+[manifest]
+version = "1.0.0"
+format = "genomeBin"
+generated = "2026-01-01T00:00:00Z"
+checksum_algorithm = "blake3"
+
+[primals.testprimal]
+name = "TestPrimal"
+description = "A test primal"
+latest = "0.1.0"
+phase = 1
+capabilities = ["test"]
+"#;
+
+    #[test]
+    fn parses_minimal_manifest() {
+        let m: ManifestFile = toml::from_str(MINIMAL_MANIFEST).unwrap();
+        assert_eq!(m.primals.len(), 1);
+        assert_eq!(m.primals["testprimal"].name, "TestPrimal");
+        assert_eq!(m.primals["testprimal"].phase, 1);
+    }
+
+    #[test]
+    fn rejects_missing_manifest_section() {
+        let bad = r#"
+[primals.x]
+name = "X"
+description = "x"
+latest = "0.1.0"
+phase = 1
+"#;
+        let result: Result<ManifestFile, _> = toml::from_str(bad);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn detects_invalid_seed_fingerprint() {
+        let toml_str = r#"
+[manifest]
+version = "1.0.0"
+format = "genomeBin"
+generated = "2026-01-01T00:00:00Z"
+checksum_algorithm = "blake3"
+
+[primals.bad]
+name = "Bad"
+description = "bad fp"
+latest = "0.1.0"
+phase = 1
+capabilities = ["test"]
+seed_fingerprint = "not-a-valid-hash"
+"#;
+        let m: ManifestFile = toml::from_str(toml_str).unwrap();
+        assert!(!crate::types::is_valid_blake3_hex(
+            m.primals["bad"].seed_fingerprint.as_ref().unwrap()
+        ));
+    }
 }

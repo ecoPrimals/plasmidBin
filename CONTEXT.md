@@ -22,7 +22,7 @@ binaries from GitHub Releases, and start compositions with `./start_primal.sh`.
 
 ## Technical Facts
 
-- **Language:** Bash (scripts) + Rust (`validate/` crate), TOML (metadata)
+- **Language:** Bash (scripts) + Rust 2024 (`validate/` crate — serde-typed validation), TOML (metadata)
 - **License:** AGPL-3.0-or-later
 - **Binary format:** musl-static ELF, stripped, cross-compiled (x86_64, aarch64, armv7)
 - **Integrity:** BLAKE3 checksums in `checksums.toml`, verified by `fetch.sh`
