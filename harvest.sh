@@ -44,7 +44,7 @@ SKIPPED=0
 FAILED=0
 
 # Harvest maps keyed by arch. Format: "artifact-name:category/local-name"
-# artifact-name matches build_ecosystem_musl.sh output: {binary}-{arch}-linux-musl
+# artifact-name matches build_ecosystem_genomeBin.sh output: {binary}-{arch}-linux-musl
 # Harvest maps: PRIMALS ONLY.
 # Springs do not ship binaries via plasmidBin — they compose primals.
 # The only exception is primalspring_primal (coordination primal).
@@ -263,7 +263,7 @@ echo ""
 
 if [[ ! -d "$SOURCE_DIR" ]]; then
     echo "ERROR: Source directory not found: $SOURCE_DIR"
-    echo "  Run build_ecosystem_musl.sh first to produce binaries."
+    echo "  Run build_ecosystem_genomeBin.sh first to produce binaries."
     exit 1
 fi
 

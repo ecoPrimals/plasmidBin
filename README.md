@@ -3,7 +3,7 @@
 Public distribution of ecoPrimals musl-static ecoBin binaries.
 
 **Owner**: primalSpring (syntheticChemistry/primalSpring)
-**Release**: v2026.05.20 (v5.5.0 — Wave 22 stadial gate, 13/13 primals, 456-method registry)
+**Release**: v2026.05.21 (v5.5.0 — Wave 35, 13/13 primals, 445-method registry)
 **License**: AGPL-3.0-or-later
 
 ---
@@ -208,7 +208,7 @@ primalSpring owns the release cycle:
 
 ```bash
 # 1. Build all primals from source (musl-static)
-./scripts/build_ecosystem_musl.sh --harvest
+./scripts/build_ecosystem_genomeBin.sh --harvest
 
 # 2. Validate the full composition
 cd plasmidBin && ./doctor.sh && ./validate_composition.sh full

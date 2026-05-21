@@ -26,7 +26,7 @@
 #   5. ../../plasmidBin         (grandparent — reaches here from phase2/biomeOS/)
 #
 # Updated: 2026-05-18
-# Version: 5.5.0 (Wave 22: stadial gate push — 13/13 primals absorbed, 456-method registry)
+# Version: 5.5.0 (Wave 35: 13/13 primals, 445-method registry)
 
 [manifest]
 version = "5.5.0"
@@ -289,7 +289,7 @@ required_atomics = ["node", "nest"]
 tests = 1435
 barracuda_depth = "composing"
 musl_static = true
-note = "v0.10.0: Wave 22 signal adoption, 57 capabilities, 456-method registry sync, guideStone L4, --provenance-dir, 3 cross-tier parity validators."
+note = "v0.10.0: Wave 35 signal adoption, 57 capabilities, 445-method registry sync, guideStone L4, --provenance-dir, 3 cross-tier parity validators."
 
 [springs.groundspring]
 name = "groundSpring"
@@ -341,7 +341,7 @@ particle_profile = "balanced"
 proto_nucleate = "nucleus_atomics_validate"
 required_atomics = ["tower", "node", "nest", "meta_tier"]
 tests = 651
-note = "Wave 22: stadial gate coordinator, 456-method registry, 43 scenarios (10 tracks), 80+ deploy graphs, 14 atomic signal graphs. Zero panics in production. All 13 primals stadial-gate verified."
+note = "Wave 35: glacial shift coordinator, 445-method registry, 45 scenarios (10 tracks), 80+ deploy graphs, 14 atomic signal graphs. Zero panics in production. All 13 primals verified."
 
 # =============================================================================
 # NICHES — Per-spring primal composition requirements

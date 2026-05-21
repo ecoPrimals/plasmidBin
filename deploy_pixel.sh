@@ -16,7 +16,7 @@
 # Prerequisites:
 #   - ADB connected to device (USB debugging enabled)
 #   - aarch64 musl binaries in plasmidBin/primals/aarch64/
-#     (build via: build_ecosystem_musl.sh --aarch64 && harvest.sh --arch aarch64)
+#     (build via: build_ecosystem_genomeBin.sh --aarch64 && harvest.sh --arch aarch64)
 #
 # Standard ports (from primalSpring tolerances):
 #   beardog=9100 songbird=9200 nestgate=9300 toadstool=9400 squirrel=9500
@@ -172,7 +172,7 @@ done
 if [[ $MISSING -gt 0 ]]; then
     echo ""
     echo "Build aarch64 binaries first:"
-    echo "  ./scripts/build_ecosystem_musl.sh --aarch64"
+    echo "  ./scripts/build_ecosystem_genomeBin.sh --aarch64"
     echo "  ./harvest.sh --arch aarch64"
     exit 1
 fi
