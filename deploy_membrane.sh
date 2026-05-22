@@ -471,7 +471,7 @@ Wants=beardog-membrane.service
 
 [Service]
 Type=simple
-ExecStart=\$MEMBRANE_DIR/nestgate --socket /run/membrane/nestgate.sock --listen 0.0.0.0:9500 --data-dir /var/lib/membrane/nestgate
+ExecStart=\$MEMBRANE_DIR/nestgate service start --port 9500 --bind 0.0.0.0
 Restart=on-failure
 RestartSec=5
 EnvironmentFile=-\$MEMBRANE_DIR/tower.env
@@ -487,7 +487,7 @@ After=network.target
 
 [Service]
 Type=simple
-ExecStart=\$MEMBRANE_DIR/rhizocrypt --socket /run/membrane/rhizocrypt.sock --listen 0.0.0.0:9601
+ExecStart=\$MEMBRANE_DIR/rhizocrypt server --port 9601 --host 0.0.0.0
 Restart=on-failure
 RestartSec=5
 EnvironmentFile=-\$MEMBRANE_DIR/tower.env
@@ -503,7 +503,7 @@ After=network.target
 
 [Service]
 Type=simple
-ExecStart=\$MEMBRANE_DIR/loamspine --socket /run/membrane/loamspine.sock --listen 0.0.0.0:9700 --data-dir /var/lib/membrane/loamspine
+ExecStart=\$MEMBRANE_DIR/loamspine server --port 9700 --bind-address 0.0.0.0
 Restart=on-failure
 RestartSec=5
 EnvironmentFile=-\$MEMBRANE_DIR/tower.env
@@ -520,7 +520,7 @@ Wants=rhizocrypt-membrane.service loamspine-membrane.service
 
 [Service]
 Type=simple
-ExecStart=\$MEMBRANE_DIR/sweetgrass --socket /run/membrane/sweetgrass.sock --listen 0.0.0.0:9850
+ExecStart=\$MEMBRANE_DIR/sweetgrass server --port 0.0.0.0:9850
 Restart=on-failure
 RestartSec=5
 EnvironmentFile=-\$MEMBRANE_DIR/tower.env
