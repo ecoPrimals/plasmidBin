@@ -181,10 +181,11 @@ case "$PRIMAL" in
         ;;
 
     nestgate)
-        # NestGate's --help segfaults. These flags are inferred from docs
-        # and binary strings. Update when NestGate CLI is fixed.
+        # NestGate ignores --socket CLI flag; uses env-based socket path.
+        # NESTGATE_SOCKET tells it where to bind UDS.
         ARGS+=(daemon --socket-only --dev)
         [[ -n "$FAMILY_ID" ]] && export NESTGATE_FAMILY_ID="$FAMILY_ID"
+        [[ -n "$SOCKET_PATH" ]] && export NESTGATE_SOCKET="$SOCKET_PATH"
         if [[ -n "$FAMILY_ID" ]]; then
             export NESTGATE_JWT_SECRET="plasmidbin-${NODE_ID:-gate}-$FAMILY_ID"
         fi
@@ -224,16 +225,30 @@ case "$PRIMAL" in
         [[ -n "$TCP_PORT" ]] && ARGS+=(--port "$TCP_PORT")
         ;;
 
-    sweetgrass|loamspine)
+    sweetgrass)
         ARGS+=(server)
         [[ -n "$SOCKET_PATH" ]] && ARGS+=(--socket "$SOCKET_PATH")
         [[ -n "$TCP_PORT" ]] && ARGS+=(--port "$TCP_PORT")
         ;;
 
+    loamspine)
+        ARGS+=(server)
+        [[ -n "$SOCKET_PATH" ]] && ARGS+=(--socket "$SOCKET_PATH")
+        [[ -n "$TCP_PORT" ]] && ARGS+=(--port "$TCP_PORT")
+        if [[ -n "$BEARDOG_SOCKET" ]]; then
+            export DISCOVERY_ENDPOINT="unix://$BEARDOG_SOCKET"
+        elif [[ -n "${SONGBIRD_PORT:-}" ]]; then
+            export DISCOVERY_ENDPOINT="tcp://127.0.0.1:${SONGBIRD_PORT}"
+        fi
+        ;;
+
     rhizocrypt)
+        # rhizoCrypt is TCP-only (9400/9401); ignores --socket and UDS env.
+        # Needs FAMILY_SEED for BTSP handshake.
         ARGS+=(server)
         [[ -n "$TCP_PORT" ]] && ARGS+=(--port "$TCP_PORT")
         [[ -n "$FAMILY_ID" ]] && export RHIZOCRYPT_FAMILY_ID="$FAMILY_ID"
+        [[ -n "${FAMILY_SEED:-}" ]] && export FAMILY_SEED
         ;;
 
     barracuda)

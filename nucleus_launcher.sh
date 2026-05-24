@@ -42,7 +42,7 @@ DARK_FOREST=false
 SEED_ONLY=false
 DRY_RUN=false
 VALIDATE=false
-HEALTH_TIMEOUT=10
+HEALTH_TIMEOUT=20
 STARTUP_WAIT=3
 
 RED='\033[0;31m'
@@ -90,8 +90,8 @@ fi
 
 export FAMILY_ID
 
-RUNTIME_DIR="/tmp/biomeos"
-SOCKET_DIR="$RUNTIME_DIR/$FAMILY_ID"
+RUNTIME_DIR="${XDG_RUNTIME_DIR:-/tmp}/biomeos"
+SOCKET_DIR="$RUNTIME_DIR"
 
 resolve_family_seed() {
     if [[ -n "${BEARDOG_FAMILY_SEED:-}" ]]; then
@@ -207,9 +207,10 @@ check_health() {
 if ! $SEED_ONLY; then
     echo "=== Phase 1: Prepare runtime ==="
     if ! $DRY_RUN; then
-        mkdir -p "$RUNTIME_DIR/biomeos"
+        mkdir -p "$SOCKET_DIR"
     fi
     echo "  Runtime: $RUNTIME_DIR"
+    echo "  Sockets: $SOCKET_DIR"
     echo ""
 
     echo "=== Phase 2: Stop existing primals ==="
@@ -228,7 +229,7 @@ if ! $SEED_ONLY; then
 
     for p in $ORDERED_PRIMALS; do
         PORT=$(port_for_primal "$p")
-        SOCKET="$RUNTIME_DIR/biomeos/${p}-${FAMILY_ID}.sock"
+        SOCKET="$SOCKET_DIR/${p}-${FAMILY_ID}.sock"
 
         printf "  %-14s tcp=%-5s " "$p" "$PORT"
 
@@ -243,7 +244,7 @@ if ! $SEED_ONLY; then
 
         EXTRA_FLAGS=""
         if [[ "$p" == "songbird" ]]; then
-            BD_SOCK="$RUNTIME_DIR/biomeos/beardog-${FAMILY_ID}.sock"
+            BD_SOCK="$SOCKET_DIR/beardog-${FAMILY_ID}.sock"
             [[ -S "$BD_SOCK" ]] && EXTRA_FLAGS="--beardog-socket $BD_SOCK"
         fi
 
@@ -314,7 +315,7 @@ for p in $ORDERED_PRIMALS; do
 
     PORT=$(port_for_primal "$p")
     CAPS=$(capability_domains_for "$p")
-    SOCKET="$RUNTIME_DIR/biomeos/${p}-${FAMILY_ID}.sock"
+    SOCKET="$SOCKET_DIR/${p}-${FAMILY_ID}.sock"
 
     if [[ -z "$CAPS" ]]; then
         continue
