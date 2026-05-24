@@ -241,11 +241,17 @@ if ! $SEED_ONLY; then
         DF_FLAG=""
         $DARK_FOREST && DF_FLAG="--dark-forest"
 
+        EXTRA_FLAGS=""
+        if [[ "$p" == "songbird" ]]; then
+            BD_SOCK="$RUNTIME_DIR/biomeos/beardog-${FAMILY_ID}.sock"
+            [[ -S "$BD_SOCK" ]] && EXTRA_FLAGS="--beardog-socket $BD_SOCK"
+        fi
+
         "$SCRIPT_DIR/start_primal.sh" "$p" \
             --tcp-port "$PORT" \
             --socket "$SOCKET" \
             --family-id "$FAMILY_ID" \
-            $DF_FLAG \
+            $DF_FLAG $EXTRA_FLAGS \
             --log-file "/tmp/${p}.log" \
             > /dev/null 2>&1 || true
 

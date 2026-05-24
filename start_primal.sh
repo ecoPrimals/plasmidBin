@@ -224,24 +224,28 @@ case "$PRIMAL" in
         [[ -n "$TCP_PORT" ]] && ARGS+=(--port "$TCP_PORT")
         ;;
 
-    sweetgrass|rhizocrypt|loamspine)
-        ARGS+=(serve)
+    sweetgrass|loamspine)
+        ARGS+=(server)
         [[ -n "$SOCKET_PATH" ]] && ARGS+=(--socket "$SOCKET_PATH")
         [[ -n "$TCP_PORT" ]] && ARGS+=(--port "$TCP_PORT")
         ;;
 
-    barracuda)
-        ARGS+=(serve)
+    rhizocrypt)
+        ARGS+=(server)
         [[ -n "$TCP_PORT" ]] && ARGS+=(--port "$TCP_PORT")
-        [[ -n "$SOCKET_PATH" ]] && ARGS+=(--socket "$SOCKET_PATH")
+        [[ -n "$FAMILY_ID" ]] && export RHIZOCRYPT_FAMILY_ID="$FAMILY_ID"
+        ;;
+
+    barracuda)
+        ARGS+=(server)
+        [[ -n "$TCP_PORT" ]] && ARGS+=(--port "$TCP_PORT")
         [[ -n "$FAMILY_ID" ]] && export BARRACUDA_FAMILY_ID="$FAMILY_ID"
         [[ -n "$TCP_PORT" ]] && export BARRACUDA_IPC_HOST="0.0.0.0"
         ;;
 
     coralreef)
-        ARGS+=(serve)
-        [[ -n "$TCP_PORT" ]] && ARGS+=(--port "$TCP_PORT")
-        [[ -n "$SOCKET_PATH" ]] && ARGS+=(--socket "$SOCKET_PATH")
+        ARGS+=(server)
+        [[ -n "$TCP_PORT" ]] && ARGS+=(--rpc-bind "0.0.0.0:$TCP_PORT")
         ;;
 
     skunkbat)
