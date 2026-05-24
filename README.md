@@ -3,7 +3,7 @@
 Public distribution of ecoPrimals musl-static ecoBin binaries.
 
 **Owner**: primalSpring (syntheticChemistry/primalSpring)
-**Release**: v2026.05.23 (v5.5.0 — Wave 35, 13/13 primals, 458-method registry)
+**Release**: v2026.05.23 (v5.5.0 — Wave 46, 13/13 primals, 458-method registry)
 **License**: AGPL-3.0-or-later
 
 ---
@@ -197,6 +197,10 @@ plasmidBin/
 ├── stage_usb.sh            # Stage primals for USB / offline (Tier 3)
 ├── stop_gate.sh            # Stop primals on a gate
 ├── update.sh               # Check for upstream updates
+├── sync.sh                 # Sync local state with plasmidBin releases
+├── build-primal.sh         # Build primal from source (CI + local)
+├── cell_launcher.sh        # Cell-level launcher (atomic compositions)
+├── deploy_membrane.sh      # Membrane VPS provisioning + deployment
 ├── primals/                # x86_64 binaries (gitignored)
 │   └── aarch64/            # aarch64 binaries (gitignored)
 └── receipts/               # Harvest receipts
