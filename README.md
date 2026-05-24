@@ -3,7 +3,7 @@
 Public distribution of ecoPrimals musl-static ecoBin binaries.
 
 **Owner**: primalSpring (syntheticChemistry/primalSpring)
-**Release**: v2026.05.21 (v5.5.0 — Wave 35, 13/13 primals, 445-method registry)
+**Release**: v2026.05.23 (v5.5.0 — Wave 35, 13/13 primals, 458-method registry)
 **License**: AGPL-3.0-or-later
 
 ---
@@ -147,7 +147,7 @@ sporeGarden/            — Products (gen4 consumers, public)
 ### NUCLEUS Atomic Model
 
 ```
-Tower (electron)   = beardog + songbird           (trust boundary)
+Tower (electron)   = beardog + songbird + skunkbat  (trust boundary)
 Node  (proton)     = Tower + toadstool + barracuda + coralreef  (compute)
 Nest  (neutron)    = Tower + nestgate + rhizocrypt + loamspine + sweetgrass  (storage)
 NUCLEUS (atom)     = Tower + Node + Nest           (9 unique primals)
@@ -214,7 +214,7 @@ primalSpring owns the release cycle:
 cd plasmidBin && ./doctor.sh && ./validate_composition.sh full
 
 # 3. Cut a release
-./harvest.sh --release v2026.05.20
+./harvest.sh --release v2026.05.23
 ```
 
 ### NUCLEUS Launcher — Full Composition Startup

@@ -25,13 +25,13 @@
 #   4. ../plasmidBin            (parent)
 #   5. ../../plasmidBin         (grandparent — reaches here from phase2/biomeOS/)
 #
-# Updated: 2026-05-18
-# Version: 5.5.0 (Wave 35: 13/13 primals, 445-method registry)
+# Updated: 2026-05-23
+# Version: 5.5.0 (Wave 35: 13/13 primals, 458-method registry)
 
 [manifest]
 version = "5.5.0"
 format = "genomeBin"
-generated = "2026-05-18T00:00:00Z"
+generated = "2026-05-23T00:00:00Z"
 checksum_algorithm = "blake3"
 # mirror_url = "https://bins.ecoprimals.dev/latest/"
 
@@ -335,13 +335,13 @@ note = "V71: compute trio in cell graphs, coralReef compile+validate, barraCuda 
 name = "primalSpring"
 org = "ecoPrimals"
 description = "Coordination validation — validates the ecosystem itself"
-latest = "0.9.25"
+latest = "0.9.27"
 evolution = "composing"
 particle_profile = "balanced"
 proto_nucleate = "nucleus_atomics_validate"
 required_atomics = ["tower", "node", "nest", "meta_tier"]
-tests = 651
-note = "Wave 35: glacial shift coordinator, 445-method registry, 45 scenarios (10 tracks), 80+ deploy graphs, 14 atomic signal graphs. Zero panics in production. All 13 primals verified."
+tests = 784
+note = "Wave 46: glacial shift coordinator, 458-method registry, 49 scenarios (10 tracks), 80+ deploy graphs, 14 atomic signal graphs. Zero panics in production. All 13 primals verified."
 
 # =============================================================================
 # NICHES — Per-spring primal composition requirements
