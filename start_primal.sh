@@ -203,12 +203,15 @@ case "$PRIMAL" in
         ;;
 
     petaltongue)
-        # petalTongue `web` serves HTTP (with --bind), `server` is UDS-only.
-        # For composition testing, prefer `web` with TCP.
-        if [[ -n "$TCP_PORT" ]]; then
+        # petalTongue `web` serves HTTP (with --bind), `server` is UDS IPC.
+        # When both TCP and socket are needed, start in `server` mode with
+        # --socket and use TCP via --port if available.
+        if [[ -n "$TCP_PORT" && -z "$SOCKET_PATH" ]]; then
             ARGS+=(web --bind "$TCP_BIND:$TCP_PORT")
         else
             ARGS+=(server)
+            [[ -n "$SOCKET_PATH" ]] && ARGS+=(--socket "$SOCKET_PATH")
+            [[ -n "$TCP_PORT" ]] && ARGS+=(--port "$TCP_PORT")
         fi
         ;;
 
@@ -243,30 +246,35 @@ case "$PRIMAL" in
         ;;
 
     rhizocrypt)
-        # rhizoCrypt is TCP-only (9400/9401); ignores --socket and UDS env.
+        # rhizoCrypt uses --unix (not --socket) for UDS path.
         # Needs FAMILY_SEED for BTSP handshake.
         ARGS+=(server)
+        [[ -n "$SOCKET_PATH" ]] && ARGS+=(--unix "$SOCKET_PATH")
         [[ -n "$TCP_PORT" ]] && ARGS+=(--port "$TCP_PORT")
         [[ -n "$FAMILY_ID" ]] && export RHIZOCRYPT_FAMILY_ID="$FAMILY_ID"
         [[ -n "${FAMILY_SEED:-}" ]] && export FAMILY_SEED
         ;;
 
     barracuda)
+        # barraCuda uses --unix (not --socket) for UDS path.
         ARGS+=(server)
-        [[ -n "$TCP_PORT" ]] && ARGS+=(--port "$TCP_PORT")
+        [[ -n "$SOCKET_PATH" ]] && ARGS+=(--unix "$SOCKET_PATH")
+        [[ -n "$TCP_PORT" ]] && ARGS+=(--port "$TCP_PORT" --bind "$TCP_BIND")
         [[ -n "$FAMILY_ID" ]] && export BARRACUDA_FAMILY_ID="$FAMILY_ID"
-        [[ -n "$TCP_PORT" ]] && export BARRACUDA_IPC_HOST="0.0.0.0"
         ;;
 
     coralreef)
+        # coralReef uses --rpc-bind (not --port) and auto-resolves UDS path
+        # from $XDG_RUNTIME_DIR. Export CORALREEF_SOCKET for explicit path.
         ARGS+=(server)
-        [[ -n "$TCP_PORT" ]] && ARGS+=(--rpc-bind "0.0.0.0:$TCP_PORT")
+        [[ -n "$TCP_PORT" ]] && ARGS+=(--rpc-bind "$TCP_BIND:$TCP_PORT")
+        [[ -n "$SOCKET_PATH" ]] && export CORALREEF_SOCKET="$SOCKET_PATH"
+        [[ -n "$FAMILY_ID" ]] && export CORALREEF_FAMILY_ID="$FAMILY_ID"
         ;;
 
     skunkbat)
-        ARGS+=(serve)
-        [[ -n "$SOCKET_PATH" ]] && ARGS+=(--socket "$SOCKET_PATH")
-        [[ -n "$TCP_PORT" ]] && ARGS+=(--port "$TCP_PORT")
+        ARGS+=(server)
+        [[ -n "$TCP_PORT" ]] && ARGS+=(--port "$TCP_PORT" --bind "$TCP_BIND")
         [[ -n "$FAMILY_ID" ]] && export SKUNKBAT_FAMILY_ID="$FAMILY_ID"
         ;;
 
