@@ -49,3 +49,4 @@ products/
 # Encrypted credential blobs (safe to store on VPS, not in git)
 membrane-credentials.age
 *.age
+audit.log
