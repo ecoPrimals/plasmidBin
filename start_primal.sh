@@ -21,12 +21,9 @@
 #   --capabilities-only  Print capabilities and exit (toadstool)
 #   --log-file PATH      Log file (default: /tmp/{primal}.log)
 #
-# This script encapsulates the CLI audit findings:
-#   beardog:   --listen addr:port, --socket, --family-id, --abstract
-#   songbird:  --port PORT, --socket, --listen (TCP IPC alt), --beardog-socket
-#   squirrel:  --port PORT, --bind ADDR, --socket
-#   toadstool: --port PORT, --socket, --family-id
-#   nestgate:  --socket-only, --dev (flags inferred; --help segfaults)
+# Post-convergence (Wave 47): all 13 primals accept --socket and server
+# subcommand per DEPLOYMENT_BEHAVIOR_STANDARD. Remaining per-primal blocks
+# handle: non-standard TCP flags, env plumbing, and dual-mode primals.
 
 set -euo pipefail
 
@@ -130,11 +127,15 @@ fi
 
 # ── Build per-primal argument list ───────────────────────────────────────────
 #
-# This is the CLI audit map. Each primal gets its own translation from
-# generic flags to primal-specific flags. When primals standardize their
-# CLIs, this section shrinks to a single generic case.
+# Post-convergence: all primals accept `server --socket --port`. Per-primal
+# blocks only remain for env plumbing, non-standard TCP flags, or dual modes.
 
 ARGS=()
+
+add_standard_flags() {
+    [[ -n "$SOCKET_PATH" ]] && ARGS+=(--socket "$SOCKET_PATH")
+    [[ -n "$TCP_PORT" ]]    && ARGS+=(--port "$TCP_PORT")
+}
 
 case "$PRIMAL" in
     beardog)
@@ -150,8 +151,7 @@ case "$PRIMAL" in
 
     songbird)
         ARGS+=(server)
-        [[ -n "$TCP_PORT" ]] && ARGS+=(--port "$TCP_PORT")
-        [[ -n "$SOCKET_PATH" ]] && ARGS+=(--socket "$SOCKET_PATH")
+        add_standard_flags
         if [[ -n "$BEARDOG_SOCKET" ]]; then
             export BEARDOG_SOCKET
             export BEARDOG_MODE=direct
@@ -172,8 +172,7 @@ case "$PRIMAL" in
             exit 0
         fi
         ARGS+=(server)
-        [[ -n "$TCP_PORT" ]] && ARGS+=(--port "$TCP_PORT")
-        [[ -n "$SOCKET_PATH" ]] && ARGS+=(--socket "$SOCKET_PATH")
+        add_standard_flags
         [[ -n "$FAMILY_ID" ]] && ARGS+=(--family-id "$FAMILY_ID")
         export TOADSTOOL_SECURITY_WARNING_ACKNOWLEDGED=1
         [[ -n "$FAMILY_ID" ]] && export TOADSTOOL_FAMILY_ID="$FAMILY_ID"
@@ -181,63 +180,49 @@ case "$PRIMAL" in
         ;;
 
     nestgate)
-        # NestGate ignores --socket CLI flag; uses env-based socket path.
-        # NESTGATE_SOCKET tells it where to bind UDS.
         ARGS+=(daemon --socket-only --dev)
+        [[ -n "$SOCKET_PATH" ]] && ARGS+=(--socket "$SOCKET_PATH")
         [[ -n "$FAMILY_ID" ]] && export NESTGATE_FAMILY_ID="$FAMILY_ID"
-        [[ -n "$SOCKET_PATH" ]] && export NESTGATE_SOCKET="$SOCKET_PATH"
         if [[ -n "$FAMILY_ID" ]]; then
             export NESTGATE_JWT_SECRET="plasmidbin-${NODE_ID:-gate}-$FAMILY_ID"
         fi
         ;;
 
     biomeos)
-        # biomeOS has multiple modes. For composition testing, use `api`
-        # (HTTP+WebSocket+UDS) which supports BIOMEOS_PORT env override.
-        # For graph orchestration, use `neural-api`.
         ARGS+=(api)
-        [[ -n "$TCP_PORT" ]] && ARGS+=(--port "$TCP_PORT")
-        [[ -n "$SOCKET_PATH" ]] && ARGS+=(--socket "$SOCKET_PATH")
+        add_standard_flags
         [[ -n "$FAMILY_ID" ]] && export FAMILY_ID
         export BIOMEOS_PORT="${TCP_PORT:-${BIOMEOS_PORT:-9800}}"
         ;;
 
     petaltongue)
-        # petalTongue `web` serves HTTP (with --bind), `server` is UDS IPC.
-        # When both TCP and socket are needed, start in `server` mode with
-        # --socket and use TCP via --port if available.
         if [[ -n "$TCP_PORT" && -z "$SOCKET_PATH" ]]; then
             ARGS+=(web --bind "$TCP_BIND:$TCP_PORT")
         else
             ARGS+=(server)
-            [[ -n "$SOCKET_PATH" ]] && ARGS+=(--socket "$SOCKET_PATH")
-            [[ -n "$TCP_PORT" ]] && ARGS+=(--port "$TCP_PORT")
+            add_standard_flags
         fi
         ;;
 
     ludospring)
-        # ludoSpring `server` starts the IPC server. No CLI port flag yet;
-        # uses LUDOSPRING_PORT env for TCP binding.
         ARGS+=(server)
+        [[ -n "$SOCKET_PATH" ]] && ARGS+=(--socket "$SOCKET_PATH")
         [[ -n "$TCP_PORT" ]] && export LUDOSPRING_PORT="$TCP_PORT"
         ;;
 
     primalspring_primal|primalspring)
         ARGS+=(--mode server)
-        [[ -n "$SOCKET_PATH" ]] && ARGS+=(--socket "$SOCKET_PATH")
-        [[ -n "$TCP_PORT" ]] && ARGS+=(--port "$TCP_PORT")
+        add_standard_flags
         ;;
 
     sweetgrass)
         ARGS+=(server)
-        [[ -n "$SOCKET_PATH" ]] && ARGS+=(--socket "$SOCKET_PATH")
-        [[ -n "$TCP_PORT" ]] && ARGS+=(--port "$TCP_PORT")
+        add_standard_flags
         ;;
 
     loamspine)
         ARGS+=(server)
-        [[ -n "$SOCKET_PATH" ]] && ARGS+=(--socket "$SOCKET_PATH")
-        [[ -n "$TCP_PORT" ]] && ARGS+=(--port "$TCP_PORT")
+        add_standard_flags
         if [[ -n "$BEARDOG_SOCKET" ]]; then
             export DISCOVERY_ENDPOINT="unix://$BEARDOG_SOCKET"
         elif [[ -n "${SONGBIRD_PORT:-}" ]]; then
@@ -246,43 +231,38 @@ case "$PRIMAL" in
         ;;
 
     rhizocrypt)
-        # rhizoCrypt uses --unix (not --socket) for UDS path.
-        # Needs FAMILY_SEED for BTSP handshake.
         ARGS+=(server)
-        [[ -n "$SOCKET_PATH" ]] && ARGS+=(--unix "$SOCKET_PATH")
-        [[ -n "$TCP_PORT" ]] && ARGS+=(--port "$TCP_PORT")
+        add_standard_flags
         [[ -n "$FAMILY_ID" ]] && export RHIZOCRYPT_FAMILY_ID="$FAMILY_ID"
         [[ -n "${FAMILY_SEED:-}" ]] && export FAMILY_SEED
         ;;
 
     barracuda)
-        # barraCuda uses --unix (not --socket) for UDS path.
         ARGS+=(server)
-        [[ -n "$SOCKET_PATH" ]] && ARGS+=(--unix "$SOCKET_PATH")
+        [[ -n "$SOCKET_PATH" ]] && ARGS+=(--socket "$SOCKET_PATH")
         [[ -n "$TCP_PORT" ]] && ARGS+=(--port "$TCP_PORT" --bind "$TCP_BIND")
         [[ -n "$FAMILY_ID" ]] && export BARRACUDA_FAMILY_ID="$FAMILY_ID"
         ;;
 
     coralreef)
-        # coralReef uses --rpc-bind (not --port) and auto-resolves UDS path
-        # from $XDG_RUNTIME_DIR. Export CORALREEF_SOCKET for explicit path.
         ARGS+=(server)
+        [[ -n "$SOCKET_PATH" ]] && ARGS+=(--socket "$SOCKET_PATH")
         [[ -n "$TCP_PORT" ]] && ARGS+=(--rpc-bind "$TCP_BIND:$TCP_PORT")
-        [[ -n "$SOCKET_PATH" ]] && export CORALREEF_SOCKET="$SOCKET_PATH"
         [[ -n "$FAMILY_ID" ]] && export CORALREEF_FAMILY_ID="$FAMILY_ID"
         ;;
 
     skunkbat)
         ARGS+=(server)
+        [[ -n "$SOCKET_PATH" ]] && ARGS+=(--socket "$SOCKET_PATH")
         [[ -n "$TCP_PORT" ]] && ARGS+=(--port "$TCP_PORT" --bind "$TCP_BIND")
         [[ -n "$FAMILY_ID" ]] && export SKUNKBAT_FAMILY_ID="$FAMILY_ID"
         ;;
 
     *)
         echo "WARNING: Unknown primal: $PRIMAL — attempting generic start"
-        echo "  Trying: $PRIMAL_BIN server ${ARGS[*]:-}"
+        echo "  Trying: $PRIMAL_BIN server --socket/--port"
         ARGS+=(server)
-        [[ -n "$TCP_PORT" ]] && export "${PRIMAL^^}_PORT=$TCP_PORT"
+        add_standard_flags
         ;;
 esac
 
