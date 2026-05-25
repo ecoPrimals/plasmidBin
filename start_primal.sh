@@ -100,9 +100,14 @@ if [[ -z "$PRIMAL_BIN" ]]; then
         PRIMAL_BIN="$SCRIPT_DIR/primals/aarch64/$PRIMAL"
     elif [[ -f "$SCRIPT_DIR/primals/$PRIMAL" ]]; then
         PRIMAL_BIN="$SCRIPT_DIR/primals/$PRIMAL"
+    elif [[ -f "$SCRIPT_DIR/$PRIMAL/$PRIMAL" ]]; then
+        PRIMAL_BIN="$SCRIPT_DIR/$PRIMAL/$PRIMAL"
+    elif [[ -f "$SCRIPT_DIR/primals/x86_64-unknown-linux-musl/$PRIMAL" ]]; then
+        PRIMAL_BIN="$SCRIPT_DIR/primals/x86_64-unknown-linux-musl/$PRIMAL"
     else
         echo "ERROR: Binary not found for $PRIMAL"
         echo "  Checked: $SCRIPT_DIR/primals/$PRIMAL"
+        echo "  Checked: $SCRIPT_DIR/$PRIMAL/$PRIMAL"
         [[ "$ARCH" == "aarch64" ]] && echo "  Checked: $SCRIPT_DIR/primals/aarch64/$PRIMAL"
         exit 1
     fi

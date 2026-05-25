@@ -167,10 +167,12 @@ for p in $PRIMALS; do
         bin="$PRIMALS_DIR/$p"
     elif [[ -f "$PRIMALS_DIR/$CURRENT_ARCH/$p" ]]; then
         bin="$PRIMALS_DIR/$CURRENT_ARCH/$p"
+    elif [[ -f "$SCRIPT_DIR/$p/$p" ]]; then
+        bin="$SCRIPT_DIR/$p/$p"
     fi
 
     if [[ -z "$bin" ]]; then
-        check "$p binary" fail "not found in primals/ or primals/$CURRENT_ARCH/"
+        check "$p binary" fail "not found in primals/, primals/$CURRENT_ARCH/, or $p/$p"
         continue
     fi
 
