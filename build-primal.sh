@@ -12,8 +12,9 @@
 #
 # Prerequisites:
 #   - rustup, cargo
-#   - musl-tools (apt install musl-tools)
-#   - rustup target add x86_64-unknown-linux-musl
+#   - lld (apt install lld) — for aarch64-musl cross-linking
+#   - musl-tools (apt install musl-tools) — only if primal doesn't use link-self-contained
+#   - rustup target add x86_64-unknown-linux-musl aarch64-unknown-linux-musl
 #   - gh CLI (for private repos, uses GITHUB_TOKEN or gh auth)
 
 set -euo pipefail
