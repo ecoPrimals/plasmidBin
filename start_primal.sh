@@ -180,8 +180,9 @@ case "$PRIMAL" in
         ;;
 
     nestgate)
-        ARGS+=(daemon --socket-only --dev)
-        [[ -n "$SOCKET_PATH" ]] && ARGS+=(--socket "$SOCKET_PATH")
+        ARGS+=(server --socket-only)
+        [[ -n "$FAMILY_ID" ]] && ARGS+=(--family-id "$FAMILY_ID")
+        [[ -n "$TCP_PORT" ]] && ARGS+=(--port "$TCP_PORT")
         [[ -n "$FAMILY_ID" ]] && export NESTGATE_FAMILY_ID="$FAMILY_ID"
         if [[ -n "$FAMILY_ID" ]]; then
             export NESTGATE_JWT_SECRET="plasmidbin-${NODE_ID:-gate}-$FAMILY_ID"
@@ -232,21 +233,21 @@ case "$PRIMAL" in
 
     rhizocrypt)
         ARGS+=(server)
-        add_standard_flags
+        [[ -n "$SOCKET_PATH" ]] && ARGS+=(--unix "$SOCKET_PATH")
+        [[ -n "$TCP_PORT" ]] && ARGS+=(--port "$TCP_PORT")
         [[ -n "$FAMILY_ID" ]] && export RHIZOCRYPT_FAMILY_ID="$FAMILY_ID"
         [[ -n "${FAMILY_SEED:-}" ]] && export FAMILY_SEED
         ;;
 
     barracuda)
         ARGS+=(server)
-        [[ -n "$SOCKET_PATH" ]] && ARGS+=(--socket "$SOCKET_PATH")
-        [[ -n "$TCP_PORT" ]] && ARGS+=(--port "$TCP_PORT" --bind "$TCP_BIND")
+        [[ -n "$SOCKET_PATH" ]] && ARGS+=(--unix "$SOCKET_PATH")
+        [[ -n "$TCP_PORT" ]] && ARGS+=(--port "$TCP_PORT")
         [[ -n "$FAMILY_ID" ]] && export BARRACUDA_FAMILY_ID="$FAMILY_ID"
         ;;
 
     coralreef)
         ARGS+=(server)
-        [[ -n "$SOCKET_PATH" ]] && ARGS+=(--socket "$SOCKET_PATH")
         [[ -n "$TCP_PORT" ]] && ARGS+=(--rpc-bind "$TCP_BIND:$TCP_PORT")
         [[ -n "$FAMILY_ID" ]] && export CORALREEF_FAMILY_ID="$FAMILY_ID"
         ;;

@@ -246,6 +246,9 @@ if ! $SEED_ONLY; then
         if [[ "$p" == "songbird" ]]; then
             BD_SOCK="$SOCKET_DIR/beardog-${FAMILY_ID}.sock"
             [[ -S "$BD_SOCK" ]] && EXTRA_FLAGS="--beardog-socket $BD_SOCK"
+            if [[ -n "${SONGBIRD_FEDERATION_PORT:-}" ]]; then
+                export SONGBIRD_HTTP_PORT="$SONGBIRD_FEDERATION_PORT"
+            fi
         fi
 
         "$SCRIPT_DIR/start_primal.sh" "$p" \
