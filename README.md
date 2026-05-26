@@ -3,7 +3,7 @@
 Public distribution of ecoPrimals musl-static ecoBin binaries.
 
 **Owner**: primalSpring (syntheticChemistry/primalSpring)
-**Release**: v2026.05.23 (v5.5.0 — Wave 46, 13/13 primals, 458-method registry)
+**Release**: v2026.05.25 (v5.6.0 — Wave 50, 13/13 primals, 458-method registry, post-primordial)
 **License**: AGPL-3.0-or-later
 
 ---
@@ -23,7 +23,7 @@ Some primals have private source repos (bearDog, skunkBat). Their binaries
 ship publicly here — stripped static ELF with no debug info. Source will be
 public when polished for release.
 
-## Binary Inventory (v5.5.0 — Wave 22 Stadial Gate)
+## Binary Inventory (v5.6.0 — Wave 50 Covalent HPC)
 
 All 13 x86_64 primals: **musl-static, stripped, blake3 verified.**
 **13/13 primals ALIVE**, exp094 parity checks PASS. All LD gaps RESOLVED.
@@ -32,31 +32,31 @@ All 13 x86_64 primals: **musl-static, stripped, blake3 verified.**
 
 | Binary | Atomic | Size | Version | Status |
 |--------|--------|------|---------|--------|
-| beardog | Tower | 7.5M | 0.9.0 | static, stripped |
-| songbird | Tower | 21M | 0.2.1 | static, stripped |
-| toadstool | Node | 11M | 0.2.0 | static, stripped, BTSP auto-detect |
-| barracuda | Node | 4.6M | 0.4.0 | static, stripped, JSON-RPC + tarpc |
-| coralreef | Node | 8.0M | 0.2.0 | static, stripped |
-| nestgate | Nest | 5.9M | 0.1.0 | static, stripped |
-| rhizocrypt | Nest | 5.5M | 0.14.0 | static, stripped, UDS enabled |
-| loamspine | Nest | 4.5M | 0.9.16 | static, stripped, UDS-first |
-| sweetgrass | Nest | 13M | 0.7.37 | static, stripped |
+| beardog | Tower | 7.3M | 0.9.0 | static, stripped |
+| songbird | Tower | 16M | 0.2.1 | static, stripped |
+| toadstool | Node | 12M | 0.2.0 | static, stripped, BTSP auto-detect |
+| barracuda | Node | 5.2M | 0.4.0 | static, stripped, JSON-RPC + tarpc |
+| coralreef | Node | 6.8M | 0.2.0 | static, stripped |
+| nestgate | Nest | 8.0M | 0.1.0 | static, stripped |
+| rhizocrypt | Nest | 5.9M | 0.14.0 | static, stripped, UDS enabled |
+| loamspine | Nest | 5.1M | 0.9.16 | static, stripped, UDS-first |
+| sweetgrass | Nest | 11M | 0.7.37 | static, stripped |
 
 ### Meta-Tier (3 primals)
 
 | Binary | Size | Version | Status |
 |--------|------|---------|--------|
-| biomeos | 17M | 0.1.0 | static, stripped |
-| squirrel | 3.5M | 0.1.0 | static, stripped |
-| petaltongue | 28M | 1.6.6 | static, stripped, --socket flag |
+| biomeos | 15M | 0.1.0 | static, stripped |
+| squirrel | 6.8M | 0.1.0 | static, stripped |
+| petaltongue | 30M | 1.6.6 | static, stripped, --socket + --family-id |
 
 ### Defense
 
 | Binary | Size | Version | Status |
 |--------|------|---------|--------|
-| skunkbat | 2.2M | 0.2.0 | static, stripped |
+| skunkbat | 2.4M | 0.2.0 | static, stripped |
 
-**Total deployment footprint**: ~131M for the complete sovereign stack.
+**Total deployment footprint**: ~127M for the complete sovereign stack.
 
 ### aarch64 (Pixel/GrapheneOS/ARM servers)
 
