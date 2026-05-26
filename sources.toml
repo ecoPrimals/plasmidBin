@@ -88,8 +88,7 @@ assets = ["sweetgrass"]
 repo = "ecoPrimals/biomeOS"
 tag_pattern = "v{version}"
 assets = ["biomeos"]
-binary_name = "biomeos-cli"
-build_args = "-p biomeos-cli"
+build_args = "-p biomeos-unibin"
 
 [sources.squirrel]
 repo = "ecoPrimals/squirrel"
