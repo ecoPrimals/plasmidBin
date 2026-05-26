@@ -158,14 +158,21 @@ pub fn run(args: HarvestArgs) -> Result<()> {
         }
 
         let src = source_dir.join(&entry.artifact_name);
-        if !src.exists() {
-            println!(
-                "  [{}] SKIP  artifact not found: {}",
-                entry.binary_name, entry.artifact_name
-            );
-            skipped += 1;
-            continue;
-        }
+        let src = if src.exists() {
+            src
+        } else {
+            let plain = source_dir.join(&entry.binary_name);
+            if plain.exists() {
+                plain
+            } else {
+                println!(
+                    "  [{}] SKIP  artifact not found: {} or {}",
+                    entry.binary_name, entry.artifact_name, entry.binary_name
+                );
+                skipped += 1;
+                continue;
+            }
+        };
 
         print!("  [{}] ", entry.binary_name);
 

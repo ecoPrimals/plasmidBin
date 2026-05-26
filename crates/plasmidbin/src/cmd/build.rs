@@ -90,6 +90,9 @@ pub fn run(args: BuildArgs) -> Result<()> {
         // Build
         let mut cargo = std::process::Command::new("cargo");
         cargo.args(["build", "--release", "--target", arch.triple()]);
+        if let Some(ref extra) = entry.build_args {
+            cargo.args(extra.split_whitespace());
+        }
         cargo.current_dir(&clone_dir);
 
         if let Some(linker) = arch.linker() {
@@ -104,13 +107,12 @@ pub fn run(args: BuildArgs) -> Result<()> {
             continue;
         }
 
-        // Stage binary
+        // Stage binary (plain name — triple is encoded in the directory)
         let bin_name = entry.binary_name(id);
         let built_bin = clone_dir.join("target").join(arch.triple()).join("release").join(&bin_name);
         if built_bin.exists() {
-            let asset_name = arch.asset_name(&bin_name);
-            std::fs::copy(&built_bin, deploy_dir.join(&asset_name))?;
-            println!("  OK: staged {asset_name}");
+            std::fs::copy(&built_bin, deploy_dir.join(&bin_name))?;
+            println!("  OK: staged {bin_name}");
             built += 1;
         } else {
             println!("  FAIL: binary not found at {}", built_bin.display());

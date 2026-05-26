@@ -93,6 +93,10 @@ jobs:
           TOKEN=$(echo -n "$HARVEST_PAT" | tr -d '[:space:]')
           git config --global url."https://x-access-token:${TOKEN}@github.com/".insteadOf "https://github.com/"
 
+      - name: Install Rust toolchain for plasmidbin CLI (GitHub-hosted only)
+        if: ${{ vars.USE_GITHUB_HOSTED == 'true' }}
+        uses: dtolnay/rust-toolchain@stable
+
       - name: Build or check primals
         env:
           LINKER_ENV: ${{ matrix.linker_env }}
@@ -121,7 +125,7 @@ jobs:
               fi
             done
           else
-            ./build-primal.sh --all --target "${{ matrix.target }}"
+            cargo run -p plasmidbin -- build all --target "${{ matrix.target }}"
           fi
 
       - name: Upload build artifacts
@@ -176,6 +180,10 @@ jobs:
           TOKEN=$(echo -n "$HARVEST_PAT" | tr -d '[:space:]')
           git config --global url."https://x-access-token:${TOKEN}@github.com/".insteadOf "https://github.com/"
 
+      - name: Install Rust toolchain for plasmidbin CLI (GitHub-hosted only)
+        if: ${{ vars.USE_GITHUB_HOSTED == 'true' }}
+        uses: dtolnay/rust-toolchain@stable
+
       - name: Build or check primals
         env:
           LINKER_ENV: ${{ matrix.linker_env }}
@@ -204,7 +212,7 @@ jobs:
               fi
             done
           else
-            ./build-primal.sh --all --target "${{ matrix.target }}"
+            cargo run -p plasmidbin -- build all --target "${{ matrix.target }}"
           fi
 
       - name: Upload build artifacts
@@ -227,8 +235,19 @@ jobs:
         with:
           token: ${{ secrets.PLASMIDBIN_HARVEST_PAT }}
 
-      - name: Install b3sum
-        run: cargo install b3sum --locked || true
+      - name: Install Rust toolchain (GitHub-hosted only)
+        if: ${{ vars.USE_GITHUB_HOSTED == 'true' }}
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo (GitHub-hosted only)
+        if: ${{ vars.USE_GITHUB_HOSTED == 'true' }}
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: harvest-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Download all build artifacts
         uses: actions/download-artifact@v4
@@ -237,6 +256,7 @@ jobs:
 
       - name: Harvest all architectures
         run: |
+          HARVEST_FAILURES=0
           for artifact_dir in /tmp/harvest-artifacts/primals-*/; do
             [[ -d "$artifact_dir" ]] || continue
             triple=$(basename "$artifact_dir" | sed 's/^primals-//')
@@ -246,12 +266,21 @@ jobs:
             count=$(find "$artifact_dir" -maxdepth 1 -type f | wc -l)
             if [[ "$count" -eq 0 ]]; then
               echo "  (no binaries for $triple)"
+              HARVEST_FAILURES=$((HARVEST_FAILURES + 1))
               continue
             fi
 
-            ./harvest.sh --source "$artifact_dir" --arch "$triple" || \
-              echo "WARNING: harvest failed for $triple"
+            if ! cargo run -p plasmidbin -- harvest --arch "$triple" --source "$artifact_dir" --root .; then
+              echo "ERROR: harvest failed for $triple"
+              HARVEST_FAILURES=$((HARVEST_FAILURES + 1))
+            fi
           done
+
+          if [[ "$HARVEST_FAILURES" -gt 0 ]]; then
+            echo ""
+            echo "FATAL: $HARVEST_FAILURES architecture(s) failed harvest"
+            exit 1
+          fi
 
       - name: Commit updated checksums and binaries
         run: |

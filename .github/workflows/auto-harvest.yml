@@ -157,13 +157,17 @@ jobs:
           TOKEN=$(echo -n "$HARVEST_PAT" | tr -d '[:space:]')
           git config --global url."https://x-access-token:${TOKEN}@github.com/".insteadOf "https://github.com/"
 
+      - name: Install Rust toolchain for plasmidbin CLI (GitHub-hosted only)
+        if: ${{ vars.USE_GITHUB_HOSTED == 'true' }}
+        uses: dtolnay/rust-toolchain@stable
+
       - name: Build primal(s) for ${{ matrix.target }}
         run: |
           PRIMAL="${{ needs.prepare.outputs.primal }}"
           if [[ "$PRIMAL" == "all" ]]; then
-            ./build-primal.sh --all --target "${{ matrix.target }}"
+            cargo run -p plasmidbin -- build all --target "${{ matrix.target }}"
           else
-            ./build-primal.sh "$PRIMAL" --target "${{ matrix.target }}"
+            cargo run -p plasmidbin -- build "$PRIMAL" --target "${{ matrix.target }}"
           fi
 
       - name: Upload build artifacts

@@ -3,13 +3,13 @@
 # smoke.yml — Post-release deployment smoke test
 #
 # Triggered when a new release is published. Downloads binaries via
-# fetch.sh, starts a minimal composition, probes health endpoints,
+# plasmidbin fetch, starts a minimal composition, probes health endpoints,
 # and reports pass/fail.
 #
 # genomeBin releases contain multi-arch assets ({name}-{triple}).
-# fetch.sh auto-detects the runner architecture (x86_64-unknown-linux-musl)
-# and downloads the correct binaries. Real gate testing covers
-# aarch64 and armv7 on actual hardware.
+# plasmidbin fetch auto-detects the runner architecture and downloads
+# the correct binaries. Real gate testing covers aarch64 and armv7
+# on actual hardware.
 #
 # Runner strategy: sovereign-first. Uses self-hosted irongate runner by default.
 # Set org variable USE_GITHUB_HOSTED=true to fall back to ubuntu-latest.
@@ -39,6 +39,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Install Rust toolchain (GitHub-hosted only)
+        if: ${{ vars.USE_GITHUB_HOSTED == 'true' }}
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo (GitHub-hosted only)
+        if: ${{ vars.USE_GITHUB_HOSTED == 'true' }}
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: smoke-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
+
       - name: Determine release tag
         id: tag
         run: |
@@ -59,7 +73,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           echo "Fetching release ${{ steps.tag.outputs.tag }}"
-          ./fetch.sh --all --release "${{ steps.tag.outputs.tag }}"
+          cargo run -p plasmidbin -- fetch --all --release "${{ steps.tag.outputs.tag }}"
 
       - name: List fetched binaries
         run: |
