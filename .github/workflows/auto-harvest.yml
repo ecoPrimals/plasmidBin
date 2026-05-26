@@ -140,9 +140,6 @@ jobs:
           linker = "arm-linux-gnueabihf-gcc"
           TOML
 
-      - name: Install b3sum
-        run: cargo install b3sum --locked || true
-
       - name: Configure git for private repos
         env:
           HARVEST_PAT: ${{ secrets.PLASMIDBIN_HARVEST_PAT }}
@@ -181,8 +178,17 @@ jobs:
         with:
           token: ${{ secrets.PLASMIDBIN_HARVEST_PAT }}
 
-      - name: Install b3sum
-        run: cargo install b3sum --locked || true
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: harvest-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Download all build artifacts
         uses: actions/download-artifact@v4
@@ -207,11 +213,11 @@ jobs:
               continue
             fi
 
-            ARGS=(--source "$artifact_dir" --arch "$triple")
+            ARGS=(--arch "$triple" --source "$artifact_dir" --root .)
             if [[ "$PRIMAL" != "all" ]]; then
               ARGS+=(--primal "$PRIMAL")
             fi
-            if ! ./harvest.sh "${ARGS[@]}"; then
+            if ! cargo run -p plasmidbin -- harvest "${ARGS[@]}"; then
               echo "ERROR: harvest failed for $triple"
               HARVEST_FAILURES=$((HARVEST_FAILURES + 1))
             fi
@@ -249,47 +255,7 @@ jobs:
 
       - name: Post-harvest validation
         if: ${{ steps.commit.outputs.changed == 'true' }}
-        run: |
-          echo "=== Post-harvest integrity check ==="
-
-          FAIL=0
-
-          # 1. Binary presence: every primal in checksums.toml has a file on disk
-          for triple_dir in primals/*/; do
-            triple=$(basename "$triple_dir")
-            [[ "$triple" == "x86_64-unknown-linux-musl" || \
-               "$triple" == "aarch64-unknown-linux-musl" || \
-               "$triple" == "armv7-unknown-linux-musleabihf" ]] || continue
-
-            for bin in "$triple_dir"/*; do
-              [[ -f "$bin" ]] || continue
-              name=$(basename "$bin")
-              expected=$(grep -A1 "^\[primals\.${name}\]" checksums.toml | \
-                         grep "\"${triple}\"" | \
-                         sed 's/.*= *"\(.*\)"/\1/' || true)
-              if [[ -z "$expected" ]]; then
-                echo "  WARN: $name ($triple) — no checksum entry"
-                continue
-              fi
-              actual=$(b3sum --no-names "$bin")
-              if [[ "$actual" != "$expected" ]]; then
-                echo "  FAIL: $name ($triple) — hash mismatch"
-                echo "    expected: $expected"
-                echo "    actual:   $actual"
-                FAIL=$((FAIL + 1))
-              else
-                echo "  OK: $name ($triple)"
-              fi
-            done
-          done
-
-          if [[ "$FAIL" -gt 0 ]]; then
-            echo ""
-            echo "FATAL: $FAIL checksum mismatches after harvest — checksums.toml is inconsistent"
-            exit 1
-          fi
-          echo ""
-          echo "Post-harvest validation passed"
+        run: cargo run -p plasmidbin -- validate .
 
       - name: Rename assets for multi-arch release
         id: assets

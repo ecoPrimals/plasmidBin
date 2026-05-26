@@ -22,10 +22,10 @@ binaries from GitHub Releases, and start compositions with `./start_primal.sh`.
 
 ## Technical Facts
 
-- **Language:** Bash (scripts) + Rust 2024 (`validate/` crate — serde-typed validation), TOML (metadata)
+- **Language:** Rust 2024 (`plasmidbin` CLI — 15 subcommands replacing all bash scripts), TOML (metadata)
 - **License:** AGPL-3.0-or-later
 - **Binary format:** musl-static ELF, stripped, cross-compiled (x86_64, aarch64, armv7)
-- **Integrity:** BLAKE3 checksums in `checksums.toml`, verified by `fetch.sh`
+- **Integrity:** BLAKE3 checksums in `checksums.toml`, verified natively by `plasmidbin` (blake3 crate)
 - **Primals tracked:** 13 (beardog, songbird, nestgate, toadstool, squirrel,
   biomeos, petaltongue, rhizocrypt, loamspine, sweetgrass, coralreef,
   barracuda, skunkbat)
@@ -36,14 +36,13 @@ binaries from GitHub Releases, and start compositions with `./start_primal.sh`.
 
 | File | Purpose |
 |------|---------|
-| `fetch.sh` | Download binaries from GitHub Releases, verify checksums |
-| `harvest.sh` | Build checksums, update metadata, create GitHub Release |
-| `start_primal.sh` | Unified startup wrapper — maps generic flags to per-primal CLI quirks |
+| `crates/plasmidbin/` | Unified CLI binary — 15 subcommands (validate, harvest, fetch, doctor, ...) |
+| `crates/plasmidbin-types/` | Typed domain models — Arch enum, serde-typed TOML parsing |
 | `ports.env` | Canonical TCP port assignments (9100–9800) and composition definitions |
 | `manifest.toml` | Ecosystem genome: primals, springs, atomics, niches, binaries |
 | `checksums.toml` | BLAKE3 hashes per primal per target triple |
 | `sources.toml` | Maps primals to source repos with build metadata |
-| `stage_usb.sh` | Stage primals + metadata for USB / offline deployment (Tier 3) |
+| `legacy/*.sh` | Bash scripts (preserved for reference, replaced by plasmidbin CLI) |
 
 ## How It Works
 

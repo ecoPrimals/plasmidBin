@@ -141,6 +141,13 @@ if [[ -z "$ARCH" ]]; then
     ARCH=$(detect_arch)
 fi
 
+# Normalize full triples to short arch names (CI passes full triples)
+case "$ARCH" in
+    x86_64-unknown-linux-musl)       ARCH="x86_64" ;;
+    aarch64-unknown-linux-musl)      ARCH="aarch64" ;;
+    armv7-unknown-linux-musleabihf)  ARCH="armv7" ;;
+esac
+
 ARCH_TRIPLE=$(arch_to_triple "$ARCH")
 
 if [[ -z "$SOURCE_DIR" ]]; then
@@ -151,9 +158,10 @@ fi
 case "$ARCH" in
     x86_64)  HARVEST_MAP=("${HARVEST_MAP_X86_64[@]}") ;;
     aarch64) HARVEST_MAP=("${HARVEST_MAP_AARCH64[@]}") ;;
+    armv7)   HARVEST_MAP=("${HARVEST_MAP_X86_64[@]//x86_64/armv7}") ;;
     *)
         echo "ERROR: Unsupported architecture: $ARCH"
-        echo "  Supported: x86_64, aarch64"
+        echo "  Supported: x86_64, aarch64, armv7"
         exit 1
         ;;
 esac

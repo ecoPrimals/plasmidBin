@@ -1,9 +1,10 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 #
-# validate.yml — plasmidBin metadata integrity checks
+# validate.yml — plasmidBin metadata integrity checks (Rust-powered)
 #
-# Validates manifest.toml, checksums.toml, ports.env, sources.toml
-# consistency and all shell script syntax on every push/PR.
+# Typed validation via `plasmidbin validate` replaces all bash grep/sed/xargs
+# checks. Parses manifest.toml, checksums.toml, ports.env, sources.toml with
+# serde-typed structs, cross-validates references, and checks shell syntax.
 
 name: Validate Metadata
 
@@ -22,134 +23,23 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Validate manifest.toml structure
-        run: |
-          errors=0
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
 
-          if [[ ! -f manifest.toml ]]; then
-            echo "FAIL: manifest.toml not found"
-            exit 1
-          fi
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: validate-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
 
-          for section in '\[manifest\]' '\[primals\.' '\[atomics\.' '\[springs\.'; do
-            if ! grep -q "$section" manifest.toml; then
-              echo "MISSING section: $section in manifest.toml"
-              errors=$((errors + 1))
-            fi
-          done
-
-          primal_count=$(grep -c '^\[primals\.' manifest.toml || true)
-          echo "manifest.toml: $primal_count primal entries"
-          if [[ "$primal_count" -lt 13 ]]; then
-            echo "WARN: expected at least 13 primals, found $primal_count"
-          fi
-
-          if [[ $errors -gt 0 ]]; then
-            echo "FAILED: $errors manifest structure error(s)"
-            exit 1
-          fi
-          echo "manifest.toml structure OK"
-
-      - name: Validate checksums.toml
-        run: |
-          errors=0
-
-          if [[ ! -f checksums.toml ]]; then
-            echo "FAIL: checksums.toml not found"
-            exit 1
-          fi
-
-          while IFS='=' read -r key val; do
-            key=$(echo "$key" | xargs)
-            val=$(echo "$val" | xargs | tr -d '"')
-            [[ -z "$val" ]] && continue
-            [[ "$key" =~ ^# ]] && continue
-            [[ "$key" =~ ^\[ ]] && continue
-
-            if ! echo "$val" | grep -qE '^[0-9a-f]{64}$'; then
-              echo "BAD HASH: $key = $val (not 64 hex chars)"
-              errors=$((errors + 1))
-            fi
-          done < checksums.toml
-
-          if [[ $errors -gt 0 ]]; then
-            echo "FAILED: $errors checksum format error(s)"
-            exit 1
-          fi
-
-          entry_count=$(grep -cE '^[a-z].*= "[0-9a-f]{64}"' checksums.toml || true)
-          echo "checksums.toml: $entry_count hash entries, all valid BLAKE3 format"
-
-      - name: Check port conflicts
-        run: |
-          source ports.env
-
-          declare -A ports
-          errors=0
-
-          while IFS='=' read -r var val; do
-            [[ "$var" =~ _PORT$ ]] || continue
-            val=$(eval echo "$val")
-            if [[ -n "${ports[$val]:-}" ]]; then
-              echo "CONFLICT: port $val assigned to both ${ports[$val]} and $var"
-              errors=$((errors + 1))
-            fi
-            ports[$val]="$var"
-          done < <(grep '_PORT=' ports.env | grep -v '^#' | sed 's/\${.*:-\(.*\)}/\1/' | sed "s/\"//g")
-
-          if [[ $errors -gt 0 ]]; then
-            echo "FAILED: $errors port conflict(s)"
-            exit 1
-          fi
-
-          echo "No port conflicts. ${#ports[@]} ports assigned."
-
-      - name: Validate sources.toml completeness
-        run: |
-          errors=0
-
-          if [[ ! -f sources.toml ]]; then
-            echo "FAIL: sources.toml not found"
-            exit 1
-          fi
-
-          manifest_primals=$(grep '^\[primals\.' manifest.toml | sed 's/\[primals\.\(.*\)\]/\1/' | sort)
-          source_entries=$(grep '^\[sources\.' sources.toml | sed 's/\[sources\.\(.*\)\]/\1/' | sort)
-
-          for primal in $manifest_primals; do
-            if ! echo "$source_entries" | grep -qw "$primal"; then
-              echo "MISSING: primal '$primal' in manifest but not in sources.toml"
-              errors=$((errors + 1))
-            fi
-          done
-
-          if [[ $errors -gt 0 ]]; then
-            echo "WARN: $errors primal(s) in manifest without source entries"
-          fi
-
-          echo "sources.toml: $(echo "$source_entries" | wc -l) entries"
-
-      - name: Validate shell script syntax
-        run: |
-          errors=0
-          for script in *.sh membrane/*.sh; do
-            [[ -f "$script" ]] || continue
-            if bash -n "$script" 2>&1; then
-              echo "  OK: $script"
-            else
-              echo "  FAIL: $script"
-              errors=$((errors + 1))
-            fi
-          done
-
-          if [[ $errors -gt 0 ]]; then
-            echo "FAILED: $errors script syntax error(s)"
-            exit 1
-          fi
-          echo "All shell scripts pass syntax check."
+      - name: Run plasmidbin validate
+        run: cargo run -p plasmidbin -- validate .
 
       - name: Dry-run fetch (check asset availability)
         if: github.event_name == 'push'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: ./fetch.sh --dry-run 2>&1 || echo "(no releases yet — expected for fresh repos)"
+        run: cargo run -p plasmidbin -- fetch --dry-run --all 2>&1 || echo "(no releases yet — expected for fresh repos)"

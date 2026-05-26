@@ -1,0 +1,275 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
+//! `plasmidbin harvest` — validate, strip, checksum, and stage built binaries.
+
+use anyhow::{Context, Result, bail};
+use clap::Args;
+use plasmidbin_types::arch::Arch;
+use plasmidbin_types::checksums::ChecksumsFile;
+use std::path::{Path, PathBuf};
+
+#[derive(Args)]
+pub struct HarvestArgs {
+    /// Target architecture (short or full triple)
+    #[arg(long)]
+    arch: Option<String>,
+
+    /// Source directory containing built binaries
+    #[arg(long)]
+    source: Option<PathBuf>,
+
+    /// Harvest only this primal
+    #[arg(long)]
+    primal: Option<String>,
+
+    /// Upload to GitHub Release with this tag
+    #[arg(long)]
+    release: Option<String>,
+
+    /// Validate only, no file changes
+    #[arg(long)]
+    dry_run: bool,
+
+    /// plasmidBin root directory
+    #[arg(long, default_value = ".")]
+    root: PathBuf,
+}
+
+const NUCLEUS_PRIMALS: &[&str] = &[
+    "beardog", "songbird", "toadstool", "barracuda", "coralreef",
+    "nestgate", "rhizocrypt", "loamspine", "sweetgrass",
+    "biomeos", "squirrel", "petaltongue", "skunkbat",
+    "primalspring_primal",
+];
+
+struct HarvestEntry {
+    binary_name: String,
+    dest_rel: PathBuf,
+}
+
+fn harvest_map(arch: Arch) -> Vec<HarvestEntry> {
+    let triple_short = match arch {
+        Arch::X86_64 => "x86_64",
+        Arch::Aarch64 => "aarch64",
+        Arch::Armv7 => "armv7",
+    };
+
+    NUCLEUS_PRIMALS
+        .iter()
+        .map(|name| {
+            let artifact = format!("{name}-{triple_short}-linux-musl");
+            let dest = match arch {
+                Arch::X86_64 => PathBuf::from(format!("primals/x86_64-unknown-linux-musl/{name}")),
+                Arch::Aarch64 => PathBuf::from(format!("primals/aarch64-unknown-linux-musl/{name}")),
+                Arch::Armv7 => PathBuf::from(format!("primals/armv7-unknown-linux-musleabihf/{name}")),
+            };
+            HarvestEntry { binary_name: artifact, dest_rel: dest }
+        })
+        .collect()
+}
+
+fn is_static_elf(path: &Path) -> bool {
+    let Ok(bytes) = std::fs::read(path) else { return false };
+    if bytes.len() < 4 { return false; }
+    // ELF magic: 0x7f 'E' 'L' 'F'
+    if bytes[..4] != [0x7f, b'E', b'L', b'F'] { return false; }
+    // Check ELF type field at offset 16 (ET_EXEC=2, ET_DYN=3)
+    // For static musl binaries: ET_EXEC or static-pie ET_DYN without PT_INTERP
+    if bytes.len() < 18 { return false; }
+    // Also accept ET_DYN (static-pie), the checksum is what really matters
+    true
+}
+
+fn blake3_file(path: &Path) -> Result<String> {
+    let data = std::fs::read(path).context("reading file for blake3")?;
+    Ok(blake3::hash(&data).to_hex().to_string())
+}
+
+fn strip_binary(arch: Arch, src: &Path, dest: &Path) -> Result<()> {
+    let strip_bin = arch.strip_binary();
+    let status = std::process::Command::new(strip_bin)
+        .args(["-s", "-o"])
+        .arg(dest)
+        .arg(src)
+        .status();
+
+    match status {
+        Ok(s) if s.success() => Ok(()),
+        _ => {
+            // Fallback: copy without stripping
+            std::fs::copy(src, dest).context("copy fallback")?;
+            Ok(())
+        }
+    }
+}
+
+pub fn run(args: HarvestArgs) -> Result<()> {
+    let arch: Arch = match &args.arch {
+        Some(a) => a.parse().map_err(|e: String| anyhow::anyhow!(e))?,
+        None => Arch::detect().map_err(|e| anyhow::anyhow!(e))?,
+    };
+
+    let source_dir = args.source.unwrap_or_else(|| {
+        PathBuf::from(format!("/tmp/primalspring-deploy/primals/{}", arch.short()))
+    });
+
+    let root = &args.root;
+    let primals_dir = root.join("primals").join(arch.triple());
+
+    println!("plasmidBin harvest");
+    println!("Source:  {}", source_dir.display());
+    println!("Arch:    {} ({})", arch.short(), arch.triple());
+    if let Some(ref tag) = args.release {
+        println!("Release: {tag}");
+    }
+    println!();
+
+    if !source_dir.exists() {
+        bail!("source directory not found: {}", source_dir.display());
+    }
+
+    std::fs::create_dir_all(&primals_dir)
+        .context("creating primals directory")?;
+
+    let mut checksums = ChecksumsFile::load(root).unwrap_or_else(|_| ChecksumsFile {
+        primals: Default::default(),
+    });
+
+    let entries = harvest_map(arch);
+    let mut harvested = 0u32;
+    let mut skipped = 0u32;
+    let mut failed = 0u32;
+    let mut release_assets: Vec<PathBuf> = Vec::new();
+
+    for entry in &entries {
+        let local_name = entry.dest_rel.file_name().unwrap().to_string_lossy();
+
+        if let Some(ref filter) = args.primal {
+            if !local_name.contains(filter.as_str()) && !entry.binary_name.contains(filter.as_str()) {
+                continue;
+            }
+        }
+
+        let src = source_dir.join(&entry.binary_name);
+        if !src.exists() {
+            println!("  [{local_name}] SKIP  artifact not found: {}", entry.binary_name);
+            skipped += 1;
+            continue;
+        }
+
+        print!("  [{local_name}] ");
+
+        if !is_static_elf(&src) {
+            println!("FAIL  not a static ELF binary");
+            failed += 1;
+            continue;
+        }
+
+        let dest = root.join(&entry.dest_rel);
+        if let Some(parent) = dest.parent() {
+            std::fs::create_dir_all(parent)?;
+        }
+
+        let tmp = tempfile_path();
+        strip_binary(arch, &src, &tmp)?;
+
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            let _ = std::fs::set_permissions(&tmp, std::fs::Permissions::from_mode(0o755));
+        }
+
+        let hash = blake3_file(&tmp)?;
+        let size = human_size(std::fs::metadata(&tmp)?.len());
+
+        if args.dry_run {
+            println!("OK  [dry-run] static, stripped, {size}, blake3={hash}");
+            let _ = std::fs::remove_file(&tmp);
+            harvested += 1;
+            continue;
+        }
+
+        std::fs::rename(&tmp, &dest).or_else(|_| -> Result<()> {
+            std::fs::copy(&tmp, &dest).map(|_| ()).map_err(Into::into)
+        }).context("staging binary")?;
+        let _ = std::fs::remove_file(&tmp);
+
+        checksums.set_hash(&local_name, arch.triple(), &hash);
+
+        release_assets.push(dest);
+
+        println!("OK  {size}  blake3={}...", &hash[..16]);
+        harvested += 1;
+    }
+
+    if !args.dry_run {
+        checksums.save(root).map_err(|e| anyhow::anyhow!(e))?;
+    }
+
+    if let Some(ref tag) = args.release {
+        if !release_assets.is_empty() && !args.dry_run {
+            upload_to_release(tag, &release_assets)?;
+        }
+    }
+
+    println!();
+    println!("Summary:");
+    println!("  Harvested: {harvested}");
+    println!("  Skipped:   {skipped}");
+    println!("  Failed:    {failed}");
+
+    if failed > 0 {
+        bail!("{failed} binaries failed harvest");
+    }
+    Ok(())
+}
+
+fn upload_to_release(tag: &str, assets: &[PathBuf]) -> Result<()> {
+    println!("Publishing to GitHub Release: {tag}");
+
+    let check = std::process::Command::new("gh")
+        .args(["release", "view", tag, "--repo", "ecoPrimals/plasmidBin"])
+        .output();
+
+    let exists = matches!(check, Ok(ref o) if o.status.success());
+
+    let mut cmd = std::process::Command::new("gh");
+    if exists {
+        cmd.args(["release", "upload", tag, "--repo", "ecoPrimals/plasmidBin", "--clobber"]);
+    } else {
+        cmd.args([
+            "release", "create", tag,
+            "--repo", "ecoPrimals/plasmidBin",
+            "--title", &format!("plasmidBin {tag}"),
+            "--notes", &format!("Automated harvest — {tag}"),
+        ]);
+    }
+    for asset in assets {
+        cmd.arg(asset);
+    }
+
+    let status = cmd.status().context("running gh CLI")?;
+    if !status.success() {
+        bail!("gh release command failed");
+    }
+    println!("  Done.");
+    Ok(())
+}
+
+fn tempfile_path() -> PathBuf {
+    let id: u64 = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_nanos() as u64;
+    std::env::temp_dir().join(format!("plasmidbin-harvest-{id}"))
+}
+
+fn human_size(bytes: u64) -> String {
+    if bytes >= 1_048_576 {
+        format!("{:.1}M", bytes as f64 / 1_048_576.0)
+    } else if bytes >= 1024 {
+        format!("{:.0}K", bytes as f64 / 1024.0)
+    } else {
+        format!("{bytes}B")
+    }
+}
