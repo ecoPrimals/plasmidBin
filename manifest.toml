@@ -51,7 +51,7 @@ checksum_algorithm = "blake3"
 [primals.beardog]
 name = "BearDog"
 description = "Cryptographic spine — signing, encryption, identity, Dark Forest Gate"
-latest = "0.9.0"
+latest = "0.9.4"
 phase = 1
 capabilities = ["crypto", "birdsong", "lineage", "hsm", "entropy", "jwt"]
 seed_fingerprint = "6ca141176cab1d864bc507b9e257826125db8c5497245176e28d9e6dee7fa2c3"
