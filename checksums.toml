@@ -22,6 +22,11 @@
 "armv7-unknown-linux-musleabihf" = "eb4a50b219fe53f2a93bda480ed724b58904c2807a7093f2ca6a8be53f882e02"
 "x86_64-unknown-linux-musl" = "7478c52e48c66eedecb8197f8070195edca4102fc04dcfdc74f7e0824afa8f03"
 
+[primals.biomeos-cli]
+"aarch64-unknown-linux-musl" = "6f08f68bfe25fa4d4cfecf41242b0972f104bc2afb445a6001efe5a61e8a51bd"
+"armv7-unknown-linux-musleabihf" = "0283d80fc811a8c93c89a46ffa694ab9a16689bc9fd301b4462d86f5fd8ce129"
+"x86_64-unknown-linux-musl" = "45a927b81188143aa662387852cd929a65a99c485cfe9d79103299c43409037c"
+
 [primals.coralreef]
 "aarch64-unknown-linux-musl" = "2d2d6108a66b1c544002d23781493ebb01796f8e500317facf440240c31c77ed"
 "armv7-unknown-linux-musleabihf" = "8bfd9a8490d5b5ecee92dffd654b3d1a763a91ea5ed39cbc8d9149cf0e9eacce"
