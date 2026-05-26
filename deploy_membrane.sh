@@ -791,17 +791,25 @@ verify_composition() {
         fi
     done
 
+    local ufw_pattern="22/tcp|3478|21115|21116|21117|80/tcp|443/tcp"
+    if ssh "$remote" "test -x /opt/membrane/nestgate" 2>/dev/null; then
+        ufw_pattern="$ufw_pattern|9500|9601|9700|9850"
+    fi
     local ufw_rules
-    ufw_rules=$(ssh "$remote" "ufw status 2>/dev/null | grep -cE '22/tcp|3478|21115|21116|21117' || echo 0")
+    ufw_rules=$(ssh "$remote" "ufw status 2>/dev/null | grep -cE '$ufw_pattern' || echo 0")
     log "  UFW rules matching composition: $ufw_rules"
 
     local unexpected
-    unexpected=$(ssh "$remote" "ufw status 2>/dev/null | grep ALLOW | grep -cvE '22/tcp|3478|21115|21116|21117' || echo 0")
+    unexpected=$(ssh "$remote" "ufw status 2>/dev/null | grep ALLOW | grep -cvE '$ufw_pattern' || echo 0")
     if [[ "$unexpected" -gt 0 ]]; then
         log "  WARNING: $unexpected UFW rules outside expected composition ports"
     fi
 
-    for svc in beardog-membrane songbird-relay skunkbat-membrane; do
+    local check_svcs="beardog-membrane songbird-relay skunkbat-membrane"
+    if ssh "$remote" "test -x /opt/membrane/nestgate" 2>/dev/null; then
+        check_svcs="$check_svcs nestgate-membrane rhizocrypt-membrane loamspine-membrane sweetgrass-membrane"
+    fi
+    for svc in $check_svcs; do
         local active
         active=$(ssh "$remote" "systemctl is-active $svc 2>/dev/null || echo inactive")
         if [[ "$active" != "active" ]]; then

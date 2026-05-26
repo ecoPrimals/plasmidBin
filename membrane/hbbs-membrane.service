@@ -24,7 +24,7 @@ StartLimitBurst=5
 
 [Service]
 Type=simple
-ExecStart=/opt/membrane/hbbs -r 157.230.3.183
+ExecStart=/bin/sh -c '/opt/membrane/hbbs -r $(hostname -I | awk "{print \\$1}")'
 WorkingDirectory=/opt/membrane/rustdesk
 
 Restart=always
