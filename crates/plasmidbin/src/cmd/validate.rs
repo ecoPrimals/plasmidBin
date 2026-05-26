@@ -3,7 +3,7 @@
 use anyhow::Result;
 use clap::Args;
 use plasmidbin_types::{Report, checksums, manifest, ports, sources};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 #[derive(Args)]
 pub struct ValidateArgs {
@@ -105,7 +105,7 @@ fn cross_validate(
     }
 }
 
-fn check_shell_scripts(root: &PathBuf, report: &mut Report) {
+fn check_shell_scripts(root: &Path, report: &mut Report) {
     let patterns = [root.join("*.sh"), root.join("membrane/*.sh")];
     let mut checked = 0;
 
@@ -151,9 +151,12 @@ fn glob_files(pattern: &str) -> Vec<PathBuf> {
     if let Ok(entries) = std::fs::read_dir(dir) {
         for entry in entries.flatten() {
             let name = entry.file_name().to_string_lossy().to_string();
-            if file_pattern == "*.sh" && name.ends_with(".sh") {
-                results.push(entry.path());
-            } else if name == file_pattern {
+            let dominated = if file_pattern == "*.sh" {
+                name.ends_with(".sh")
+            } else {
+                name == file_pattern
+            };
+            if dominated {
                 results.push(entry.path());
             }
         }

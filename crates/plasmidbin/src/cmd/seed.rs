@@ -172,9 +172,9 @@ fn seed_export(args: SeedExportArgs) -> Result<()> {
 }
 
 fn shellexpand(path: &str) -> String {
-    if path.starts_with("~/") {
+    if let Some(rest) = path.strip_prefix("~/") {
         if let Ok(home) = std::env::var("HOME") {
-            return format!("{}/{}", home, &path[2..]);
+            return format!("{home}/{rest}");
         }
     }
     path.to_string()
