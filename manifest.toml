@@ -63,7 +63,7 @@ check_pass = ["x86_64-apple-darwin", "aarch64-apple-darwin"]
 [primals.nestgate]
 name = "NestGate"
 description = "Storage primal — persistence, provenance, compression"
-latest = "0.1.0"
+latest = "0.5.0"
 phase = 1
 capabilities = ["storage", "provenance", "compression"]
 seed_fingerprint = "cd8050f186fd2027413675bec68c5f94d04c34dc30711a9372c66f818eb07148"
