@@ -1,17 +1,9 @@
 # plasmidBin checksums — blake3
 #
 # One entry per binary, keyed by full target triple.
-# Validated by plasmidbin validate, plasmidbin harvest, and plasmidbin fetch.
+# Validated by plasmidbin validate.
 #
 # genomeBin layout: primals/{target-triple}/{primal}
-# Backward-compat symlinks: primals/{primal} -> x86_64-unknown-linux-musl/{primal}
-#
-# Target matrix (ecoBin Architecture Standard tiers):
-#   Tier 1 MUST:   x86_64-unknown-linux-musl, aarch64-unknown-linux-musl, armv7-unknown-linux-musleabihf
-#   Tier 2 SHOULD: x86_64-pc-windows-gnu, aarch64-linux-android, x86_64-apple-darwin (check-only), aarch64-apple-darwin (check-only)
-#   Tier 3 NICE:   riscv64gc-unknown-linux-musl, wasm32-wasip1 (check-only)
-#
-# Updated: 2026-05-26 (genomeBin v5.6.0 — 458-method registry, Wave 51, 13/13 primals)
 
 [primals.barracuda]
 "aarch64-linux-android" = "e34e40f4b42f909d240dfce68785ff338231e1bd51fe5f2c2afbdfe0dfb974a0"
@@ -64,9 +56,9 @@
 
 [primals.songbird]
 "aarch64-linux-android" = "9024e9c4500e3f842dcb51d64e29683fc21554488880273dd48e94f9d3c2543b"
-"aarch64-unknown-linux-musl" = "7600e1d5de5e7876fab79952c1fd2c9ae3a22b6a44aa7396e58cf331dc62f9fa"
-"armv7-unknown-linux-musleabihf" = "47f680f392d24f480b0d584761292673f659c395ec1ebe52b6d47193e20121a1"
-"x86_64-unknown-linux-musl" = "87fc2b0a5b624819efc7bab6b8f73c318db6f70cd0d6d9b24c580b50d4fb7c00"
+"aarch64-unknown-linux-musl" = "ed2117831a904bf1623b84af9de4d00e2704fef6d082686410bc96098c3e5fa8"
+"armv7-unknown-linux-musleabihf" = "99346395f58455987e76622fa92a72fce358e65a1271a42d1e349afcb80aeed9"
+"x86_64-unknown-linux-musl" = "af5738b3b0abd566d6deedaca1771f7baafd7deadfe91255d55fa45f7844d763"
 
 [primals.squirrel]
 "aarch64-unknown-linux-musl" = "79cdc248e9a3acd20a8b569be37bf7dfd98000704f25cf3a9ae2bbaa51837a8d"
