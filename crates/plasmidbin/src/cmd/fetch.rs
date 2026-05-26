@@ -79,6 +79,15 @@ pub fn run(args: FetchArgs) -> Result<()> {
 
         print!("  [{id}] ");
 
+        let has_checksums = checksums.get_hash(id, triple).is_some()
+            || checksums.get_hash(&bin_name, triple).is_some();
+
+        if args.all && !has_checksums {
+            println!("SKIP  not yet shipped (no checksums entry)");
+            skipped += 1;
+            continue;
+        }
+
         if local_path.exists() && !args.force {
             println!("EXISTS  {bin_name} (use --force to re-download)");
             skipped += 1;
@@ -163,15 +172,58 @@ pub fn run(args: FetchArgs) -> Result<()> {
     Ok(())
 }
 
+fn gh_output_with_timeout(args: &[&str], timeout_secs: u64) -> Option<std::process::Output> {
+    use std::time::{Duration, Instant};
+
+    let mut child = match std::process::Command::new("gh")
+        .args(args)
+        .stdout(std::process::Stdio::piped())
+        .stderr(std::process::Stdio::piped())
+        .spawn()
+    {
+        Ok(c) => c,
+        Err(_) => return None,
+    };
+
+    let deadline = Instant::now() + Duration::from_secs(timeout_secs);
+    loop {
+        match child.try_wait() {
+            Ok(Some(status)) => {
+                let stdout = child.stdout.take().and_then(|mut s| {
+                    use std::io::Read;
+                    let mut buf = Vec::new();
+                    s.read_to_end(&mut buf).ok().map(|_| buf)
+                }).unwrap_or_default();
+                let stderr = child.stderr.take().and_then(|mut s| {
+                    use std::io::Read;
+                    let mut buf = Vec::new();
+                    s.read_to_end(&mut buf).ok().map(|_| buf)
+                }).unwrap_or_default();
+                return Some(std::process::Output { status, stdout, stderr });
+            }
+            Ok(None) => {
+                if Instant::now() >= deadline {
+                    let _ = child.kill();
+                    let _ = child.wait();
+                    return None;
+                }
+                std::thread::sleep(Duration::from_millis(100));
+            }
+            Err(_) => return None,
+        }
+    }
+}
+
 fn resolve_release_tag(explicit: &Option<String>) -> Result<Option<String>> {
     if let Some(tag) = explicit {
         return Ok(Some(tag.clone()));
     }
-    let output = std::process::Command::new("gh")
-        .args(["release", "view", "--repo", "ecoPrimals/plasmidBin", "--json", "tagName", "-q", ".tagName"])
-        .output();
+    let output = gh_output_with_timeout(
+        &["release", "view", "--repo", "ecoPrimals/plasmidBin", "--json", "tagName", "-q", ".tagName"],
+        15,
+    );
     match output {
-        Ok(o) if o.status.success() => {
+        Some(o) if o.status.success() => {
             let tag = String::from_utf8_lossy(&o.stdout).trim().to_string();
             if tag.is_empty() { Ok(None) } else { Ok(Some(tag)) }
         }
@@ -180,11 +232,12 @@ fn resolve_release_tag(explicit: &Option<String>) -> Result<Option<String>> {
 }
 
 fn resolve_recent_tags() -> Vec<String> {
-    let output = std::process::Command::new("gh")
-        .args(["release", "list", "--repo", "ecoPrimals/plasmidBin", "-L", "10"])
-        .output();
+    let output = gh_output_with_timeout(
+        &["release", "list", "--repo", "ecoPrimals/plasmidBin", "-L", "10"],
+        15,
+    );
     match output {
-        Ok(o) if o.status.success() => {
+        Some(o) if o.status.success() => {
             String::from_utf8_lossy(&o.stdout)
                 .lines()
                 .filter_map(|line| line.split_whitespace().last().map(String::from))
