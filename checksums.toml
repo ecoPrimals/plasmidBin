@@ -56,9 +56,9 @@
 
 [primals.songbird]
 "aarch64-linux-android" = "9024e9c4500e3f842dcb51d64e29683fc21554488880273dd48e94f9d3c2543b"
-"aarch64-unknown-linux-musl" = "ed2117831a904bf1623b84af9de4d00e2704fef6d082686410bc96098c3e5fa8"
-"armv7-unknown-linux-musleabihf" = "99346395f58455987e76622fa92a72fce358e65a1271a42d1e349afcb80aeed9"
-"x86_64-unknown-linux-musl" = "af5738b3b0abd566d6deedaca1771f7baafd7deadfe91255d55fa45f7844d763"
+"aarch64-unknown-linux-musl" = "8c4b8d4a917ca0e457b1933138f494363cfb6782d99addf51ac89294019b48d7"
+"armv7-unknown-linux-musleabihf" = "a748d237d54c0ee1099e5a75320f460356dd69398043bd6447c32bc18b879401"
+"x86_64-unknown-linux-musl" = "f88e7aec51d4f608218f6bd09e6fd0ea2619f1aa2535e25d68b1bf2a378de6db"
 
 [primals.squirrel]
 "aarch64-unknown-linux-musl" = "79cdc248e9a3acd20a8b569be37bf7dfd98000704f25cf3a9ae2bbaa51837a8d"
