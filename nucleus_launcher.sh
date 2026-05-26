@@ -44,6 +44,7 @@ DRY_RUN=false
 VALIDATE=false
 HEALTH_TIMEOUT=20
 STARTUP_WAIT=3
+PEERS=""
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -60,6 +61,9 @@ usage() {
     echo "  --composition NAME   tower|node|nest|nucleus|meta|full (default: nucleus)"
     echo "  --dark-forest        Enable Dark Forest beacon mode"
     echo "  --seed-only          Skip startup, only run Phase 5 registry seeding"
+    echo "  --peers SPEC         Mesh peers for Songbird auto-seeding (comma-separated)"
+    echo "                       Format: node@host:port or host:port"
+    echo "                       Example: --peers iron-gate@192.168.1.238:7700,192.168.4.29:7700"
     echo "  --health-timeout S   Per-primal health timeout (default: 10)"
     echo "  --validate           Run exp091 + exp094 after startup to confirm composition"
     echo "  --dry-run            Show plan without executing"
@@ -71,6 +75,7 @@ while [[ $# -gt 0 ]]; do
         --family-id)       FAMILY_ID="$2"; shift 2 ;;
         --node-id)         NODE_ID="$2"; shift 2 ;;
         --composition)     COMPOSITION="$2"; shift 2 ;;
+        --peers)           PEERS="$2"; shift 2 ;;
         --dark-forest)     DARK_FOREST=true; shift ;;
         --seed-only)       SEED_ONLY=true; shift ;;
         --health-timeout)  HEALTH_TIMEOUT="$2"; shift 2 ;;
@@ -141,6 +146,7 @@ echo "  Composition: $COMPOSITION"
 echo "  Primals:     $ORDERED_PRIMALS"
 echo "  Seed:        ${FAMILY_SEED:0:16}... (${#FAMILY_SEED} chars)"
 echo "  Dark Forest: $DARK_FOREST"
+[[ -n "$PEERS" ]] && echo "  Mesh Peers:  $PEERS"
 echo ""
 
 mkdir -p "$SOCKET_DIR"
@@ -248,6 +254,10 @@ if ! $SEED_ONLY; then
             [[ -S "$BD_SOCK" ]] && EXTRA_FLAGS="--beardog-socket $BD_SOCK"
             if [[ -n "${SONGBIRD_FEDERATION_PORT:-}" ]]; then
                 export SONGBIRD_HTTP_PORT="$SONGBIRD_FEDERATION_PORT"
+            fi
+            if [[ -n "$PEERS" ]]; then
+                export SONGBIRD_PEERS="$PEERS"
+                export SONGBIRD_NODE_ID="$NODE_ID"
             fi
         fi
 
