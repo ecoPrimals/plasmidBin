@@ -76,7 +76,7 @@ check_pass = ["x86_64-apple-darwin", "aarch64-apple-darwin", "aarch64-linux-andr
 [primals.songbird]
 name = "Songbird"
 description = "Network primal — HTTP/TLS, federation, mesh, NAT traversal"
-latest = "0.2.1"
+latest = "5.8.0"
 phase = 1
 capabilities = ["http", "tls", "mesh", "stun", "relay", "birdsong", "discovery", "onion"]
 seed_fingerprint = "b89c8eae9c9bbf2029e08949ba946fd0dafc586eb4bc2837bbe846084ff56ad9"
