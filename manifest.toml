@@ -160,7 +160,7 @@ arch = ["x86_64-unknown-linux-musl", "aarch64-unknown-linux-musl", "armv7-unknow
 [primals.sourdough]
 name = "sourDough"
 description = "Scaffolding — starter culture, core traits, genomeBin tooling, sign/verify, composition validation"
-latest = "0.3.0"
+latest = "0.3.1"
 phase = 2
 capabilities = ["scaffold", "validate", "genomebin", "doctor", "sign", "verify", "layout", "systemd"]
 ecobin_grade = "A++"
@@ -204,9 +204,7 @@ description = "Defense — metadata-only threat detection, lineage verification,
 latest = "0.2.0"
 phase = 3
 capabilities = ["defense", "threat", "metadata", "lineage", "baseline", "health", "audit", "btsp"]
-# seed_fingerprint: MISSING — skunkBat v0.2.0 was promoted without harvest pipeline
-# generating a BLAKE3 fingerprint. Escalation: plasmidBin CI (auto-harvest.yml)
-# should populate this on the next skunkBat push. Do NOT manually generate.
+seed_fingerprint = "68aac5983af41e147d255ede2e339a4a5897adcfa71087c3818de796dcbb79a1"
 ecobin_grade = "A+"
 binary = "skunkbat"
 build_package = "skunk-bat-server"
