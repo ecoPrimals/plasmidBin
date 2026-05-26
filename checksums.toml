@@ -23,9 +23,9 @@
 "x86_64-unknown-linux-musl" = "e83127a0b39d50575cb1789191c214c737e13e736e6d7f200db5ce63f35603a2"
 
 [primals.coralreef]
-"aarch64-unknown-linux-musl" = "2d2d6108a66b1c544002d23781493ebb01796f8e500317facf440240c31c77ed"
-"armv7-unknown-linux-musleabihf" = "8bfd9a8490d5b5ecee92dffd654b3d1a763a91ea5ed39cbc8d9149cf0e9eacce"
-"x86_64-unknown-linux-musl" = "8d81357ed6c4e111bcf2b8ddc77023649f2d285925533f5b90337d7e29dff997"
+"aarch64-unknown-linux-musl" = "786e0689620796086cfda7d4b21dab9762802a918e67ce463210512e91972ce7"
+"armv7-unknown-linux-musleabihf" = "d07e1bc8150e4805f5b94067593af6cbb155b7bf921621fa01a82fd3d876fef2"
+"x86_64-unknown-linux-musl" = "be5124811baf4cb073de598c506ab802cfb87ca107e5e0ca73cc33a34e2a70fb"
 
 [primals.loamspine]
 "aarch64-linux-android" = "d61f6c420390d80df1fed005f1066188cddcf47ad738de9c729e7669f28a8cbb"
