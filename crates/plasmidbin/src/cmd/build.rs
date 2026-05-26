@@ -17,6 +17,10 @@ pub struct BuildArgs {
     #[arg(long)]
     target: Option<String>,
 
+    /// Pin build to a specific git commit SHA (otherwise builds main HEAD)
+    #[arg(long)]
+    commit: Option<String>,
+
     /// Also run harvest after build
     #[arg(long)]
     harvest: bool,
@@ -84,6 +88,28 @@ pub fn run(args: BuildArgs) -> Result<()> {
                 println!("  FAIL: git clone failed for {}", entry.repo);
                 failed += 1;
                 continue;
+            }
+        }
+
+        if let Some(ref sha) = args.commit {
+            println!("  Pinning to commit {}", &sha[..sha.len().min(12)]);
+            let fetch_ok = std::process::Command::new("git")
+                .args(["fetch", "origin", sha])
+                .current_dir(&clone_dir)
+                .status()
+                .map(|s| s.success())
+                .unwrap_or(false);
+            if fetch_ok {
+                let co = std::process::Command::new("git")
+                    .args(["checkout", sha])
+                    .current_dir(&clone_dir)
+                    .status()
+                    .context("git checkout commit")?;
+                if !co.success() {
+                    println!("  WARN: checkout {sha} failed, building HEAD");
+                }
+            } else {
+                println!("  WARN: fetch {sha} failed (shallow clone?), building HEAD");
             }
         }
 

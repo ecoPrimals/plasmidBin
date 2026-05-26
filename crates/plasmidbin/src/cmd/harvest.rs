@@ -30,6 +30,10 @@ pub struct HarvestArgs {
     #[arg(long)]
     release: Option<String>,
 
+    /// Upstream version tag (e.g. "v0.2.1") — updates manifest.toml latest field
+    #[arg(long)]
+    version_tag: Option<String>,
+
     /// Validate only, no file changes
     #[arg(long)]
     dry_run: bool,
@@ -223,6 +227,12 @@ pub fn run(args: HarvestArgs) -> Result<()> {
         checksums.save(root).map_err(|e| anyhow::anyhow!(e))?;
         println!();
         println!("checksums.toml updated ({} primals)", checksums.primals.len());
+
+        if let Some(ref filter) = args.primal {
+            if let Some(ref tag) = args.version_tag {
+                update_manifest_latest(root, filter, tag);
+            }
+        }
     }
 
     if let Some(ref tag) = args.release {
@@ -290,5 +300,40 @@ fn human_size(bytes: u64) -> String {
         format!("{:.0}K", bytes as f64 / 1024.0)
     } else {
         format!("{bytes}B")
+    }
+}
+
+fn update_manifest_latest(root: &Path, primal_id: &str, tag: &str) {
+    let version = tag.strip_prefix('v').unwrap_or(tag);
+    let manifest_path = root.join("manifest.toml");
+    let Ok(content) = std::fs::read_to_string(&manifest_path) else { return };
+
+    let section_header = format!("[primals.{primal_id}]");
+    let Some(section_start) = content.find(&section_header) else {
+        println!("  manifest.toml: no [primals.{primal_id}] section found, skipping update");
+        return;
+    };
+
+    let after_header = section_start + section_header.len();
+    let section_body = &content[after_header..];
+
+    let next_section = section_body.find("\n[").map(|i| after_header + i);
+    let section_end = next_section.unwrap_or(content.len());
+    let body = &content[after_header..section_end];
+
+    if let Some(latest_offset) = body.find("latest = \"") {
+        let abs_offset = after_header + latest_offset + "latest = \"".len();
+        if let Some(end_quote) = content[abs_offset..].find('"') {
+            let old_version = &content[abs_offset..abs_offset + end_quote];
+            if old_version != version {
+                let mut updated = String::with_capacity(content.len());
+                updated.push_str(&content[..abs_offset]);
+                updated.push_str(version);
+                updated.push_str(&content[abs_offset + end_quote..]);
+                if std::fs::write(&manifest_path, &updated).is_ok() {
+                    println!("  manifest.toml: {primal_id} latest {old_version} -> {version}");
+                }
+            }
+        }
     }
 }

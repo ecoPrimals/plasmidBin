@@ -164,10 +164,15 @@ jobs:
       - name: Build primal(s) for ${{ matrix.target }}
         run: |
           PRIMAL="${{ needs.prepare.outputs.primal }}"
+          COMMIT="${{ needs.prepare.outputs.commit }}"
+          COMMIT_FLAG=""
+          if [[ -n "$COMMIT" ]]; then
+            COMMIT_FLAG="--commit $COMMIT"
+          fi
           if [[ "$PRIMAL" == "all" ]]; then
             cargo run -p plasmidbin -- build all --target "${{ matrix.target }}"
           else
-            cargo run -p plasmidbin -- build "$PRIMAL" --target "${{ matrix.target }}"
+            cargo run -p plasmidbin -- build "$PRIMAL" --target "${{ matrix.target }}" $COMMIT_FLAG
           fi
 
       - name: Upload build artifacts
@@ -232,6 +237,14 @@ jobs:
             ARGS=(--arch "$triple" --source "$artifact_dir" --root .)
             if [[ "$PRIMAL" != "all" ]]; then
               ARGS+=(--primal "$PRIMAL")
+              # Resolve upstream version tag for manifest.toml auto-update
+              REPO=$(grep -A5 "^\[sources\.${PRIMAL}\]" sources.toml | grep '^repo' | head -1 | sed 's/.*= *"\(.*\)"/\1/')
+              if [[ -n "$REPO" ]]; then
+                VTAG=$(gh api "repos/${REPO}/tags?per_page=1" --jq '.[0].name // empty' 2>/dev/null || true)
+                if [[ -n "$VTAG" ]]; then
+                  ARGS+=(--version-tag "$VTAG")
+                fi
+              fi
             fi
             if ! cargo run -p plasmidbin -- harvest "${ARGS[@]}"; then
               echo "ERROR: harvest failed for $triple"
@@ -260,6 +273,7 @@ jobs:
           echo ""
 
           git add checksums.toml
+          git add manifest.toml 2>/dev/null || true
           git add primals/ 2>/dev/null || true
           git add springs/ 2>/dev/null || true
 
