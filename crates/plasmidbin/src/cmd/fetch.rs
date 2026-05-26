@@ -100,6 +100,8 @@ pub fn run(args: FetchArgs) -> Result<()> {
             }
         }
 
+        let id_asset = arch.asset_name(id);
+
         for try_tag in &tags_to_try {
             if args.dry_run {
                 println!("OK  [dry-run] would download {asset_arch} from {try_tag}");
@@ -107,7 +109,9 @@ pub fn run(args: FetchArgs) -> Result<()> {
                 break;
             }
             if download_from_release(try_tag, &asset_arch, &local_path)
+                || download_from_release(try_tag, &id_asset, &local_path)
                 || download_from_release(try_tag, &bin_name, &local_path)
+                || download_from_release(try_tag, id, &local_path)
             {
                 got_it = true;
                 break;
