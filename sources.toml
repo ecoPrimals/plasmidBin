@@ -8,6 +8,10 @@
 # plasmidbin fetch downloads binaries from plasmidBin releases, NOT per-repo releases.
 # This file drives the dynamic harvest pipeline (sources.toml -> plasmidbin harvest).
 #
+# UNSHIPPED PRIMALS: entries without a corresponding checksums.toml section are
+# skipped on `plasmidbin fetch --all` (nascent/gated). Explicit --primal NAME
+# still attempts download.
+#
 # Org layout:
 #   ecoPrimals/          — Primals + infra (public, except bearDog + skunkBat)
 #   syntheticChemistry/  — Springs (science validation, private)
