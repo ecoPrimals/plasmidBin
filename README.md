@@ -37,7 +37,7 @@ All 13 x86_64 primals: **musl-static, stripped, blake3 verified.**
 | toadstool | Node | 12M | 0.2.0 | static, stripped, BTSP auto-detect |
 | barracuda | Node | 5.2M | 0.4.0 | static, stripped, JSON-RPC + tarpc |
 | coralreef | Node | 6.8M | 0.2.0 | static, stripped |
-| nestgate | Nest | 8.0M | 0.1.0 | static, stripped |
+| nestgate | Nest | 8.0M | 0.5.0 | static, stripped |
 | rhizocrypt | Nest | 5.9M | 0.14.0 | static, stripped, UDS enabled |
 | loamspine | Nest | 5.1M | 0.9.16 | static, stripped, UDS-first |
 | sweetgrass | Nest | 11M | 0.7.37 | static, stripped |
