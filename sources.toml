@@ -2,11 +2,11 @@
 # =====================
 #
 # Maps each primal to its source GitHub repository.
-# Used by update.sh for version checks and build-from-source workflows.
+# Used by plasmidbin harvest/check-updates for version checks and build workflows.
 #
 # PRIMARY DISTRIBUTION: plasmidBin GitHub Releases (ecoPrimals/plasmidBin)
-# fetch.sh downloads binaries from plasmidBin releases, NOT per-repo releases.
-# This file is used when building from source or checking for upstream updates.
+# plasmidbin fetch downloads binaries from plasmidBin releases, NOT per-repo releases.
+# This file drives the dynamic harvest pipeline (sources.toml -> plasmidbin harvest).
 #
 # Org layout:
 #   ecoPrimals/          — Primals + infra (public, except bearDog + skunkBat)
@@ -19,7 +19,7 @@
 #   - Validating composition readiness before release
 #   - Finding gaps to report upstream to primal teams
 #
-# Updated: 2026-04-14
+# Updated: 2026-05-26
 
 # =============================================================================
 # PRIMALS — Tower Atomic (electron: trust boundary)

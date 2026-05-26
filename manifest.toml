@@ -25,13 +25,13 @@
 #   4. ../plasmidBin            (parent)
 #   5. ../../plasmidBin         (grandparent — reaches here from phase2/biomeOS/)
 #
-# Updated: 2026-05-23
-# Version: 5.5.0 (Wave 35: 13/13 primals, 458-method registry)
+# Updated: 2026-05-26
+# Version: 5.6.0 (Wave 51: 13/13 primals, 458-method registry, Rust CLI elevation)
 
 [manifest]
-version = "5.5.0"
+version = "5.6.0"
 format = "genomeBin"
-generated = "2026-05-23T00:00:00Z"
+generated = "2026-05-26T00:00:00Z"
 checksum_algorithm = "blake3"
 # mirror_url = "https://bins.ecoprimals.dev/latest/"
 

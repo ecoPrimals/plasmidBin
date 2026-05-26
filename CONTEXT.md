@@ -17,8 +17,9 @@ deployment (where primals run). Springs produce binaries; plasmidBin distributes
 them; gates consume them. This separation means consumers never depend on
 spring source code — they discover primal capabilities at runtime via JSON-RPC.
 
-The repository is public so that anyone can clone it, run `./fetch.sh` to pull
-binaries from GitHub Releases, and start compositions with `./start_primal.sh`.
+The repository is public so that anyone can clone it, run `plasmidbin fetch`
+to pull binaries from GitHub Releases, and start compositions with
+`plasmidbin launch`.
 
 ## Technical Facts
 
@@ -42,7 +43,7 @@ binaries from GitHub Releases, and start compositions with `./start_primal.sh`.
 | `manifest.toml` | Ecosystem genome: primals, springs, atomics, niches, binaries |
 | `checksums.toml` | BLAKE3 hashes per primal per target triple |
 | `sources.toml` | Maps primals to source repos with build metadata |
-| `legacy/*.sh` | Bash scripts (preserved for reference, replaced by plasmidbin CLI) |
+| `*.sh` (repo root) | 20 legacy bash scripts — transitional, being replaced by plasmidbin CLI |
 
 ## How It Works
 
@@ -51,12 +52,10 @@ Developer gate                    Consumer gate / lab / Docker
 ─────────────                     ─────────────────────────────
 cargo build --release             git clone ecoPrimals/plasmidBin
 cp binary → plasmidBin/<name>/    cd plasmidBin
-./harvest.sh                      ./fetch.sh
+plasmidbin harvest                plasmidbin fetch --all
   └─ creates GitHub Release         └─ downloads + verifies binaries
-     with all binaries               source ports.env
-                                     ./start_primal.sh beardog
-                                     ./start_primal.sh songbird
-                                     ./start_primal.sh biomeos
+     with all binaries             plasmidbin launch --composition full
+                                     └─ starts beardog, songbird, biomeos, ...
 ```
 
 ## Composition Definitions
@@ -72,7 +71,7 @@ plasmidBin defines standard compositions in `ports.env`:
 
 ## USB / Offline Staging (Tier 3)
 
-`stage_usb.sh` exports a self-contained directory of primal binaries and
+`plasmidbin stage-usb` exports a self-contained directory of primal binaries and
 metadata for offline deployment. This enables lithoSpore Tier 3 USB
 artifacts (full NUCLEUS composition without network access) and offline
 gate bootstrapping.
@@ -166,7 +165,7 @@ is entirely plasmidBin's job.
 
 ## Future Distribution Channels
 
-Today, `fetch.sh` downloads from GitHub Releases using the
+Today, `plasmidbin fetch` downloads from GitHub Releases using the
 `{binary}-{triple}` asset naming convention. The `mirror_url` field in
 `manifest.toml` is the extensibility point for additional channels.
 
@@ -174,15 +173,15 @@ Today, `fetch.sh` downloads from GitHub Releases using the
 
 | Channel | Status | Asset Format | Consumer |
 |---------|--------|-------------|----------|
-| GitHub Releases | **Current, primary** | `{binary}-{triple}` | `fetch.sh` |
-| Self-hosted CDN | Planned — uncomment `mirror_url` | Same naming | `fetch.sh --mirror` |
+| GitHub Releases | **Current, primary** | `{binary}-{triple}` | `plasmidbin fetch` |
+| Self-hosted CDN | Planned — uncomment `mirror_url` | Same naming | `plasmidbin fetch --mirror` |
 | OCI registry | Planned | Binary layers, OCI image manifest | `docker pull`, `crane` |
 | apt/deb repository | Planned | `.deb` packages per primal | `apt install beardog` |
 | Nix flake | Planned | Nix derivation per primal | `nix run ecoPrimals#beardog` |
 
 **CDN (`bins.ecoprimals.dev`)**: The `mirror_url` field in `manifest.toml` is
-already reserved. When active, `fetch.sh` will try the mirror first and fall
-back to GitHub Releases. CDN can be any static file host (S3, Cloudflare R2,
+already reserved. When active, `plasmidbin fetch` will try the mirror first
+and fall back to GitHub Releases. CDN can be any static file host (S3, Cloudflare R2,
 self-hosted nginx) serving the same `{binary}-{triple}` naming.
 
 **OCI Registry**: Package each primal as a single-layer OCI image. Enables
@@ -203,9 +202,9 @@ Any new distribution channel MUST produce:
 
 1. The same `{binary}-{triple}` asset naming convention
 2. Verifiable integrity against `checksums.toml` (BLAKE3)
-3. A mechanism for `fetch.sh` to discover and prefer the channel
+3. A mechanism for `plasmidbin fetch` to discover and prefer the channel
 
-`fetch.sh` is the consumer interface. It checks `manifest.toml` for
+`plasmidbin fetch` is the consumer interface. It checks `manifest.toml` for
 `mirror_url`, falls back to GitHub Releases, and always verifies BLAKE3
 checksums after download.
 
@@ -219,7 +218,7 @@ checksums after download.
 | **Phase 3** | Signed `checksums.toml` manifest (Sigstore-compatible) | When Phase 2 is live |
 
 **Phase 1**: Each binary gets a `.sig` file containing an ed25519 signature.
-The signing key lives in GitHub Actions secrets. `fetch.sh` verifies
+The signing key lives in GitHub Actions secrets. `plasmidbin fetch` verifies
 signatures when present, warns when absent.
 
 **Phase 2**: BearDog already provides `crypto.generate_keypair` and

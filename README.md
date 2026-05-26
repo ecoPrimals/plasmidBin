@@ -70,68 +70,40 @@ All 13 x86_64 primals: **musl-static, stripped, blake3 verified.**
 
 ## Quick Start
 
-### Fetch binaries (consumer)
+### Rust CLI (primary — Wave 51)
 
 ```bash
-# Clone plasmidBin
 git clone https://github.com/ecoPrimals/plasmidBin.git
 cd plasmidBin
 
+# Validate metadata (manifest, checksums, sources)
+cargo run -p plasmidbin -- validate .
+
 # Fetch all binaries from latest GitHub Release
-./fetch.sh --all
+cargo run -p plasmidbin -- fetch --all
 
-# Fetch a single primal
-./fetch.sh --primal beardog
+# Health-check installation
+cargo run -p plasmidbin -- doctor
 
-# Verify installation
-./doctor.sh
+# Start a single primal
+cargo run -p plasmidbin -- start beardog
+
+# Launch full NUCLEUS composition
+cargo run -p plasmidbin -- launch --composition full
 ```
 
-### Validate a composition
+### Legacy bash scripts (transitional)
+
+The 20 `.sh` scripts at the repo root predate the Rust CLI. CI workflows
+are migrating from bash to `plasmidbin` subcommands. The bash scripts
+remain operational but are not the primary interface.
 
 ```bash
-# Validate NUCLEUS atom (9 primals)
-./validate_composition.sh nucleus
-
-# Validate what a spring needs
-./validate_composition.sh niche-hotspring
-./validate_composition.sh niche-neuralspring
-
-# Validate full stack (13 primals)
-./validate_composition.sh full
-```
-
-### Stage for USB / offline deployment
-
-```bash
-# Stage all 13 primals for USB (host architecture)
-./stage_usb.sh --dest /mnt/usb/ecoprimals
-
-# Stage NUCLEUS (9 primals) for x86_64
-./stage_usb.sh --dest /tmp/usb --arch x86_64 --composition nucleus
-
-# Dry run — show what would be staged
-./stage_usb.sh --dest /tmp/usb --dry-run
-
-# Stage with post-copy BLAKE3 verification
-./stage_usb.sh --dest /mnt/usb/ecoprimals --verify
-```
-
-Output: self-contained directory with `primals/<triple>/` layout, metadata
-files, and VERSION provenance. Ready for lithoSpore `litho assemble` or
-offline gate bootstrapping.
-
-### Deploy to a remote gate
-
-```bash
-# Push Tower to a friend's machine
-./deploy_gate.sh friend@192.168.1.42
-
-# Push full NUCLEUS
-./deploy_gate.sh friend@192.168.1.42 --composition full
-
-# Deploy to Pixel via ADB
-./deploy_pixel.sh --composition tower --dark-forest
+./fetch.sh --all                        # → plasmidbin fetch --all
+./doctor.sh                             # → plasmidbin doctor
+./validate_composition.sh nucleus       # → plasmidbin validate .
+./stage_usb.sh --dest /mnt/usb          # → plasmidbin stage-usb --dest /mnt/usb
+./deploy_gate.sh user@host              # → plasmidbin deploy user@host
 ```
 
 ## Architecture

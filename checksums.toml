@@ -1,9 +1,17 @@
 # plasmidBin checksums — blake3
 #
 # One entry per binary, keyed by full target triple.
-# Validated by plasmidbin validate.
+# Validated by plasmidbin validate, plasmidbin harvest, and plasmidbin fetch.
 #
 # genomeBin layout: primals/{target-triple}/{primal}
+# Backward-compat symlinks: primals/{primal} -> x86_64-unknown-linux-musl/{primal}
+#
+# Target matrix (ecoBin Architecture Standard tiers):
+#   Tier 1 MUST:   x86_64-unknown-linux-musl, aarch64-unknown-linux-musl, armv7-unknown-linux-musleabihf
+#   Tier 2 SHOULD: x86_64-pc-windows-gnu, aarch64-linux-android, x86_64-apple-darwin (check-only), aarch64-apple-darwin (check-only)
+#   Tier 3 NICE:   riscv64gc-unknown-linux-musl, wasm32-wasip1 (check-only)
+#
+# Updated: 2026-05-26 (genomeBin v5.6.0 — 458-method registry, Wave 51, 13/13 primals)
 
 [primals.barracuda]
 "aarch64-linux-android" = "e34e40f4b42f909d240dfce68785ff338231e1bd51fe5f2c2afbdfe0dfb974a0"
