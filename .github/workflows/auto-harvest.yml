@@ -234,7 +234,19 @@ jobs:
         run: |
           git config user.name "plasmidBin-bot"
           git config user.email "plasmidbin-bot@ecoPrimals.dev"
-          git add checksums.toml primals/ springs/ || true
+
+          echo "=== Pre-commit diagnostics ==="
+          echo "checksums.toml git status:"
+          git status checksums.toml
+          echo ""
+          echo "checksums.toml diff (first 20 lines):"
+          git diff checksums.toml | head -20 || true
+          echo ""
+
+          git add checksums.toml
+          git add primals/ 2>/dev/null || true
+          git add springs/ 2>/dev/null || true
+
           if git diff --cached --quiet; then
             echo "No changes to commit"
             echo "changed=false" >> "$GITHUB_OUTPUT"

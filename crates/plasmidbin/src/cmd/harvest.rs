@@ -1,11 +1,15 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 //! `plasmidbin harvest` — validate, strip, checksum, and stage built binaries.
+//!
+//! Derives the primal list from `sources.toml` instead of a hardcoded constant.
+//! Adding a primal to sources.toml automatically includes it in the harvest.
 
 use anyhow::{Context, Result, bail};
 use clap::Args;
 use plasmidbin_types::arch::Arch;
 use plasmidbin_types::checksums::ChecksumsFile;
+use plasmidbin_types::sources::SourcesFile;
 use std::path::{Path, PathBuf};
 
 #[derive(Args)]
@@ -35,37 +39,38 @@ pub struct HarvestArgs {
     root: PathBuf,
 }
 
-const NUCLEUS_PRIMALS: &[&str] = &[
-    "beardog", "songbird", "toadstool", "barracuda", "coralreef",
-    "nestgate", "rhizocrypt", "loamspine", "sweetgrass",
-    "biomeos", "squirrel", "petaltongue", "skunkbat",
-    "primalspring_primal",
-];
-
 struct HarvestEntry {
+    source_id: String,
     binary_name: String,
+    artifact_name: String,
     dest_rel: PathBuf,
 }
 
-fn harvest_map(arch: Arch) -> Vec<HarvestEntry> {
-    let triple_short = match arch {
-        Arch::X86_64 => "x86_64",
-        Arch::Aarch64 => "aarch64",
-        Arch::Armv7 => "armv7",
-    };
+fn harvest_map(arch: Arch, root: &Path) -> Result<Vec<HarvestEntry>> {
+    let sources = SourcesFile::load(root)
+        .map_err(|e| anyhow::anyhow!("cannot load sources.toml: {e}"))?;
 
-    NUCLEUS_PRIMALS
+    let triple = arch.triple();
+    let short = arch.short();
+
+    let mut entries: Vec<HarvestEntry> = sources
+        .sources
         .iter()
-        .map(|name| {
-            let artifact = format!("{name}-{triple_short}-linux-musl");
-            let dest = match arch {
-                Arch::X86_64 => PathBuf::from(format!("primals/x86_64-unknown-linux-musl/{name}")),
-                Arch::Aarch64 => PathBuf::from(format!("primals/aarch64-unknown-linux-musl/{name}")),
-                Arch::Armv7 => PathBuf::from(format!("primals/armv7-unknown-linux-musleabihf/{name}")),
-            };
-            HarvestEntry { binary_name: artifact, dest_rel: dest }
+        .map(|(id, entry)| {
+            let bin = entry.binary_name(id);
+            let artifact = format!("{bin}-{short}-linux-musl");
+            let dest = PathBuf::from(format!("primals/{triple}/{bin}"));
+            HarvestEntry {
+                source_id: id.clone(),
+                binary_name: bin,
+                artifact_name: artifact,
+                dest_rel: dest,
+            }
         })
-        .collect()
+        .collect();
+
+    entries.sort_by(|a, b| a.source_id.cmp(&b.source_id));
+    Ok(entries)
 }
 
 fn is_static_elf(path: &Path) -> bool {
@@ -122,6 +127,9 @@ pub fn run(args: HarvestArgs) -> Result<()> {
     if let Some(ref tag) = args.release {
         println!("Release: {tag}");
     }
+
+    let entries = harvest_map(arch, root)?;
+    println!("Primals: {} (from sources.toml)", entries.len());
     println!();
 
     if !source_dir.exists() {
@@ -135,29 +143,31 @@ pub fn run(args: HarvestArgs) -> Result<()> {
         primals: Default::default(),
     });
 
-    let entries = harvest_map(arch);
     let mut harvested = 0u32;
     let mut skipped = 0u32;
     let mut failed = 0u32;
     let mut release_assets: Vec<PathBuf> = Vec::new();
 
     for entry in &entries {
-        let local_name = entry.dest_rel.file_name().unwrap().to_string_lossy();
-
         if let Some(ref filter) = args.primal {
-            if !local_name.contains(filter.as_str()) && !entry.binary_name.contains(filter.as_str()) {
+            if !entry.source_id.contains(filter.as_str())
+                && !entry.binary_name.contains(filter.as_str())
+            {
                 continue;
             }
         }
 
-        let src = source_dir.join(&entry.binary_name);
+        let src = source_dir.join(&entry.artifact_name);
         if !src.exists() {
-            println!("  [{local_name}] SKIP  artifact not found: {}", entry.binary_name);
+            println!(
+                "  [{}] SKIP  artifact not found: {}",
+                entry.binary_name, entry.artifact_name
+            );
             skipped += 1;
             continue;
         }
 
-        print!("  [{local_name}] ");
+        print!("  [{}] ", entry.binary_name);
 
         if !is_static_elf(&src) {
             println!("FAIL  not a static ELF binary");
@@ -194,7 +204,7 @@ pub fn run(args: HarvestArgs) -> Result<()> {
         }).context("staging binary")?;
         let _ = std::fs::remove_file(&tmp);
 
-        checksums.set_hash(&local_name, arch.triple(), &hash);
+        checksums.set_hash(&entry.binary_name, arch.triple(), &hash);
 
         release_assets.push(dest);
 
@@ -204,6 +214,8 @@ pub fn run(args: HarvestArgs) -> Result<()> {
 
     if !args.dry_run {
         checksums.save(root).map_err(|e| anyhow::anyhow!(e))?;
+        println!();
+        println!("checksums.toml updated ({} primals)", checksums.primals.len());
     }
 
     if let Some(ref tag) = args.release {

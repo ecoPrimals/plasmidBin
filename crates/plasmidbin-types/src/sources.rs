@@ -23,6 +23,7 @@ pub struct SourceEntry {
     pub private: bool,
     pub note: Option<String>,
     pub binary_name: Option<String>,
+    pub build_args: Option<String>,
 }
 
 impl SourcesFile {

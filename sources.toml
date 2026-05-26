@@ -88,6 +88,8 @@ assets = ["sweetgrass"]
 repo = "ecoPrimals/biomeOS"
 tag_pattern = "v{version}"
 assets = ["biomeos"]
+binary_name = "biomeos-cli"
+build_args = "-p biomeos-cli"
 
 [sources.squirrel]
 repo = "ecoPrimals/squirrel"
@@ -108,7 +110,18 @@ repo = "ecoPrimals/skunkBat"
 private = true
 tag_pattern = "v{version}"
 assets = ["skunkbat"]
+build_args = "-p skunk-bat-server"
 note = "Threat intelligence — private source, public binary via plasmidBin releases"
+
+# =============================================================================
+# PRIMALS — Scaffolding
+# =============================================================================
+
+[sources.sourdough]
+repo = "ecoPrimals/sourDough"
+tag_pattern = "v{version}"
+assets = ["sourdough"]
+note = "Starter culture — scaffolding, template propagation, primal-factory evolution path"
 
 # =============================================================================
 # COORDINATION PRIMAL (from primalSpring)
