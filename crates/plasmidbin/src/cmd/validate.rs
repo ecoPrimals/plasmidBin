@@ -73,10 +73,8 @@ fn cross_validate(
     if missing_cksum.is_empty() {
         report.pass("all manifest primals have checksum entries");
     } else {
-        report.fail(&format!(
-            "manifest primals without checksums: {}",
-            fmt_ids(&missing_cksum)
-        ));
+        // Warn, not fail — primals can exist in manifest before first binary ships
+        println!("  WARN: manifest primals without checksums (not yet shipped): {}", fmt_ids(&missing_cksum));
     }
 
     let extra_cksum: Vec<_> = c.difference(m).collect();
@@ -93,10 +91,7 @@ fn cross_validate(
     if missing_sources.is_empty() {
         report.pass("all manifest primals have source entries");
     } else {
-        report.fail(&format!(
-            "manifest primals without source entries: {}",
-            fmt_ids(&missing_sources)
-        ));
+        println!("  WARN: manifest primals without source entries (not yet registered): {}", fmt_ids(&missing_sources));
     }
 
     for (id, port_num) in &ports.port_map {
