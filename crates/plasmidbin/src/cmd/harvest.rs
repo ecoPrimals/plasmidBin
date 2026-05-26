@@ -215,7 +215,7 @@ pub fn run(args: HarvestArgs) -> Result<()> {
         }).context("staging binary")?;
         let _ = std::fs::remove_file(&tmp);
 
-        checksums.set_hash(&entry.binary_name, arch.triple(), &hash);
+        checksums.set_hash(&entry.source_id, arch.triple(), &hash);
 
         release_assets.push(dest);
 
