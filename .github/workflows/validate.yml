@@ -8,6 +8,10 @@
 #
 # Runner strategy: sovereign-first. Uses self-hosted irongate runner by default.
 # Set org variable USE_GITHUB_HOSTED=true to fall back to ubuntu-latest.
+#
+# On self-hosted: uses raw git checkout (no marketplace action dependency) and
+# pre-installed Rust toolchain. Zero external archive downloads required —
+# survives GitHub codeload outages that break `uses:` steps.
 
 name: Validate Metadata
 
@@ -16,6 +20,7 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  workflow_dispatch: {}
 
 permissions:
   contents: read
@@ -24,7 +29,24 @@ jobs:
   validate:
     runs-on: ${{ vars.USE_GITHUB_HOSTED == 'true' && 'ubuntu-latest' || fromJson('["self-hosted", "linux", "x86_64"]') }}
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout (GitHub-hosted)
+        if: ${{ vars.USE_GITHUB_HOSTED == 'true' }}
+        uses: actions/checkout@v4
+
+      - name: Checkout (self-hosted, raw git)
+        if: ${{ vars.USE_GITHUB_HOSTED != 'true' }}
+        run: |
+          REPO="https://github.com/${{ github.repository }}.git"
+          REF="${{ github.ref }}"
+          SHA="${{ github.sha }}"
+          if [ -d ".git" ]; then
+            git fetch origin "$REF" --depth=1
+          else
+            git init
+            git remote add origin "$REPO"
+            git fetch origin "$REF" --depth=1
+          fi
+          git checkout --force "$SHA"
 
       - name: Install Rust toolchain (GitHub-hosted only)
         if: ${{ vars.USE_GITHUB_HOSTED == 'true' }}
