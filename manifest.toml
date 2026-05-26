@@ -190,7 +190,7 @@ check_pass = ["x86_64-apple-darwin", "aarch64-apple-darwin"]
 [primals.loamspine]
 name = "LoamSpine"
 description = "Permanent ledger — immutable record, witness-bearing commits"
-latest = "0.9.16"
+latest = "0.7.1"
 phase = 2
 capabilities = ["ledger", "permanent", "audit"]
 seed_fingerprint = "2c4465fd8eb982e22efb01824c31945d3ffe81c5c98b75fedc7b3159d525e5bf"
