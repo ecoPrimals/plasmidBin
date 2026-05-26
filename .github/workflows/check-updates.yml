@@ -1,0 +1,133 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+#
+# check-updates.yml — Lightweight daily tag check
+#
+# Reads sources.toml and manifest.toml, compares each primal's latest upstream
+# tag against the version in the manifest. Dispatches auto-harvest only for
+# primals with newer releases. Costs ~1 runner-minute vs ~120 for a full sweep.
+
+name: Check Updates
+
+on:
+  schedule:
+    - cron: '30 5 * * *'   # daily 05:30 UTC
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  actions: write
+
+env:
+  GH_TOKEN: ${{ secrets.PLASMIDBIN_HARVEST_PAT }}
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check for stale primals
+        id: stale
+        run: |
+          set -euo pipefail
+
+          STALE=""
+          CHECKED=0
+          DISPATCHED=0
+
+          # Parse sources.toml for repo mappings
+          while IFS= read -r line; do
+            # Match [sources.NAME]
+            if [[ "$line" =~ ^\[sources\.([a-z_]+)\] ]]; then
+              CURRENT_ID="${BASH_REMATCH[1]}"
+              CURRENT_REPO=""
+              CURRENT_TAG_PATTERN=""
+              continue
+            fi
+
+            if [[ -z "${CURRENT_ID:-}" ]]; then
+              continue
+            fi
+
+            # Parse repo = "org/name"
+            if [[ "$line" =~ ^repo[[:space:]]*=[[:space:]]*\"([^\"]+)\" ]]; then
+              CURRENT_REPO="${BASH_REMATCH[1]}"
+            fi
+
+            # Parse tag_pattern = "v{version}"
+            if [[ "$line" =~ ^tag_pattern[[:space:]]*=[[:space:]]*\"([^\"]+)\" ]]; then
+              CURRENT_TAG_PATTERN="${BASH_REMATCH[1]}"
+            fi
+
+            # When we hit an empty line or next section, process the current entry
+            if [[ "$line" =~ ^$ || "$line" =~ ^\[ ]] && [[ -n "${CURRENT_ID:-}" ]] && [[ -n "${CURRENT_REPO:-}" ]]; then
+              # Get manifest version for this primal
+              MANIFEST_VER=$(grep -A5 "^\[primals\.${CURRENT_ID}\]" manifest.toml 2>/dev/null \
+                | grep '^latest' | head -1 | sed 's/.*= *"\(.*\)"/\1/' || true)
+
+              if [[ -z "$MANIFEST_VER" ]]; then
+                echo "  [$CURRENT_ID] SKIP — not in manifest"
+                CURRENT_ID=""
+                continue
+              fi
+
+              # Get latest tag from upstream repo
+              LATEST_TAG=$(gh api "repos/${CURRENT_REPO}/tags?per_page=1" --jq '.[0].name // empty' 2>/dev/null || true)
+
+              if [[ -z "$LATEST_TAG" ]]; then
+                echo "  [$CURRENT_ID] SKIP — no tags in ${CURRENT_REPO}"
+                CURRENT_ID=""
+                CHECKED=$((CHECKED + 1))
+                continue
+              fi
+
+              # Extract version from tag (strip v prefix if tag_pattern is v{version})
+              TAG_VER="${LATEST_TAG#v}"
+
+              CHECKED=$((CHECKED + 1))
+
+              if [[ "$TAG_VER" != "$MANIFEST_VER" ]]; then
+                echo "  [$CURRENT_ID] STALE — manifest=$MANIFEST_VER upstream=$LATEST_TAG ($CURRENT_REPO)"
+                STALE="${STALE}${CURRENT_ID} "
+              else
+                echo "  [$CURRENT_ID] OK — $MANIFEST_VER matches $LATEST_TAG"
+              fi
+
+              CURRENT_ID=""
+            fi
+          done < sources.toml
+
+          echo ""
+          echo "Checked: $CHECKED primals"
+
+          if [[ -z "$STALE" ]]; then
+            echo "All primals up to date — no harvest needed"
+            echo "dispatched=0" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo ""
+          echo "=== Dispatching harvests for stale primals ==="
+          for primal in $STALE; do
+            echo "  Dispatching: $primal"
+            gh workflow run auto-harvest.yml \
+              --repo ecoPrimals/plasmidBin \
+              -f primal="$primal" || {
+                echo "  WARN: dispatch failed for $primal"
+                continue
+              }
+            DISPATCHED=$((DISPATCHED + 1))
+            sleep 2
+          done
+
+          echo ""
+          echo "Dispatched $DISPATCHED harvest(s)"
+          echo "dispatched=$DISPATCHED" >> "$GITHUB_OUTPUT"
+
+      - name: Summary
+        run: |
+          echo "### Check Updates" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **Trigger**: ${{ github.event_name }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **Date**: $(date -u +%Y-%m-%d)" >> "$GITHUB_STEP_SUMMARY"

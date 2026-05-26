@@ -6,6 +6,7 @@
 #   1. repository_dispatch from primal repos (on push to main)
 #   2. workflow_dispatch for manual rebuilds (single primal or all)
 #   3. Weekly schedule for full-sweep consistency
+#   4. check-updates.yml dispatches for individual stale primals (daily)
 #
 # Private repos (bearDog, skunkBat) are cloned using the PAT via git insteadOf.
 # Public binaries are published to GitHub Releases regardless of source visibility.
@@ -32,7 +33,6 @@ on:
 
   schedule:
     - cron: '0 6 * * 1'   # weekly full sweep (Monday 06:00 UTC)
-    - cron: '30 5 * * *'   # daily catch-up — covers dispatch drops from rate limits
 
 concurrency:
   group: auto-harvest-${{ github.event.client_payload.primal || github.event.inputs.primal || 'sweep' }}
