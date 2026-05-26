@@ -306,6 +306,14 @@ jobs:
           STAGING="/tmp/release-assets"
           mkdir -p "$STAGING"
 
+          # Resolve binary_name from sources.toml (may differ from source ID)
+          BINARY_NAME=""
+          if [[ "$PRIMAL" != "all" ]]; then
+            BINARY_NAME=$(grep -A10 "^\[sources\.${PRIMAL}\]" sources.toml \
+              | grep '^binary_name' | head -1 \
+              | sed 's/.*= *"\(.*\)"/\1/' || true)
+          fi
+
           for triple_dir in primals/*/; do
             triple=$(basename "$triple_dir")
             [[ "$triple" == "x86_64-unknown-linux-musl" || \
@@ -316,7 +324,7 @@ jobs:
               [[ -f "$bin" ]] || continue
               name=$(basename "$bin")
 
-              if [[ "$PRIMAL" != "all" && "$name" != "$PRIMAL" && "$name" != "${PRIMAL}_primal" ]]; then
+              if [[ "$PRIMAL" != "all" && "$name" != "$PRIMAL" && "$name" != "${PRIMAL}_primal" && "$name" != "$BINARY_NAME" ]]; then
                 continue
               fi
 
