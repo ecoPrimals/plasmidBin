@@ -5,6 +5,9 @@
 # Typed validation via `plasmidbin validate` replaces all bash grep/sed/xargs
 # checks. Parses manifest.toml, checksums.toml, ports.env, sources.toml with
 # serde-typed structs, cross-validates references, and checks shell syntax.
+#
+# Runner strategy: sovereign-first. Uses self-hosted irongate runner by default.
+# Set org variable USE_GITHUB_HOSTED=true to fall back to ubuntu-latest.
 
 name: Validate Metadata
 
@@ -19,14 +22,16 @@ permissions:
 
 jobs:
   validate:
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.USE_GITHUB_HOSTED == 'true' && 'ubuntu-latest' || fromJson('["self-hosted", "linux", "x86_64"]') }}
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install Rust toolchain
+      - name: Install Rust toolchain (GitHub-hosted only)
+        if: ${{ vars.USE_GITHUB_HOSTED == 'true' }}
         uses: dtolnay/rust-toolchain@stable
 
-      - name: Cache cargo
+      - name: Cache cargo (GitHub-hosted only)
+        if: ${{ vars.USE_GITHUB_HOSTED == 'true' }}
         uses: actions/cache@v4
         with:
           path: |
@@ -34,6 +39,11 @@ jobs:
             ~/.cargo/git
             target
           key: validate-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Verify toolchain
+        run: |
+          rustc --version
+          cargo --version
 
       - name: Run plasmidbin validate
         run: cargo run -p plasmidbin -- validate .

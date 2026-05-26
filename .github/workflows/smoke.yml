@@ -10,6 +10,9 @@
 # fetch.sh auto-detects the runner architecture (x86_64-unknown-linux-musl)
 # and downloads the correct binaries. Real gate testing covers
 # aarch64 and armv7 on actual hardware.
+#
+# Runner strategy: sovereign-first. Uses self-hosted irongate runner by default.
+# Set org variable USE_GITHUB_HOSTED=true to fall back to ubuntu-latest.
 
 name: Release Smoke Test
 
@@ -31,7 +34,7 @@ permissions:
 
 jobs:
   smoke:
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.USE_GITHUB_HOSTED == 'true' && 'ubuntu-latest' || fromJson('["self-hosted", "linux", "x86_64"]') }}
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4

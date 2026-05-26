@@ -12,6 +12,9 @@
 #
 # "check-only" targets run cargo check (proves pure Rust) but don't
 # produce binaries — no linker available for cross-build from Linux.
+#
+# Runner strategy: sovereign-first. Uses self-hosted irongate runner by default.
+# Set org variable USE_GITHUB_HOSTED=true to fall back to ubuntu-latest.
 
 name: Tier 2/3 Harvest
 
@@ -45,7 +48,7 @@ env:
 jobs:
   build-tier2:
     if: ${{ github.event.inputs.tier != '3' }}
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.USE_GITHUB_HOSTED == 'true' && 'ubuntu-latest' || fromJson('["self-hosted", "linux", "x86_64"]') }}
     timeout-minutes: 60
     strategy:
       fail-fast: false
@@ -67,13 +70,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install Rust toolchain
+      - name: Install Rust toolchain (GitHub-hosted only)
+        if: ${{ vars.USE_GITHUB_HOSTED == 'true' }}
         uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.target }}
 
-      - name: Install cross-compilation packages
-        if: matrix.packages != ''
+      - name: Add Rust target (self-hosted)
+        if: ${{ vars.USE_GITHUB_HOSTED != 'true' }}
+        run: rustup target add ${{ matrix.target }}
+
+      - name: Install cross-compilation packages (GitHub-hosted only)
+        if: ${{ vars.USE_GITHUB_HOSTED == 'true' && matrix.packages != '' }}
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y -qq ${{ matrix.packages }}
@@ -127,7 +135,7 @@ jobs:
 
   build-tier3:
     if: ${{ github.event.inputs.tier != '2' }}
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.USE_GITHUB_HOSTED == 'true' && 'ubuntu-latest' || fromJson('["self-hosted", "linux", "x86_64"]') }}
     timeout-minutes: 60
     strategy:
       fail-fast: false
@@ -145,13 +153,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install Rust toolchain
+      - name: Install Rust toolchain (GitHub-hosted only)
+        if: ${{ vars.USE_GITHUB_HOSTED == 'true' }}
         uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.target }}
 
-      - name: Install cross-compilation packages
-        if: matrix.packages != ''
+      - name: Add Rust target (self-hosted)
+        if: ${{ vars.USE_GITHUB_HOSTED != 'true' }}
+        run: rustup target add ${{ matrix.target }}
+
+      - name: Install cross-compilation packages (GitHub-hosted only)
+        if: ${{ vars.USE_GITHUB_HOSTED == 'true' && matrix.packages != '' }}
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y -qq ${{ matrix.packages }}
@@ -206,7 +219,7 @@ jobs:
   consolidate:
     needs: [build-tier2, build-tier3]
     if: ${{ !cancelled() && (needs.build-tier2.result == 'success' || needs.build-tier3.result == 'success') }}
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.USE_GITHUB_HOSTED == 'true' && 'ubuntu-latest' || fromJson('["self-hosted", "linux", "x86_64"]') }}
     timeout-minutes: 15
 
     steps:

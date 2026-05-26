@@ -5,6 +5,9 @@
 # Reads sources.toml and manifest.toml, compares each primal's latest upstream
 # tag against the version in the manifest. Dispatches auto-harvest only for
 # primals with newer releases. Costs ~1 runner-minute vs ~120 for a full sweep.
+#
+# Runner strategy: sovereign-first. Uses self-hosted irongate runner by default.
+# Set org variable USE_GITHUB_HOSTED=true to fall back to ubuntu-latest.
 
 name: Check Updates
 
@@ -22,7 +25,7 @@ env:
 
 jobs:
   check:
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.USE_GITHUB_HOSTED == 'true' && 'ubuntu-latest' || fromJson('["self-hosted", "linux", "x86_64"]') }}
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
