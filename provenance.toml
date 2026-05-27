@@ -6,6 +6,33 @@
 #
 # Validated by: plasmidbin verify-provenance
 
+[primals.beardog."aarch64-unknown-linux-musl"]
+content_hash = "614ee5265bb6b0719c6fa58bc2e7350ce8e18be2c36ff294a063fcbc73d2939c"
+source_commit = "8d8be87b37e328e970669456997ca0441f674a81"
+source_repo = "ecoPrimals/bearDog"
+build_timestamp = "2026-05-27T23:04:50Z"
+rustc_version = "1.95.0"
+target = "aarch64-unknown-linux-musl"
+provenance_hash = "050380cac77d917bc23cebf25dbb05f02100c65e69c6e9670565c53286583280"
+
+[primals.beardog."armv7-unknown-linux-musleabihf"]
+content_hash = "b5202eb4a568876e222d9e8a2ae3e80e17398fecb72940d8abdc718019f73f7e"
+source_commit = "8d8be87b37e328e970669456997ca0441f674a81"
+source_repo = "ecoPrimals/bearDog"
+build_timestamp = "2026-05-27T23:06:44Z"
+rustc_version = "1.95.0"
+target = "armv7-unknown-linux-musleabihf"
+provenance_hash = "4e4346a264fb02d1605a0f69c93af9cd6f1b2cdadc573858569952c0588d99b5"
+
+[primals.beardog."x86_64-unknown-linux-musl"]
+content_hash = "e04582df21a8eea2abf656d536f584fed3877c60215e467c2db764122f849793"
+source_commit = "8d8be87b37e328e970669456997ca0441f674a81"
+source_repo = "ecoPrimals/bearDog"
+build_timestamp = "2026-05-27T23:05:45Z"
+rustc_version = "1.95.0"
+target = "x86_64-unknown-linux-musl"
+provenance_hash = "0815354661f8326430e72ee8ed93dfba62c4b5aaedf2d45c0b17ce492deec1ee"
+
 [primals.biomeos."aarch64-unknown-linux-musl"]
 content_hash = "8532f3f9dc9705bf7894f7174c3ea105ed6fd57bada3d064ff849fa3fc415f25"
 source_commit = "cf20682227b24c9d1fd11e931790e9a14ac5acea"
