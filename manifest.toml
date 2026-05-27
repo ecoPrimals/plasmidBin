@@ -25,8 +25,8 @@
 #   4. ../plasmidBin            (parent)
 #   5. ../../plasmidBin         (grandparent — reaches here from phase2/biomeOS/)
 #
-# Updated: 2026-05-26
-# Version: 5.6.0 (Wave 51: 13/13 primals, 458-method registry, Rust CLI elevation)
+# Updated: 2026-05-27
+# Version: 5.7.0 (Wave 54: provenance-elevated checksums, sweetGrass braid integration, verify-provenance subcommand)
 
 [manifest]
 version = "5.6.0"

@@ -14,6 +14,8 @@
 #   rustdesk   — Songbird relay + RustDesk (hbbs+hbbr) for remote desktop
 #   tower      — Full Tower atomic + RustDesk: BearDog + Songbird + SkunkBat + hbbs/hbbr
 #                Adds BTSP identity, secrets delegation, defense audit, and remote desktop.
+#   nest       — Tower + Nest Atomic: NestGate + rhizoCrypt + loamSpine + sweetGrass
+#   nucleus    — Full NUCLEUS (13 primals): Tower + Node + Nest + Meta
 #
 # Modes:
 #   provision  — Create a DigitalOcean droplet via doctl, then deploy
@@ -81,7 +83,7 @@ Options:
   --name NAME            Droplet / gate name (context-dependent)
   --pubkey KEY           Public key string (for keys add)
   --ssh-key FP           SSH key fingerprint for droplet access
-  --composition COMP     Deployment composition: relay, tower, nest, or rustdesk
+  --composition COMP     Deployment composition: relay, tower, nest, nucleus, or rustdesk
   --validate             Run post-deploy composition verification
   --dry-run              Show plan without executing
   --help                 Show this help
@@ -91,6 +93,7 @@ Compositions:
   rustdesk  Songbird relay + RustDesk (hbbs+hbbr) remote desktop
   tower     Full Tower + RustDesk: BearDog + Songbird + SkunkBat + hbbs/hbbr
   nest      Tower + Nest Atomic: adds NestGate + rhizoCrypt + loamSpine + sweetGrass
+  nucleus   Full NUCLEUS: Tower + Node + Nest + Meta (all 13 primals)
 
 Deployment Models (from MEMBRANE_CHANNEL_ARCHITECTURE.md):
   Model A: Single VPS, all channels on one box (default)
@@ -341,6 +344,13 @@ deploy_tower_composition() {
         fi
     done
 
+    for meta in checksums.toml provenance.toml manifest.toml; do
+        if [[ -f "$SCRIPT_DIR/$meta" ]]; then
+            log "  Pushing $meta to VPS..."
+            scp -q "$SCRIPT_DIR/$meta" "$remote:$REMOTE_MEMBRANE_DIR/$meta"
+        fi
+    done
+
     log "  Uploading systemd units..."
     scp -q "$MEMBRANE_DIR/beardog-membrane.service" "$remote:/etc/systemd/system/"
     scp -q "$MEMBRANE_DIR/songbird-relay.service"   "$remote:/etc/systemd/system/"
@@ -448,6 +458,13 @@ deploy_nest_composition() {
             log "  $primal already present, skipping fetch"
         else
             remote_fetch_primal "$remote" "$primal"
+        fi
+    done
+
+    for meta in checksums.toml provenance.toml manifest.toml; do
+        if [[ -f "$SCRIPT_DIR/$meta" ]]; then
+            log "  Pushing $meta to VPS..."
+            scp -q "$SCRIPT_DIR/$meta" "$remote:$REMOTE_MEMBRANE_DIR/$meta"
         fi
     done
 
@@ -567,6 +584,191 @@ status_nest_composition() {
     for port in 9500 9601 9700 9850; do
         ssh "$remote" "ss -tlnp 2>/dev/null | grep \":$port\" | sed 's/^/  Listening: /' || echo \"  Port $port: not listening\""
     done
+}
+
+# ── Node composition (compute tier) ─────────────────────────────────
+# Wave 54: toadStool (compute dispatch), barraCuda (math/GPU), coralReef (shaders)
+
+NODE_PRIMALS="toadstool barracuda coralreef"
+
+deploy_node_composition() {
+    local remote="$1"
+
+    log "Node expansion: adding compute tier to composition"
+    log "  Primals: $NODE_PRIMALS"
+
+    if $DRY_RUN; then
+        log "[dry-run] Would fetch toadstool, barracuda, coralreef from GitHub Releases"
+        log "[dry-run] Would generate systemd units for Node primals"
+        return 0
+    fi
+
+    ssh "$remote" "mkdir -p $REMOTE_MEMBRANE_DIR /run/membrane"
+
+    for primal in $NODE_PRIMALS; do
+        if ssh "$remote" "test -x $REMOTE_MEMBRANE_DIR/$primal" 2>/dev/null; then
+            log "  $primal already present, skipping fetch"
+        else
+            remote_fetch_primal "$remote" "$primal"
+        fi
+    done
+
+    ssh "$remote" "bash -s" <<NODE_UNITS
+set -euo pipefail
+MEMBRANE_DIR="$REMOTE_MEMBRANE_DIR"
+
+cat > /etc/systemd/system/toadstool-membrane.service <<SVC
+[Unit]
+Description=ToadStool — compute dispatch (membrane)
+After=network.target beardog-membrane.service
+Wants=beardog-membrane.service
+
+[Service]
+Type=simple
+ExecStart=\$MEMBRANE_DIR/toadstool server --socket /run/membrane/toadstool.sock
+Restart=on-failure
+RestartSec=5
+EnvironmentFile=-\$MEMBRANE_DIR/tower.env
+
+[Install]
+WantedBy=multi-user.target
+SVC
+
+cat > /etc/systemd/system/barracuda-membrane.service <<SVC
+[Unit]
+Description=barraCuda — pure math (membrane)
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=\$MEMBRANE_DIR/barracuda server --socket /run/membrane/barracuda.sock
+Restart=on-failure
+RestartSec=5
+EnvironmentFile=-\$MEMBRANE_DIR/tower.env
+
+[Install]
+WantedBy=multi-user.target
+SVC
+
+cat > /etc/systemd/system/coralreef-membrane.service <<SVC
+[Unit]
+Description=coralReef — shader compilation (membrane)
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=\$MEMBRANE_DIR/coralreef server --socket /run/membrane/coralreef.sock
+Restart=on-failure
+RestartSec=5
+EnvironmentFile=-\$MEMBRANE_DIR/tower.env
+
+[Install]
+WantedBy=multi-user.target
+SVC
+NODE_UNITS
+
+    ssh "$remote" "systemctl daemon-reload"
+    ssh "$remote" "systemctl enable toadstool-membrane barracuda-membrane coralreef-membrane"
+    ssh "$remote" "systemctl restart toadstool-membrane barracuda-membrane coralreef-membrane" 2>/dev/null || true
+
+    log ""
+    log "  Node tier deployed."
+    log "    toadStool:  /run/membrane/toadstool.sock  (compute dispatch)"
+    log "    barraCuda:  /run/membrane/barracuda.sock  (math)"
+    log "    coralReef:  /run/membrane/coralreef.sock  (shaders)"
+}
+
+# ── Meta composition (orchestration tier) ──────────────────────────
+# biomeOS (Neural API), Squirrel (AI), petalTongue (viz)
+
+META_PRIMALS="biomeos squirrel petaltongue"
+
+deploy_meta_composition() {
+    local remote="$1"
+
+    log "Meta expansion: adding orchestration tier"
+    log "  Primals: $META_PRIMALS"
+
+    if $DRY_RUN; then
+        log "[dry-run] Would fetch biomeos, squirrel, petaltongue from GitHub Releases"
+        log "[dry-run] Would generate systemd units for Meta primals"
+        return 0
+    fi
+
+    ssh "$remote" "mkdir -p $REMOTE_MEMBRANE_DIR /run/membrane"
+
+    for primal in $META_PRIMALS; do
+        if ssh "$remote" "test -x $REMOTE_MEMBRANE_DIR/$primal" 2>/dev/null; then
+            log "  $primal already present, skipping fetch"
+        else
+            remote_fetch_primal "$remote" "$primal"
+        fi
+    done
+
+    ssh "$remote" "bash -s" <<META_UNITS
+set -euo pipefail
+MEMBRANE_DIR="$REMOTE_MEMBRANE_DIR"
+
+cat > /etc/systemd/system/biomeos-membrane.service <<SVC
+[Unit]
+Description=biomeOS — Neural API orchestrator (membrane)
+After=network.target beardog-membrane.service songbird-relay.service
+Wants=beardog-membrane.service songbird-relay.service
+
+[Service]
+Type=simple
+ExecStart=\$MEMBRANE_DIR/biomeos api --socket /run/membrane/biomeos.sock
+Restart=on-failure
+RestartSec=5
+EnvironmentFile=-\$MEMBRANE_DIR/tower.env
+Environment=BIOMEOS_BTSP_ENFORCE=0
+
+[Install]
+WantedBy=multi-user.target
+SVC
+
+cat > /etc/systemd/system/squirrel-membrane.service <<SVC
+[Unit]
+Description=Squirrel — AI coordination (membrane)
+After=network.target biomeos-membrane.service
+
+[Service]
+Type=simple
+ExecStart=\$MEMBRANE_DIR/squirrel server --socket /run/membrane/squirrel.sock
+Restart=on-failure
+RestartSec=5
+EnvironmentFile=-\$MEMBRANE_DIR/tower.env
+
+[Install]
+WantedBy=multi-user.target
+SVC
+
+cat > /etc/systemd/system/petaltongue-membrane.service <<SVC
+[Unit]
+Description=petalTongue — visualization (membrane)
+After=network.target biomeos-membrane.service
+
+[Service]
+Type=simple
+ExecStart=\$MEMBRANE_DIR/petaltongue server --socket /run/membrane/petaltongue.sock
+Restart=on-failure
+RestartSec=5
+EnvironmentFile=-\$MEMBRANE_DIR/tower.env
+
+[Install]
+WantedBy=multi-user.target
+SVC
+META_UNITS
+
+    ssh "$remote" "systemctl daemon-reload"
+    ssh "$remote" "systemctl enable biomeos-membrane squirrel-membrane petaltongue-membrane"
+    ssh "$remote" "systemctl restart biomeos-membrane squirrel-membrane petaltongue-membrane" 2>/dev/null || true
+
+    log ""
+    log "  Meta tier deployed."
+    log "    biomeOS:     /run/membrane/biomeos.sock     (Neural API)"
+    log "    Squirrel:    /run/membrane/squirrel.sock    (AI)"
+    log "    petalTongue: /run/membrane/petaltongue.sock (viz)"
 }
 
 # ── RustDesk co-host deployment ──────────────────────────────────────
@@ -743,12 +945,19 @@ do_deploy() {
             deploy_rustdesk "$REMOTE"
             deploy_nest_composition "$REMOTE"
             ;;
+        nucleus)
+            deploy_tower_composition "$REMOTE"
+            deploy_rustdesk "$REMOTE"
+            deploy_node_composition "$REMOTE"
+            deploy_nest_composition "$REMOTE"
+            deploy_meta_composition "$REMOTE"
+            ;;
         rustdesk)
             deploy_channel_2_relay "$REMOTE"
             deploy_rustdesk "$REMOTE"
             ;;
         *)
-            die "Unknown composition: $COMPOSITION. Use relay, tower, nest, or rustdesk."
+            die "Unknown composition: $COMPOSITION. Use relay, tower, nest, nucleus, or rustdesk."
             ;;
     esac
 
