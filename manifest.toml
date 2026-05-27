@@ -99,7 +99,7 @@ arch = ["x86_64-unknown-linux-musl", "aarch64-unknown-linux-musl", "armv7-unknow
 [primals.toadstool]
 name = "ToadStool"
 description = "Compute dispatch — GPU/CPU/NPU orchestration, hardware discovery, DAG-aware fan-out"
-latest = "0.2.0"
+latest = "0.1.0-integration-dec23"
 phase = 1
 capabilities = ["compute", "cpu", "gpu", "npu", "wasm", "orchestration"]
 seed_fingerprint = "01e0971af32a65252e8f00edfaa531824a778c9016611fd73934769ebcec4479"
