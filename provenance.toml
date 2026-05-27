@@ -33,3 +33,30 @@ rustc_version = "1.95.0"
 target = "x86_64-unknown-linux-musl"
 provenance_hash = "346fa3e89067f1bf71a7820f7fdd952c4c61a3688bdac8e64f183ac10c5b962a"
 
+[primals.songbird."aarch64-unknown-linux-musl"]
+content_hash = "cb11c815f46969449673e95ff1ea3c03c20caf539ad2777917251cfa629955bc"
+source_commit = "cd289451aec4fe74af6fdd2b1f8e068a2bc51b29"
+source_repo = "ecoPrimals/songBird"
+build_timestamp = "2026-05-27T13:50:58Z"
+rustc_version = "1.95.0"
+target = "aarch64-unknown-linux-musl"
+provenance_hash = "42ebae3ab817b0e451659ae85985cd68475226ae5f2fba7acf83fadf2404b5fb"
+
+[primals.songbird."armv7-unknown-linux-musleabihf"]
+content_hash = "fb8701783f805c7ec236659e2e31371d6085461a0d1ac9b0b542e2392bb10a3c"
+source_commit = "cd289451aec4fe74af6fdd2b1f8e068a2bc51b29"
+source_repo = "ecoPrimals/songBird"
+build_timestamp = "2026-05-27T13:49:52Z"
+rustc_version = "1.95.0"
+target = "armv7-unknown-linux-musleabihf"
+provenance_hash = "6611350c08e87cfaffb274270a1569371c03cabb7888e1da37a445029535184b"
+
+[primals.songbird."x86_64-unknown-linux-musl"]
+content_hash = "32586b9ad97d92c4015965fdecdb153ed6c692947f542d8eba3cc0039e663c00"
+source_commit = "cd289451aec4fe74af6fdd2b1f8e068a2bc51b29"
+source_repo = "ecoPrimals/songBird"
+build_timestamp = "2026-05-27T13:51:14Z"
+rustc_version = "1.95.0"
+target = "x86_64-unknown-linux-musl"
+provenance_hash = "15909fc4f5c2f44a888e97866a038bf4523eedcf819680d6686973fc132b04dc"
+
