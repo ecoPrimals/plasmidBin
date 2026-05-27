@@ -6,6 +6,33 @@
 #
 # Validated by: plasmidbin verify-provenance
 
+[primals.biomeos."aarch64-unknown-linux-musl"]
+content_hash = "c07c607d0f98337b75cfc2974f46468d533ddfa742fd8cb8ae416cb71351215f"
+source_commit = "5cc85172b86ccb0197a4a9b5daee4e673d75a6f9"
+source_repo = "ecoPrimals/biomeOS"
+build_timestamp = "2026-05-27T18:08:04Z"
+rustc_version = "1.95.0"
+target = "aarch64-unknown-linux-musl"
+provenance_hash = "5c7a09e7dc5af7fc02246d601e60818008e69454cf054047d9ff68fbf8331dad"
+
+[primals.biomeos."armv7-unknown-linux-musleabihf"]
+content_hash = "6ff8c6864eb9ad96ae548971b330837b6cdebff7e3eb5d0955df0e3c2da107f9"
+source_commit = "5cc85172b86ccb0197a4a9b5daee4e673d75a6f9"
+source_repo = "ecoPrimals/biomeOS"
+build_timestamp = "2026-05-27T18:11:17Z"
+rustc_version = "1.95.0"
+target = "armv7-unknown-linux-musleabihf"
+provenance_hash = "3f7372c056ce221b12bd3394daf1c18f8ff69d969f4c217bda59bb34c1b1d473"
+
+[primals.biomeos."x86_64-unknown-linux-musl"]
+content_hash = "4369d4ef361c27d634d37dbc32a0da1c38da479e306a49bb3579deacdc706d75"
+source_commit = "5cc85172b86ccb0197a4a9b5daee4e673d75a6f9"
+source_repo = "ecoPrimals/biomeOS"
+build_timestamp = "2026-05-27T18:09:39Z"
+rustc_version = "1.95.0"
+target = "x86_64-unknown-linux-musl"
+provenance_hash = "9683b2720139ab16b486a0cbd7f0527eff0322530f7e54b824ddd564b6a394f7"
+
 [primals.loamspine."aarch64-unknown-linux-musl"]
 content_hash = "17629b3f419287ae3c6a502af3fdc91756cf2bd95b1b8f2f6338a7a037db686d"
 source_commit = "a6074b0d9deb04d86008f64362a88994640b6747"
