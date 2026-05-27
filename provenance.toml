@@ -1,0 +1,35 @@
+# plasmidBin provenance — composite fingerprints
+#
+# Each entry records the content hash, source commit, build timestamp,
+# compiler version, and a composite provenance_hash that changes whenever
+# any input changes — even if the binary bytes are bitwise identical.
+#
+# Validated by: plasmidbin verify-provenance
+
+[primals.loamspine."aarch64-unknown-linux-musl"]
+content_hash = "17629b3f419287ae3c6a502af3fdc91756cf2bd95b1b8f2f6338a7a037db686d"
+source_commit = "a6074b0d9deb04d86008f64362a88994640b6747"
+source_repo = "ecoPrimals/loamSpine"
+build_timestamp = "2026-05-27T13:33:34Z"
+rustc_version = "1.95.0"
+target = "aarch64-unknown-linux-musl"
+provenance_hash = "2c6d3ae76d058e5b4c1058ae7e18fde453622ebdcc4d94f435563b10dcafb411"
+
+[primals.loamspine."armv7-unknown-linux-musleabihf"]
+content_hash = "50144f2157c21f7beb987dd441fb1d3efeb5d1ae8734a3d96d6668a2a8fcf137"
+source_commit = "a6074b0d9deb04d86008f64362a88994640b6747"
+source_repo = "ecoPrimals/loamSpine"
+build_timestamp = "2026-05-27T13:34:32Z"
+rustc_version = "1.95.0"
+target = "armv7-unknown-linux-musleabihf"
+provenance_hash = "4ebec2e472c5c4c00990d32f48477e50e7768943eaf8de3cbf091532481fa3a6"
+
+[primals.loamspine."x86_64-unknown-linux-musl"]
+content_hash = "3cba448e144abc82659312aa57be11c65dd9bdb4f415b6ccd59e68f4449bab89"
+source_commit = "a6074b0d9deb04d86008f64362a88994640b6747"
+source_repo = "ecoPrimals/loamSpine"
+build_timestamp = "2026-05-27T13:35:30Z"
+rustc_version = "1.95.0"
+target = "x86_64-unknown-linux-musl"
+provenance_hash = "346fa3e89067f1bf71a7820f7fdd952c4c61a3688bdac8e64f183ac10c5b962a"
+
