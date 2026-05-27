@@ -5,8 +5,9 @@
 use anyhow::{Context, Result, bail};
 use clap::Args;
 use plasmidbin_types::arch::Arch;
+use plasmidbin_types::provenance::BuildSidecar;
 use plasmidbin_types::sources::SourcesFile;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 #[derive(Args)]
 pub struct BuildArgs {
@@ -151,8 +152,24 @@ pub fn run(args: BuildArgs) -> Result<()> {
         let bin_name = entry.binary_name(id);
         let built_bin = clone_dir.join("target").join(arch.triple()).join("release").join(&bin_name);
         if built_bin.exists() {
-            std::fs::copy(&built_bin, deploy_dir.join(&bin_name))?;
+            let staged_path = deploy_dir.join(&bin_name);
+            std::fs::copy(&built_bin, &staged_path)?;
             println!("  OK: staged {bin_name}");
+
+            // Write provenance sidecar next to the staged binary
+            let source_commit = resolve_git_head(&clone_dir);
+            let rustc_version = resolve_rustc_version();
+            let sidecar = BuildSidecar {
+                source_commit,
+                source_repo: entry.repo.clone(),
+                rustc_version,
+                build_timestamp: chrono::Utc::now().to_rfc3339_opts(chrono::SecondsFormat::Secs, true),
+            };
+            match BuildSidecar::write_next_to(&staged_path, &sidecar) {
+                Ok(()) => println!("  OK: wrote provenance sidecar"),
+                Err(e) => println!("  WARN: provenance sidecar failed: {e}"),
+            }
+
             built += 1;
         } else {
             println!("  FAIL: binary not found at {}", built_bin.display());
@@ -177,4 +194,36 @@ pub fn run(args: BuildArgs) -> Result<()> {
 
     if failed > 0 { bail!("{failed} builds failed"); }
     Ok(())
+}
+
+fn resolve_git_head(repo_dir: &Path) -> String {
+    std::process::Command::new("git")
+        .args(["rev-parse", "HEAD"])
+        .current_dir(repo_dir)
+        .output()
+        .ok()
+        .and_then(|o| {
+            if o.status.success() {
+                Some(String::from_utf8_lossy(&o.stdout).trim().to_string())
+            } else {
+                None
+            }
+        })
+        .unwrap_or_else(|| "unknown".into())
+}
+
+fn resolve_rustc_version() -> String {
+    std::process::Command::new("rustc")
+        .arg("--version")
+        .output()
+        .ok()
+        .and_then(|o| {
+            if o.status.success() {
+                let full = String::from_utf8_lossy(&o.stdout).trim().to_string();
+                full.split_whitespace().nth(1).map(String::from)
+            } else {
+                None
+            }
+        })
+        .unwrap_or_else(|| "unknown".into())
 }

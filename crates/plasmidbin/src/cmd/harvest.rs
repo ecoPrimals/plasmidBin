@@ -9,6 +9,9 @@ use anyhow::{Context, Result, bail};
 use clap::Args;
 use plasmidbin_types::arch::Arch;
 use plasmidbin_types::checksums::ChecksumsFile;
+use plasmidbin_types::provenance::{
+    BuildSidecar, ProvenanceEntry, ProvenanceFile, compute_provenance_hash,
+};
 use plasmidbin_types::sources::SourcesFile;
 use std::path::{Path, PathBuf};
 
@@ -151,6 +154,7 @@ pub fn run(args: HarvestArgs) -> Result<()> {
     let mut skipped = 0u32;
     let mut failed = 0u32;
     let mut release_assets: Vec<PathBuf> = Vec::new();
+    let mut harvest_records: Vec<(String, String, PathBuf)> = Vec::new();
 
     for entry in &entries {
         if let Some(ref filter) = args.primal {
@@ -218,6 +222,7 @@ pub fn run(args: HarvestArgs) -> Result<()> {
         checksums.set_hash(&entry.source_id, arch.triple(), &hash);
 
         release_assets.push(dest);
+        harvest_records.push((entry.source_id.clone(), hash.clone(), src.clone()));
 
         println!("OK  {size}  blake3={}...", &hash[..16]);
         harvested += 1;
@@ -227,6 +232,57 @@ pub fn run(args: HarvestArgs) -> Result<()> {
         checksums.save(root).map_err(|e| anyhow::anyhow!(e))?;
         println!();
         println!("checksums.toml updated ({} primals)", checksums.primals.len());
+
+        // Write provenance.toml for every harvested binary that has a sidecar
+        let mut provenance = ProvenanceFile::load(root).unwrap_or_default();
+        let mut prov_count = 0u32;
+        let mut braid_entries: Vec<(String, ProvenanceEntry, u64)> = Vec::new();
+
+        for (source_id, content_hash, src_path) in &harvest_records {
+            if let Some(sidecar) = BuildSidecar::read_next_to(src_path) {
+                let prov_hash = compute_provenance_hash(
+                    content_hash,
+                    &sidecar.source_commit,
+                    &sidecar.build_timestamp,
+                    &sidecar.rustc_version,
+                    arch.triple(),
+                );
+                let bin_size = std::fs::metadata(src_path).map(|m| m.len()).unwrap_or(0);
+                let entry = ProvenanceEntry {
+                    content_hash: content_hash.clone(),
+                    source_commit: sidecar.source_commit,
+                    source_repo: sidecar.source_repo,
+                    build_timestamp: sidecar.build_timestamp,
+                    rustc_version: sidecar.rustc_version,
+                    target: arch.triple().to_string(),
+                    provenance_hash: prov_hash,
+                    braid_id: None,
+                };
+                braid_entries.push((source_id.clone(), entry.clone(), bin_size));
+                provenance.set_entry(source_id, arch.triple(), entry);
+                prov_count += 1;
+            }
+        }
+
+        // Attempt sweetGrass braid.create for each provenance entry
+        for (source_id, entry, bin_size) in &mut braid_entries {
+            match try_braid_create(source_id, entry, *bin_size) {
+                BraidResult::Created(braid_id) => {
+                    println!("  braid: {source_id} -> {}", &braid_id[..braid_id.len().min(40)]);
+                    entry.braid_id = Some(braid_id.clone());
+                    provenance.set_entry(source_id, arch.triple(), entry.clone());
+                }
+                BraidResult::Pending(path) => {
+                    println!("  braid: {source_id} -> pending at {}", path.display());
+                }
+                BraidResult::Skipped => {}
+            }
+        }
+
+        if prov_count > 0 {
+            provenance.save(root).map_err(|e| anyhow::anyhow!(e))?;
+            println!("provenance.toml updated ({prov_count} entries from build sidecars)");
+        }
 
         if let Some(ref filter) = args.primal {
             if let Some(ref tag) = args.version_tag {
@@ -336,4 +392,131 @@ fn update_manifest_latest(root: &Path, primal_id: &str, tag: &str) {
             }
         }
     }
+}
+
+// ── sweetGrass braid integration ──────────────────────────────────
+
+enum BraidResult {
+    Created(String),
+    Pending(PathBuf),
+    Skipped,
+}
+
+fn sweetgrass_socket() -> Option<PathBuf> {
+    // Try env override first, then XDG standard path
+    if let Ok(p) = std::env::var("SWEETGRASS_SOCKET") {
+        let path = PathBuf::from(p);
+        if path.exists() { return Some(path); }
+    }
+    let uid = unsafe { libc::getuid() };
+    let xdg = PathBuf::from(format!("/run/user/{uid}/ecoprimals/sweetgrass.sock"));
+    if xdg.exists() { return Some(xdg); }
+    None
+}
+
+fn try_braid_create(
+    source_id: &str,
+    entry: &ProvenanceEntry,
+    bin_size: u64,
+) -> BraidResult {
+    let braid_name = format!(
+        "harvest:{source_id}:{}:{}",
+        entry.target,
+        &entry.build_timestamp[..entry.build_timestamp.len().min(10)],
+    );
+
+    let braid_request = serde_json::json!({
+        "jsonrpc": "2.0",
+        "id": 1,
+        "method": "braid.create",
+        "params": {
+            "data_hash": entry.provenance_hash,
+            "mime_type": "application/x-plasmidbin-harvest",
+            "size": bin_size,
+            "name": braid_name,
+            "metadata": {
+                "title": format!("{source_id} {} Harvest", entry.target),
+                "custom": {
+                    "source_commit": entry.source_commit,
+                    "source_repo": entry.source_repo,
+                    "content_hash": entry.content_hash,
+                    "rustc_version": entry.rustc_version,
+                    "target_triple": entry.target,
+                    "harvest_workflow": "auto-harvest.yml",
+                }
+            }
+        }
+    });
+
+    let Some(socket) = sweetgrass_socket() else {
+        return write_pending_braid(source_id, &braid_request);
+    };
+
+    match send_uds_jsonrpc(&socket, &braid_request) {
+        Ok(response) => {
+            if let Some(id) = response.get("result")
+                .and_then(|r| r.get("braid_id"))
+                .and_then(|v| v.as_str())
+            {
+                BraidResult::Created(id.to_string())
+            } else if let Some(id) = response.get("result")
+                .and_then(|r| r.get("id"))
+                .and_then(|v| v.as_str())
+            {
+                BraidResult::Created(id.to_string())
+            } else {
+                write_pending_braid(source_id, &braid_request)
+            }
+        }
+        Err(_) => write_pending_braid(source_id, &braid_request),
+    }
+}
+
+fn write_pending_braid(source_id: &str, request: &serde_json::Value) -> BraidResult {
+    let dir = std::env::temp_dir().join("plasmidbin-braids-pending");
+    let _ = std::fs::create_dir_all(&dir);
+    let path = dir.join(format!("{source_id}.braid-pending.json"));
+    match serde_json::to_string_pretty(request) {
+        Ok(json) => {
+            if std::fs::write(&path, json).is_ok() {
+                return BraidResult::Pending(path);
+            }
+        }
+        Err(_) => {}
+    }
+    BraidResult::Skipped
+}
+
+fn send_uds_jsonrpc(socket: &Path, request: &serde_json::Value) -> Result<serde_json::Value> {
+    use std::io::{Read, Write};
+    use std::os::unix::net::UnixStream;
+    use std::time::Duration;
+
+    let mut stream = UnixStream::connect(socket)
+        .context("connecting to sweetGrass UDS")?;
+    stream.set_read_timeout(Some(Duration::from_secs(5)))?;
+    stream.set_write_timeout(Some(Duration::from_secs(5)))?;
+
+    let payload = serde_json::to_string(request)? + "\n";
+    stream.write_all(payload.as_bytes())?;
+    stream.flush()?;
+
+    let mut buf = Vec::new();
+    let mut tmp = [0u8; 4096];
+    loop {
+        match stream.read(&mut tmp) {
+            Ok(0) => break,
+            Ok(n) => {
+                buf.extend_from_slice(&tmp[..n]);
+                if buf.contains(&b'\n') { break; }
+            }
+            Err(e) if e.kind() == std::io::ErrorKind::WouldBlock => break,
+            Err(e) if e.kind() == std::io::ErrorKind::TimedOut => break,
+            Err(e) => return Err(e.into()),
+        }
+    }
+
+    let text = String::from_utf8_lossy(&buf);
+    let response: serde_json::Value = serde_json::from_str(text.trim())?;
+    Ok(response)
 }

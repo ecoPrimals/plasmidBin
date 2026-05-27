@@ -8,4 +8,6 @@ description = "Typed domain models for plasmidBin metadata: manifest, checksums,
 
 [dependencies]
 serde = { workspace = true }
+serde_json = "1"
 toml = { workspace = true }
+blake3 = { workspace = true }

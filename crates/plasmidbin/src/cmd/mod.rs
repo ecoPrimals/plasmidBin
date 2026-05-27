@@ -15,6 +15,7 @@ mod bootstrap;
 mod build;
 mod update;
 mod seed;
+mod verify_provenance;
 
 use clap::Subcommand;
 
@@ -50,6 +51,8 @@ pub enum Command {
     Update(update::UpdateArgs),
     /// Dark Forest seed lifecycle via BearDog crypto
     Seed(seed::SeedArgs),
+    /// Verify provenance chain: composite hashes, checksum cross-ref, braids
+    VerifyProvenance(verify_provenance::VerifyProvenanceArgs),
 }
 
 impl Command {
@@ -70,6 +73,7 @@ impl Command {
             Command::Build(args) => build::run(args),
             Command::Update(args) => update::run(args),
             Command::Seed(args) => seed::run(args),
+            Command::VerifyProvenance(args) => verify_provenance::run(args),
         }
     }
 }

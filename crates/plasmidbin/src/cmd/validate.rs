@@ -2,7 +2,7 @@
 
 use anyhow::Result;
 use clap::Args;
-use plasmidbin_types::{Report, checksums, manifest, ports, sources};
+use plasmidbin_types::{Report, checksums, manifest, ports, provenance, sources};
 use std::path::{Path, PathBuf};
 
 #[derive(Args)]
@@ -40,6 +40,10 @@ pub fn run(args: ValidateArgs) -> Result<()> {
     println!("\n=== sources.toml ===");
     let s = sources::validate(root, &m.primal_ids);
     total.merge(&s.report);
+
+    println!("\n=== provenance.toml ===");
+    let prov = provenance::validate(root);
+    total.merge(&prov);
 
     println!("\n=== Cross-validation ===");
     cross_validate(&m, &c, &s, &p, &mut total);

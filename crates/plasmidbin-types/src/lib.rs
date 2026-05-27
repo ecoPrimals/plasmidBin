@@ -13,6 +13,7 @@ pub mod arch;
 pub mod checksums;
 pub mod manifest;
 pub mod ports;
+pub mod provenance;
 pub mod sources;
 
 mod report;

@@ -271,8 +271,12 @@ jobs:
           echo "checksums.toml diff (first 20 lines):"
           git diff checksums.toml | head -20 || true
           echo ""
+          echo "provenance.toml diff (first 20 lines):"
+          git diff provenance.toml | head -20 || true
+          echo ""
 
           git add checksums.toml
+          git add provenance.toml 2>/dev/null || true
           git add manifest.toml 2>/dev/null || true
           git add primals/ 2>/dev/null || true
           git add springs/ 2>/dev/null || true
@@ -299,7 +303,7 @@ jobs:
                 echo "Rebase conflict — aborting and re-applying on fresh HEAD"
                 git rebase --abort
                 git pull --ff-only || git pull
-                git add checksums.toml manifest.toml primals/ springs/ 2>/dev/null || true
+                git add checksums.toml provenance.toml manifest.toml primals/ springs/ 2>/dev/null || true
                 if git diff --cached --quiet; then
                   echo "After re-pull, no diff remains (remote already has these checksums)"
                   PUSHED=true
@@ -352,8 +356,9 @@ jobs:
             done
           done
 
-          # Also upload checksums.toml as a release asset
+          # Also upload checksums.toml and provenance.toml as release assets
           cp checksums.toml "$STAGING/checksums.toml"
+          [[ -f provenance.toml ]] && cp provenance.toml "$STAGING/provenance.toml" || true
 
           echo "staging=$STAGING" >> "$GITHUB_OUTPUT"
 
