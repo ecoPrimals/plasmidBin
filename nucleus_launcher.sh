@@ -14,16 +14,17 @@
 # Startup order (dependency-aware):
 #   1. beardog      (crypto spine — everything depends on this)
 #   2. songbird     (discovery + HTTP — registry target)
-#   3. toadstool    (compute dispatch)
-#   4. barracuda    (GPU math)
-#   5. coralreef    (shader compiler)
-#   6. nestgate     (storage)
-#   7. rhizocrypt   (working memory)
-#   8. loamspine    (permanent ledger)
-#   9. sweetgrass   (attribution)
-#  10. biomeos      (orchestrator — needs primals running)
-#  11. squirrel     (AI coordination)
-#  12. petaltongue  (UI / representation)
+#   3. skunkbat     (defense — meta-tier threat detection, Tower Atomic)
+#   4. toadstool    (compute dispatch)
+#   5. barracuda    (GPU math)
+#   6. coralreef    (shader compiler)
+#   7. nestgate     (storage)
+#   8. rhizocrypt   (working memory)
+#   9. loamspine    (permanent ledger)
+#  10. sweetgrass   (attribution)
+#  11. biomeos      (orchestrator — needs primals running)
+#  12. squirrel     (AI coordination)
+#  13. petaltongue  (UI / representation)
 #
 # Phase 5 registry seeding:
 #   After all primals are healthy, registers each with Songbird so that
@@ -120,9 +121,17 @@ export BEARDOG_FAMILY_SEED="$FAMILY_SEED"
 
 [[ -z "$NODE_ID" ]] && NODE_ID="$(hostname -s 2>/dev/null || echo 'nucleus')"
 
+export NODE_ID
+export BEARDOG_NODE_ID="${BEARDOG_NODE_ID:-$NODE_ID}"
+
+if [[ -z "${NESTGATE_JWT_SECRET:-}" ]]; then
+    NESTGATE_JWT_SECRET="$(openssl rand -base64 48 2>/dev/null || head -c 48 /dev/urandom | base64)"
+    export NESTGATE_JWT_SECRET
+fi
+
 PRIMALS_REQUESTED=$(primals_for_composition "$COMPOSITION")
 
-STARTUP_ORDER="beardog songbird toadstool barracuda coralreef nestgate rhizocrypt loamspine sweetgrass biomeos squirrel petaltongue"
+STARTUP_ORDER="beardog songbird skunkbat toadstool barracuda coralreef nestgate rhizocrypt loamspine sweetgrass biomeos squirrel petaltongue"
 
 ORDERED_PRIMALS=""
 for p in $STARTUP_ORDER; do
@@ -169,6 +178,7 @@ capability_domains_for() {
         biomeos)     echo "orchestration graph deploy nucleus spore niche" ;;
         squirrel)    echo "ai inference mcp" ;;
         petaltongue) echo "visualization ui interaction representation" ;;
+        skunkbat)    echo "defense threat metadata lineage baseline health audit btsp" ;;
         *)           echo "" ;;
     esac
 }
