@@ -150,16 +150,21 @@ fn seed_export(args: SeedExportArgs) -> Result<()> {
     match args.format.as_str() {
         "hex" => println!("{hash}"),
         "base64" => {
-            let output = std::process::Command::new("base64")
+            let mut child = std::process::Command::new("base64")
                 .arg("-w0")
                 .stdin(std::process::Stdio::piped())
                 .stdout(std::process::Stdio::piped())
                 .spawn()
-                .and_then(|mut child| {
-                    use std::io::Write;
-                    child.stdin.take().unwrap().write_all(hash.as_bytes())?;
-                    child.wait_with_output()
-                })?;
+                .context("spawning base64")?;
+            {
+                use std::io::Write;
+                let mut stdin = child
+                    .stdin
+                    .take()
+                    .ok_or_else(|| anyhow::anyhow!("failed to capture stdin"))?;
+                stdin.write_all(hash.as_bytes())?;
+            }
+            let output = child.wait_with_output().context("waiting for base64")?;
             println!("{}", String::from_utf8_lossy(&output.stdout));
         }
         "file" => {

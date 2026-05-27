@@ -408,7 +408,7 @@ fn sweetgrass_socket() -> Option<PathBuf> {
         let path = PathBuf::from(p);
         if path.exists() { return Some(path); }
     }
-    let uid = unsafe { libc::getuid() };
+    let uid = super::current_uid();
     let xdg = PathBuf::from(format!("/run/user/{uid}/ecoprimals/sweetgrass.sock"));
     if xdg.exists() { return Some(xdg); }
     None

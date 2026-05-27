@@ -19,6 +19,11 @@ mod verify_provenance;
 
 use clap::Subcommand;
 
+/// Returns the real UID of the calling process.
+pub(crate) fn current_uid() -> u32 {
+    unsafe { libc::getuid() }
+}
+
 #[derive(Subcommand)]
 pub enum Command {
     /// Validate metadata integrity: manifest, checksums, ports, sources

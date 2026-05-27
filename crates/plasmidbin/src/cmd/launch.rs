@@ -89,16 +89,21 @@ pub fn run(args: LaunchArgs) -> Result<()> {
         }
 
         if let Some(ref fid) = args.family_id {
-            match *name {
-                "barracuda" => unsafe { std::env::set_var("BARRACUDA_FAMILY_ID", fid) },
-                _ => cmd_args.extend(["--family-id".into(), fid.clone()]),
+            if *name != "barracuda" {
+                cmd_args.extend(["--family-id".into(), fid.clone()]);
             }
         }
 
         let log_file = PathBuf::from(format!("/tmp/{name}.log"));
         let log = std::fs::File::create(&log_file).context("creating log")?;
-        let child = std::process::Command::new(&bin_path)
-            .args(&cmd_args)
+        let mut cmd = std::process::Command::new(&bin_path);
+        cmd.args(&cmd_args);
+        if *name == "barracuda" {
+            if let Some(ref fid) = args.family_id {
+                cmd.env("BARRACUDA_FAMILY_ID", fid);
+            }
+        }
+        let child = cmd
             .stdout(log.try_clone()?)
             .stderr(log)
             .spawn()

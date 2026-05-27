@@ -64,24 +64,30 @@ pub fn run(args: StartArgs) -> Result<()> {
     }
 
     let cmd_args = build_primal_args(name, &args);
-    let log_file = args.log_file.unwrap_or_else(|| PathBuf::from(format!("/tmp/{name}.log")));
 
     println!("Starting {name}...");
     println!("  Binary: {}", bin_path.display());
     println!("  Args:   {}", cmd_args.join(" "));
 
     if args.foreground {
-        let status = std::process::Command::new(&bin_path)
-            .args(&cmd_args)
-            .status()
-            .context("starting primal")?;
+        let mut cmd = std::process::Command::new(&bin_path);
+        cmd.args(&cmd_args);
+        apply_primal_env(&mut cmd, name, &args);
+        let status = cmd.status().context("starting primal")?;
         if !status.success() {
             bail!("{name} exited with {status}");
         }
     } else {
+        let log_file = args
+            .log_file
+            .as_ref()
+            .cloned()
+            .unwrap_or_else(|| PathBuf::from(format!("/tmp/{name}.log")));
         let log = std::fs::File::create(&log_file).context("creating log file")?;
-        let child = std::process::Command::new(&bin_path)
-            .args(&cmd_args)
+        let mut cmd = std::process::Command::new(&bin_path);
+        cmd.args(&cmd_args);
+        apply_primal_env(&mut cmd, name, &args);
+        let child = cmd
             .stdout(log.try_clone()?)
             .stderr(log)
             .spawn()
@@ -135,19 +141,14 @@ fn build_primal_args(name: &str, args: &StartArgs) -> Vec<String> {
     }
 
     if let Some(ref socket) = args.socket {
-        match name {
-            "barracuda" => {
-                // SAFETY: barracuda uses env vars; we set before spawn, single-threaded CLI
-                unsafe { std::env::set_var("BARRACUDA_SOCKET", socket.display().to_string()) };
-            }
-            _ => cmd_args.extend(["--socket".into(), socket.display().to_string()]),
+        if name != "barracuda" {
+            cmd_args.extend(["--socket".into(), socket.display().to_string()]);
         }
     }
 
     if let Some(ref fid) = args.family_id {
-        match name {
-            "barracuda" => unsafe { std::env::set_var("BARRACUDA_FAMILY_ID", fid) },
-            _ => cmd_args.extend(["--family-id".into(), fid.clone()]),
+        if name != "barracuda" {
+            cmd_args.extend(["--family-id".into(), fid.clone()]);
         }
     }
 
@@ -163,4 +164,16 @@ fn build_primal_args(name: &str, args: &StartArgs) -> Vec<String> {
     }
 
     cmd_args
+}
+
+fn apply_primal_env(cmd: &mut std::process::Command, name: &str, args: &StartArgs) {
+    if name != "barracuda" {
+        return;
+    }
+    if let Some(ref socket) = args.socket {
+        cmd.env("BARRACUDA_SOCKET", socket.display().to_string());
+    }
+    if let Some(ref fid) = args.family_id {
+        cmd.env("BARRACUDA_FAMILY_ID", fid);
+    }
 }

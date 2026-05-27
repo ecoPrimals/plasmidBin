@@ -60,7 +60,10 @@ pub fn run(args: UpdateArgs) -> Result<()> {
                             entry.repo
                         );
                         let dest = root.join("primals").join(arch.triple()).join(&bin_name);
-                        std::fs::create_dir_all(dest.parent().unwrap())?;
+                        let parent = dest
+                            .parent()
+                            .ok_or_else(|| anyhow::anyhow!("invalid destination path"))?;
+                        std::fs::create_dir_all(parent)?;
 
                         let status = std::process::Command::new("curl")
                             .args(["-sfL", "--max-time", "120", "-o"])

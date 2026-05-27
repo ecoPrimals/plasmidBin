@@ -185,7 +185,7 @@ enum BraidCheck {
 }
 
 fn verify_braid(braid_id: &str) -> BraidCheck {
-    let uid = unsafe { libc::getuid() };
+    let uid = super::current_uid();
     let socket_paths = [
         std::env::var("SWEETGRASS_SOCKET").unwrap_or_default(),
         format!("/run/user/{uid}/ecoprimals/sweetgrass.sock"),
