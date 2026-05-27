@@ -148,7 +148,7 @@ check_pass = ["x86_64-apple-darwin", "aarch64-apple-darwin"]
 [primals.petaltongue]
 name = "petalTongue"
 description = "Representation / UI — egui, ratatui, axum, grammar of graphics. `live` mode: IPC server + native egui window sharing VisualizationState for real-time interactive compositions."
-latest = "1.6.6"
+latest = "1.4.0-ecoblossom-foundation"
 phase = 2
 capabilities = ["visualization", "ui", "interaction", "representation"]
 seed_fingerprint = "b2ed4c27e831b2493958827a07b5522af2aba67b2f05d19b41fdc02f6f2f3179"
