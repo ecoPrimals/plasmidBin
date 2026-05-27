@@ -179,7 +179,7 @@ check_pass = ["x86_64-apple-darwin", "aarch64-apple-darwin"]
 [primals.rhizocrypt]
 name = "rhizoCrypt"
 description = "Working memory — content-addressed ephemeral DAG, session state, witness emission"
-latest = "0.14.0"
+latest = "0.14.0-audit-complete"
 phase = 2
 capabilities = ["dag", "session", "ephemeral", "content-addressed"]
 seed_fingerprint = "b1a2d03498cf44c175784da4659c61758d7c53f9f3aa4a5934cb3d73fe2d64db"
