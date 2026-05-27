@@ -19,8 +19,8 @@
 #   3. Starts Tower composition (beardog + songbird) on standard ports
 #   4. Prints public IP and validation instructions
 #
-# Standard ports:
-#   beardog=9100 songbird=9200 nestgate=9300 toadstool=9400 squirrel=9500
+# Standard ports (Tier 5 TCP fallback — see ports.env):
+#   beardog=9100 songbird=9200 squirrel=9300 toadstool=9400 nestgate=9500
 
 set -euo pipefail
 

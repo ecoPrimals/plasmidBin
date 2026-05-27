@@ -11,7 +11,7 @@
 #   ./validate_gate.sh 10.0.0.5 --json                # Machine-readable output
 #
 # Standard ports (from primalSpring tolerances):
-#   beardog=9100 songbird=9200 nestgate=9300 toadstool=9400 squirrel=9500
+#   beardog=9100 songbird=9200 squirrel=9300 toadstool=9400 nestgate=9500
 #
 # Requires: curl (for JSON-RPC) or bash /dev/tcp (for raw probes)
 

@@ -19,7 +19,7 @@
 #     (build via: build_ecosystem_genomeBin.sh --aarch64 && harvest.sh --arch aarch64)
 #
 # Standard ports (from primalSpring tolerances):
-#   beardog=9100 songbird=9200 nestgate=9300 toadstool=9400 squirrel=9500
+#   beardog=9100 songbird=9200 squirrel=9300 toadstool=9400 nestgate=9500
 
 set -euo pipefail
 

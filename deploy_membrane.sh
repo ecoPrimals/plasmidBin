@@ -5,9 +5,9 @@
 #
 # Deploys sovereign infrastructure to a VPS for NUCLEUS external surface.
 # Three membrane channels (see wateringHole/MEMBRANE_CHANNEL_ARCHITECTURE.md):
-#   Channel 1: Signal  (DNS — knot-dns, :53)           [future]
-#   Channel 2: Relay   (NAT — songbird relay, :3478)    [active]
-#   Channel 3: Surface (TLS — beardog-tls + nestgate)   [future]
+#   Channel 1: Signal  (DNS — knot-dns, :53)           [ACTIVE — knot-dns + DNSSEC]
+#   Channel 2: Relay   (NAT — songbird relay, :3478)    [ACTIVE]
+#   Channel 3: Surface (TLS — caddy + nestgate, :443)   [ACTIVE — Let's Encrypt]
 #
 # Compositions:
 #   relay      — Channel 2 only: Songbird TURN relay (default)
@@ -16,6 +16,14 @@
 #                Adds BTSP identity, secrets delegation, defense audit, and remote desktop.
 #   nest       — Tower + Nest Atomic: NestGate + rhizoCrypt + loamSpine + sweetGrass
 #   nucleus    — Full NUCLEUS (13 primals): Tower + Node + Nest + Meta
+#
+# VPS Deployment Standard (Wave 56):
+#   Step 1: deploy_membrane.sh deploy --composition nucleus --uds-only
+#           → NUCLEUS base (13 primals, UDS-only, zero TCP ports)
+#   Step 2: deploy_membrane.sh spring-overlay <user@host> --cell <spring>
+#           → spring overlay via biomeos deploy (spawn=false)
+#   Step 3: Spring runtime uses CompositionContext::from_live_discovery()
+#           → UDS tiers 2-4, no harness, no shell scripts
 #
 # Modes:
 #   provision  — Create a DigitalOcean droplet via doctl, then deploy
@@ -50,10 +58,12 @@ DROPLET_REGION="nyc1"
 
 DRY_RUN=false
 VALIDATE_AFTER=false
+UDS_ONLY=false
 MODE=""
 REMOTE=""
 SSH_KEY_FINGERPRINT=""
 COMPOSITION="relay"
+CELL_GRAPH=""
 
 # ── Helpers ──────────────────────────────────────────────────────────
 
@@ -68,6 +78,7 @@ Usage: deploy_membrane.sh <mode> [options]
 Modes:
   provision              Create a DigitalOcean droplet and deploy channels
   deploy <user@host>     Deploy channel binaries to an existing VPS
+  spring-overlay <u@h>   Deploy a spring cell graph overlay on a live NUCLEUS
   status <user@host>     Check health of deployed channels
   keys <action> <u@h>    Manage SSH keys for multi-gate access
   teardown               Destroy the membrane droplet
@@ -84,6 +95,8 @@ Options:
   --pubkey KEY           Public key string (for keys add)
   --ssh-key FP           SSH key fingerprint for droplet access
   --composition COMP     Deployment composition: relay, tower, nest, nucleus, or rustdesk
+  --uds-only             UDS-only mode: zero TCP ports for NUCLEUS primals (VPS standard)
+  --cell SPRING          Spring cell graph name for spring-overlay mode (e.g. hotspring)
   --validate             Run post-deploy composition verification
   --dry-run              Show plan without executing
   --help                 Show this help
@@ -101,10 +114,15 @@ Deployment Models (from MEMBRANE_CHANNEL_ARCHITECTURE.md):
   Model C: Hybrid, Channel 3 on gate hardware + Channels 1+2 on VPS
 
 Channels deployed:
+  Channel 1  (Signal):   knot-dns on :53              — ACTIVE (DNSSEC)
   Channel 2  (Relay):    songbird relay on :3478      — ACTIVE
   Channel 2b (RustDesk): hbbs :21116 + hbbr :21117    — ACTIVE (rustdesk/tower)
-  Channel 1  (Signal):   knot-dns on :53              — FUTURE
-  Channel 3  (Surface):  beardog-tls on :443          — FUTURE
+  Channel 3  (Surface):  caddy on :443                — ACTIVE (Let's Encrypt)
+
+VPS Deployment Standard (Wave 56):
+  Step 1: deploy_membrane.sh deploy <u@h> --composition nucleus --uds-only
+  Step 2: deploy_membrane.sh spring-overlay <u@h> --cell <spring>
+  Step 3: Spring runtime discovers NUCLEUS via UDS (CompositionContext)
 EOF
 }
 
@@ -838,6 +856,152 @@ status_rustdesk() {
     ssh "$remote" "ss -tlnp 2>/dev/null | grep -E ':(21115|21116|21117)' | sed 's/^/  Listening: /' || echo '  RustDesk ports: not listening'"
 }
 
+# ── nucleus_launcher integration (VPS standard Wave 56) ──────────────
+# When --uds-only is set, the nucleus composition uses nucleus_launcher
+# instead of manually creating individual systemd units per primal.
+# This aligns with primalSpring's zero-TCP-port VPS deployment standard.
+
+deploy_nucleus_via_launcher() {
+    local remote="$1"
+
+    log "NUCLEUS deployment via nucleus_launcher (UDS-only mode)"
+    log "  Standard: VPS Wave 56 — zero TCP ports for NUCLEUS primals"
+    log ""
+
+    if $DRY_RUN; then
+        log "[dry-run] Would deploy nucleus_launcher binary to VPS"
+        log "[dry-run] Would invoke: nucleus_launcher start --uds-only --family-id <id>"
+        log "[dry-run] Would create nucleus-launcher.service systemd unit"
+        return 0
+    fi
+
+    ssh "$remote" "mkdir -p $REMOTE_MEMBRANE_DIR /run/membrane"
+
+    if ssh "$remote" "test -x $REMOTE_MEMBRANE_DIR/nucleus_launcher" 2>/dev/null; then
+        log "  nucleus_launcher already present, skipping fetch"
+    else
+        remote_fetch_primal "$remote" "nucleus_launcher"
+    fi
+
+    for meta in checksums.toml provenance.toml manifest.toml; do
+        if [[ -f "$SCRIPT_DIR/$meta" ]]; then
+            log "  Pushing $meta to VPS..."
+            scp -q "$SCRIPT_DIR/$meta" "$remote:$REMOTE_MEMBRANE_DIR/$meta"
+        fi
+    done
+
+    if ! ssh "$remote" "test -f $REMOTE_MEMBRANE_DIR/tower.env"; then
+        log "  Generating Tower environment..."
+        ssh "$remote" "bash -s" <<'TENV_GEN'
+FAMILY_ID=$(head -c 32 /dev/urandom | xxd -p -c 64)
+cat > /opt/membrane/tower.env <<TENV
+# Tower composition environment — cellMembrane fieldMouse
+# Generated: $(date -Iseconds)
+MEMBRANE_ROLE=nucleus
+MEMBRANE_GATE_ID=membrane-$(hostname)
+BEARDOG_FAMILY_SEED=${FAMILY_ID}
+TENV
+chmod 600 /opt/membrane/tower.env
+echo "  FAMILY_ID generated (first 8 chars): ${FAMILY_ID:0:8}..."
+TENV_GEN
+    else
+        log "  tower.env already exists, preserving."
+    fi
+
+    local family_id
+    family_id=$(ssh "$remote" "grep BEARDOG_FAMILY_SEED $REMOTE_MEMBRANE_DIR/tower.env 2>/dev/null | cut -d= -f2" || echo "cell-1")
+
+    log "  Creating nucleus-launcher.service..."
+    ssh "$remote" "bash -s" <<LAUNCHER_UNIT
+set -euo pipefail
+cat > /etc/systemd/system/nucleus-launcher.service <<SVC
+[Unit]
+Description=NUCLEUS Launcher — 13 primals, UDS-only (VPS standard)
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=$REMOTE_MEMBRANE_DIR/nucleus_launcher start --uds-only --family-id ${family_id:0:16}
+Restart=on-failure
+RestartSec=10
+EnvironmentFile=-$REMOTE_MEMBRANE_DIR/tower.env
+Environment=ECOPRIMALS_PLASMID_BIN=$REMOTE_MEMBRANE_DIR
+
+[Install]
+WantedBy=multi-user.target
+SVC
+LAUNCHER_UNIT
+
+    log "  Enabling and starting nucleus_launcher..."
+    ssh "$remote" "systemctl daemon-reload"
+    ssh "$remote" "systemctl enable nucleus-launcher"
+    ssh "$remote" "systemctl restart nucleus-launcher" 2>/dev/null || true
+
+    log ""
+    log "  NUCLEUS deployed via launcher (UDS-only)."
+    log "    13 primals managed by nucleus_launcher"
+    log "    All inter-primal communication via /run/membrane/*.sock"
+    log "    Zero TCP ports for NUCLEUS primals"
+    log ""
+    log "  Next: deploy spring overlay:"
+    log "    ./deploy_membrane.sh spring-overlay $remote --cell hotspring"
+}
+
+# ── Mode: spring-overlay ────────────────────────────────────────────
+# Deploys a spring cell graph overlay on a live NUCLEUS.
+# Requires NUCLEUS already running (via deploy --composition nucleus --uds-only).
+# Cell graph source: primalSpring graphs/cells/{spring}_cell.toml
+
+do_spring_overlay() {
+    [[ -n "$REMOTE" ]] || die "No remote specified. Usage: deploy_membrane.sh spring-overlay root@<ip> --cell <spring>"
+    [[ -n "$CELL_GRAPH" ]] || die "No --cell specified. Usage: deploy_membrane.sh spring-overlay root@<ip> --cell hotspring"
+
+    local cell_toml=""
+    local graphs_dir="${PRIMALSPRING_GRAPHS_DIR:-}"
+
+    if [[ -n "$graphs_dir" && -f "$graphs_dir/cells/${CELL_GRAPH}_cell.toml" ]]; then
+        cell_toml="$graphs_dir/cells/${CELL_GRAPH}_cell.toml"
+    else
+        local search_base="${ECOPRIMALS_DIR:-$(dirname "$(dirname "$SCRIPT_DIR")")}"
+        if [[ -f "$search_base/springs/primalSpring/graphs/cells/${CELL_GRAPH}_cell.toml" ]]; then
+            cell_toml="$search_base/springs/primalSpring/graphs/cells/${CELL_GRAPH}_cell.toml"
+        fi
+    fi
+
+    if [[ -z "$cell_toml" ]]; then
+        die "Cell graph not found for '$CELL_GRAPH'. Set PRIMALSPRING_GRAPHS_DIR or ensure primalSpring is at ../springs/primalSpring/"
+    fi
+
+    log "Spring overlay deployment: $CELL_GRAPH"
+    log "  Cell graph: $cell_toml"
+    log "  Target: $REMOTE"
+    log ""
+
+    if $DRY_RUN; then
+        log "[dry-run] Would push cell graph to VPS"
+        log "[dry-run] Would invoke: biomeos deploy /opt/membrane/cells/${CELL_GRAPH}_cell.toml"
+        return 0
+    fi
+
+    local has_nucleus
+    has_nucleus=$(ssh "$REMOTE" "test -x $REMOTE_MEMBRANE_DIR/nucleus_launcher && echo yes || test -x $REMOTE_MEMBRANE_DIR/biomeos && echo yes || echo no")
+    if [[ "$has_nucleus" == "no" ]]; then
+        die "NUCLEUS not found on VPS. Deploy first: deploy_membrane.sh deploy $REMOTE --composition nucleus --uds-only"
+    fi
+
+    ssh "$REMOTE" "mkdir -p $REMOTE_MEMBRANE_DIR/cells"
+    scp -q "$cell_toml" "$REMOTE:$REMOTE_MEMBRANE_DIR/cells/"
+
+    log "  Deploying spring overlay via biomeos..."
+    ssh "$REMOTE" "$REMOTE_MEMBRANE_DIR/biomeos deploy $REMOTE_MEMBRANE_DIR/cells/${CELL_GRAPH}_cell.toml" 2>&1 || {
+        warn "biomeos deploy returned non-zero — overlay may need manual verification"
+    }
+
+    log ""
+    log "  Spring overlay deployed: $CELL_GRAPH"
+    log "  Spring runtime should use CompositionContext::from_live_discovery()"
+}
+
 # ── Mode: provision ──────────────────────────────────────────────────
 
 do_provision() {
@@ -946,11 +1110,16 @@ do_deploy() {
             deploy_nest_composition "$REMOTE"
             ;;
         nucleus)
-            deploy_tower_composition "$REMOTE"
-            deploy_rustdesk "$REMOTE"
-            deploy_node_composition "$REMOTE"
-            deploy_nest_composition "$REMOTE"
-            deploy_meta_composition "$REMOTE"
+            if $UDS_ONLY; then
+                deploy_nucleus_via_launcher "$REMOTE"
+                deploy_rustdesk "$REMOTE"
+            else
+                deploy_tower_composition "$REMOTE"
+                deploy_rustdesk "$REMOTE"
+                deploy_node_composition "$REMOTE"
+                deploy_nest_composition "$REMOTE"
+                deploy_meta_composition "$REMOTE"
+            fi
             ;;
         rustdesk)
             deploy_channel_2_relay "$REMOTE"
@@ -1069,8 +1238,20 @@ do_status() {
         log ""
     fi
 
-    log "Channel 1 (Signal/DNS): not yet deployed"
-    log "Channel 3 (Surface/TLS): not yet deployed"
+    local has_dns
+    has_dns=$(ssh "$REMOTE" "systemctl is-active knot 2>/dev/null || echo 'not-found'")
+    log "Channel 1 (Signal/DNS): $has_dns"
+
+    local has_surface
+    has_surface=$(ssh "$REMOTE" "systemctl is-active caddy 2>/dev/null || echo 'not-found'")
+    log "Channel 3 (Surface/TLS): $has_surface"
+
+    local has_launcher
+    has_launcher=$(ssh "$REMOTE" "systemctl is-active nucleus-launcher 2>/dev/null || echo 'not-found'")
+    if [[ "$has_launcher" == "active" ]]; then
+        log ""
+        log "NUCLEUS launcher: RUNNING (UDS-only mode)"
+    fi
 
     local cred_age
     cred_age=$(ssh "$REMOTE" "test -f /opt/membrane/credentials.age && echo 'present' || echo 'absent'")
@@ -1175,6 +1356,8 @@ while [[ $# -gt 0 ]]; do
         --pubkey)        KEY_PUBKEY="$2"; shift 2 ;;
         --ssh-key)       SSH_KEY_FINGERPRINT="$2"; shift 2 ;;
         --composition)   COMPOSITION="$2"; shift 2 ;;
+        --uds-only)      UDS_ONLY=true; shift ;;
+        --cell)          CELL_GRAPH="$2"; shift 2 ;;
         --validate)      VALIDATE_AFTER=true; shift ;;
         --dry-run)       DRY_RUN=true; shift ;;
         --help)          usage; exit 0 ;;
@@ -1189,11 +1372,12 @@ while [[ $# -gt 0 ]]; do
 done
 
 case "$MODE" in
-    provision) do_provision ;;
-    deploy)    do_deploy ;;
-    status)    do_status ;;
-    keys)      do_keys ;;
-    teardown)  do_teardown ;;
-    --help)    usage ;;
-    *)         die "Unknown mode: $MODE. Use provision, deploy, status, keys, or teardown." ;;
+    provision)      do_provision ;;
+    deploy)         do_deploy ;;
+    spring-overlay) do_spring_overlay ;;
+    status)         do_status ;;
+    keys)           do_keys ;;
+    teardown)       do_teardown ;;
+    --help)         usage ;;
+    *)              die "Unknown mode: $MODE. Use provision, deploy, spring-overlay, status, keys, or teardown." ;;
 esac

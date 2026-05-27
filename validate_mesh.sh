@@ -26,8 +26,12 @@ JSON_OUTPUT=false
 BIRDSONG_EXCHANGE=false
 COMPOSITION="tower"
 
-SONGBIRD_PORT=9200
-BEARDOG_PORT=9100
+# Source canonical ports (Tier 5 TCP fallback)
+# shellcheck source=ports.env
+source "$SCRIPT_DIR/ports.env" 2>/dev/null || {
+    SONGBIRD_PORT="${SONGBIRD_PORT:-9200}"
+    BEARDOG_PORT="${BEARDOG_PORT:-9100}"
+}
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
