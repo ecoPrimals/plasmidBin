@@ -19,8 +19,19 @@ mod verify_provenance;
 
 use clap::Subcommand;
 
+/// Default remote directory for primal binaries on gates/VPS.
+/// Override with `ECOPRIMALS_PLASMID_BIN`.
+pub(crate) const DEFAULT_REMOTE_DIR: &str = "/opt/plasmidBin";
+
+/// Resolved remote plasmidBin directory (env override or compile-time default).
+pub(crate) fn remote_dir_default() -> String {
+    std::env::var("ECOPRIMALS_PLASMID_BIN")
+        .unwrap_or_else(|_| DEFAULT_REMOTE_DIR.to_string())
+}
+
 /// Returns the real UID of the calling process.
 pub(crate) fn current_uid() -> u32 {
+    // SAFETY: getuid() is always safe — it's a pure read of process metadata.
     unsafe { libc::getuid() }
 }
 

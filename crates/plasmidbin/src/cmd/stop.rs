@@ -11,8 +11,8 @@ pub struct StopArgs {
     /// Remote gate (user@host) — if omitted, stops local primals
     gate: Option<String>,
 
-    /// Remote plasmidBin directory
-    #[arg(long, default_value = "/opt/plasmidBin")]
+    /// Remote plasmidBin directory (env: ECOPRIMALS_PLASMID_BIN)
+    #[arg(long, default_value = super::DEFAULT_REMOTE_DIR, env = "ECOPRIMALS_PLASMID_BIN")]
     remote_dir: String,
 }
 
@@ -89,7 +89,7 @@ fn clean_stale_sockets() {
     let dirs = [
         format!("/run/user/{uid}/biomeos"),
         format!("/run/user/{uid}/ecoprimals"),
-        "/tmp/biomeos".to_string(),
+        "/run/membrane".to_string(),
     ];
     let mut cleaned = 0;
     for dir in &dirs {

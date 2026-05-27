@@ -11,8 +11,8 @@ pub struct BootstrapArgs {
     /// Remote host (user@host)
     host: String,
 
-    /// Remote plasmidBin directory
-    #[arg(long, default_value = "/opt/plasmidBin")]
+    /// Remote plasmidBin directory (env: ECOPRIMALS_PLASMID_BIN)
+    #[arg(long, default_value = super::DEFAULT_REMOTE_DIR, env = "ECOPRIMALS_PLASMID_BIN")]
     remote_dir: String,
 
     /// Composition to launch after bootstrap

@@ -153,7 +153,7 @@ fn check_stale_sockets(c: &mut Counters) {
     let dirs = [
         format!("/run/user/{uid}/biomeos"),
         format!("/run/user/{uid}/ecoprimals"),
-        "/tmp/biomeos".to_string(),
+        "/run/membrane".to_string(),
     ];
     let mut live = 0u32;
     let mut stale = 0u32;
