@@ -476,13 +476,10 @@ fn write_pending_braid(source_id: &str, request: &serde_json::Value) -> BraidRes
     let dir = std::env::temp_dir().join("plasmidbin-braids-pending");
     let _ = std::fs::create_dir_all(&dir);
     let path = dir.join(format!("{source_id}.braid-pending.json"));
-    match serde_json::to_string_pretty(request) {
-        Ok(json) => {
-            if std::fs::write(&path, json).is_ok() {
-                return BraidResult::Pending(path);
-            }
+    if let Ok(json) = serde_json::to_string_pretty(request) {
+        if std::fs::write(&path, json).is_ok() {
+            return BraidResult::Pending(path);
         }
-        Err(_) => {}
     }
     BraidResult::Skipped
 }
