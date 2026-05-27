@@ -8,30 +8,30 @@
 
 [primals.biomeos."aarch64-unknown-linux-musl"]
 content_hash = "6bef0728c8f915def9215c10bd3b233186f026653aa97578fbc392df6a6e73d0"
-source_commit = "2599042fb954daa582c5beea786f817cf9bea94f"
+source_commit = "3007730e5f7c3a64f87804b069173de2137fc431"
 source_repo = "ecoPrimals/biomeOS"
-build_timestamp = "2026-05-27T18:39:20Z"
+build_timestamp = "2026-05-27T18:47:42Z"
 rustc_version = "1.95.0"
 target = "aarch64-unknown-linux-musl"
-provenance_hash = "2a586c14ddd49b0ad1314e916f673f6b2112695d7063e9c0406b8bd946832ba2"
+provenance_hash = "61a00ff3786d48c3b8d12be33a07194f33e66239068167ed08417ea78381f346"
 
 [primals.biomeos."armv7-unknown-linux-musleabihf"]
 content_hash = "50c1d4318c7ff25ccc81568f3d860bd4c5c1cec6d28c87b7bb3ab238ab59ad91"
-source_commit = "2599042fb954daa582c5beea786f817cf9bea94f"
+source_commit = "3007730e5f7c3a64f87804b069173de2137fc431"
 source_repo = "ecoPrimals/biomeOS"
-build_timestamp = "2026-05-27T18:41:24Z"
+build_timestamp = "2026-05-27T18:47:57Z"
 rustc_version = "1.95.0"
 target = "armv7-unknown-linux-musleabihf"
-provenance_hash = "f3fa0c28faf976a9921095d9c81161fe87e8e7a69bce6c10c5bdcdb073698e7c"
+provenance_hash = "6347fd5a33c57b868cd575b1fbb16c46e29805f93c6e66f957ace792c4af7141"
 
 [primals.biomeos."x86_64-unknown-linux-musl"]
 content_hash = "88c7eb1519ec96ed4bd3ed01108832aea404575c097f62ceac600b75bce9d26f"
-source_commit = "2599042fb954daa582c5beea786f817cf9bea94f"
+source_commit = "3007730e5f7c3a64f87804b069173de2137fc431"
 source_repo = "ecoPrimals/biomeOS"
-build_timestamp = "2026-05-27T18:44:22Z"
+build_timestamp = "2026-05-27T18:49:02Z"
 rustc_version = "1.95.0"
 target = "x86_64-unknown-linux-musl"
-provenance_hash = "5f1528f7881ce3bd52574ee66e731afc251ea800dbd2a3ffe67c2ad550085170"
+provenance_hash = "eb15e178d859eb91f2ef5af224bc8b72fb83dd66e1e5a9673c1845763e45320b"
 
 [primals.loamspine."aarch64-unknown-linux-musl"]
 content_hash = "17629b3f419287ae3c6a502af3fdc91756cf2bd95b1b8f2f6338a7a037db686d"
