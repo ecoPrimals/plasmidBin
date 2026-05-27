@@ -160,7 +160,7 @@ arch = ["x86_64-unknown-linux-musl", "aarch64-unknown-linux-musl", "armv7-unknow
 [primals.sourdough]
 name = "sourDough"
 description = "Scaffolding — starter culture, core traits, genomeBin tooling, sign/verify, composition validation"
-latest = "0.3.1"
+latest = "0.3.0"
 phase = 2
 capabilities = ["scaffold", "validate", "genomebin", "doctor", "sign", "verify", "layout", "systemd"]
 ecobin_grade = "A++"
