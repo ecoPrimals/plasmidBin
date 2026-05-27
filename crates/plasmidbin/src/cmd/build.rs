@@ -111,6 +111,20 @@ pub fn run(args: BuildArgs) -> Result<()> {
             } else {
                 println!("  WARN: fetch {sha} failed (shallow clone?), building HEAD");
             }
+
+            // Remove the cached release binary so cargo is forced to re-link.
+            // Without this, a persistent runner target dir can serve a stale
+            // binary even though crate compilation was re-run.
+            let bin_name = entry.binary_name(id);
+            let cached_bin = clone_dir
+                .join("target")
+                .join(arch.triple())
+                .join("release")
+                .join(&bin_name);
+            if cached_bin.exists() {
+                let _ = std::fs::remove_file(&cached_bin);
+                println!("  Cleared cached binary to force re-link");
+            }
         }
 
         // Build

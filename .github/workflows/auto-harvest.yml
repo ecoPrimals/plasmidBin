@@ -286,12 +286,32 @@ jobs:
             echo "=== Checksum changes ==="
             git diff --cached checksums.toml | grep '^[+-]"' | head -40 || true
             echo ""
-            git commit -m "harvest: $PRIMAL — $(date -u +%Y-%m-%d) — Tier 1 cross-arch"
+            COMMIT_MSG="harvest: $PRIMAL — $(date -u +%Y-%m-%d) — Tier 1 cross-arch"
+            git commit -m "$COMMIT_MSG"
+            PUSHED=false
             for attempt in 1 2 3; do
-              git push && break
+              if git push; then
+                PUSHED=true
+                break
+              fi
               echo "Push failed (attempt $attempt), rebasing..."
-              git pull --rebase
+              if ! git pull --rebase; then
+                echo "Rebase conflict — aborting and re-applying on fresh HEAD"
+                git rebase --abort
+                git pull --ff-only || git pull
+                git add checksums.toml manifest.toml primals/ springs/ 2>/dev/null || true
+                if git diff --cached --quiet; then
+                  echo "After re-pull, no diff remains (remote already has these checksums)"
+                  PUSHED=true
+                  break
+                fi
+                git commit -m "$COMMIT_MSG"
+              fi
             done
+            if ! $PUSHED; then
+              echo "ERROR: failed to push after 3 attempts"
+              exit 1
+            fi
             echo "changed=true" >> "$GITHUB_OUTPUT"
           fi
 
