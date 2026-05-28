@@ -34,31 +34,31 @@ target = "x86_64-unknown-linux-musl"
 provenance_hash = "0aac795e021ea82dcfd3eaa8ff71647457b1b457914c5f182afd473fe73fd736"
 
 [primals.beardog."aarch64-unknown-linux-musl"]
-content_hash = "614ee5265bb6b0719c6fa58bc2e7350ce8e18be2c36ff294a063fcbc73d2939c"
-source_commit = "8d8be87b37e328e970669456997ca0441f674a81"
+content_hash = "dcafc89792e58ef8386c99ff380aae2f85e7e22280198b7698775e400cb81090"
+source_commit = "b2163b5c41388b0b577345d96e4aed14f0854d9b"
 source_repo = "ecoPrimals/bearDog"
-build_timestamp = "2026-05-27T23:04:50Z"
+build_timestamp = "2026-05-28T12:48:57Z"
 rustc_version = "1.95.0"
 target = "aarch64-unknown-linux-musl"
-provenance_hash = "050380cac77d917bc23cebf25dbb05f02100c65e69c6e9670565c53286583280"
+provenance_hash = "c60454278bbe8723e72ca4d343ddf5b767d5a600653616600700da96c2a7ba21"
 
 [primals.beardog."armv7-unknown-linux-musleabihf"]
-content_hash = "b5202eb4a568876e222d9e8a2ae3e80e17398fecb72940d8abdc718019f73f7e"
-source_commit = "8d8be87b37e328e970669456997ca0441f674a81"
+content_hash = "f4e49caea8395cb783718a9a03b0c07f55162646b22a6ce44a9be13408af1926"
+source_commit = "b2163b5c41388b0b577345d96e4aed14f0854d9b"
 source_repo = "ecoPrimals/bearDog"
-build_timestamp = "2026-05-27T23:06:44Z"
+build_timestamp = "2026-05-28T12:45:35Z"
 rustc_version = "1.95.0"
 target = "armv7-unknown-linux-musleabihf"
-provenance_hash = "4e4346a264fb02d1605a0f69c93af9cd6f1b2cdadc573858569952c0588d99b5"
+provenance_hash = "49b03502e7c456251889ab0a22ec1bbe27e30e73f4912de6c90c00a97183955c"
 
 [primals.beardog."x86_64-unknown-linux-musl"]
-content_hash = "e04582df21a8eea2abf656d536f584fed3877c60215e467c2db764122f849793"
-source_commit = "8d8be87b37e328e970669456997ca0441f674a81"
+content_hash = "dd55aae5e66e1f0c999a2adc0be941d6b2ac5229a23f4d7d1ed4188cce90fcce"
+source_commit = "b2163b5c41388b0b577345d96e4aed14f0854d9b"
 source_repo = "ecoPrimals/bearDog"
-build_timestamp = "2026-05-27T23:05:45Z"
+build_timestamp = "2026-05-28T12:46:51Z"
 rustc_version = "1.95.0"
 target = "x86_64-unknown-linux-musl"
-provenance_hash = "0815354661f8326430e72ee8ed93dfba62c4b5aaedf2d45c0b17ce492deec1ee"
+provenance_hash = "84d56da3d713076b9b901ea286f3016c692efb05947aae9968aed6a336436790"
 
 [primals.biomeos."aarch64-unknown-linux-musl"]
 content_hash = "b8f8a36d67f5d3bfd0aa2dbf3f05389cb67ed5b39d85711f356cbb5a8bee403f"
