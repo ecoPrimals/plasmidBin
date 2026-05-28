@@ -8,6 +8,7 @@
 # Domains:
 #   membrane.primals.eco  — sovereign surface (sporePrint cache, health, status)
 #   lab.primals.eco       — static lab pages on VPS, interactive hub stays on gate
+#   git.primals.eco       — golgiBody periplasmic Forgejo (sovereign git forge)
 #
 # Transitional: Caddy handles TLS termination until Songbird absorbs it.
 
@@ -60,4 +61,12 @@ lab.primals.eco {
 		file_server
 		try_files {path} {path}/ /index.html
 	}
+}
+
+# golgiBody — Periplasmic Forgejo (sovereign git forge)
+# Packages, routes, and modifies git traffic between gate cytoplasms
+# and the extracellular GitHub trailing mirror.
+# Phase A: Caddy reverse-proxies to local Forgejo on :3000.
+git.primals.eco {
+	reverse_proxy localhost:3000
 }
