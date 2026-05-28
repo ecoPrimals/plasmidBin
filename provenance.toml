@@ -242,30 +242,30 @@ provenance_hash = "0c1e4a5f76b305929865da6a9c1736e379b49baaa0a092f34076a916b8fc3
 
 [primals.squirrel."aarch64-unknown-linux-musl"]
 content_hash = "4f179a649b5c9c791f757af2457f18f7cd61328b522705f2a71922844e058fe4"
-source_commit = "7e592e99882d686959e3827ad0a46ff43ca829c1"
+source_commit = "03a6470c4ebcea558791e5ea706b5c9a4d6baac8"
 source_repo = "ecoPrimals/squirrel"
-build_timestamp = "2026-05-28T15:52:48Z"
+build_timestamp = "2026-05-28T16:05:36Z"
 rustc_version = "1.95.0"
 target = "aarch64-unknown-linux-musl"
-provenance_hash = "99cde749d472d20aa7035062356d32dcf245a938aab0ba8d55873d07773a58d4"
+provenance_hash = "26cf62305f1239131bcf8262cd51dc1cc34cafdb909123ead730210ba84194de"
 
 [primals.squirrel."armv7-unknown-linux-musleabihf"]
 content_hash = "d075499bfdf3d325541c1b773457c4dd8a5a05626250487feeb8b132be8c378e"
-source_commit = "7e592e99882d686959e3827ad0a46ff43ca829c1"
+source_commit = "03a6470c4ebcea558791e5ea706b5c9a4d6baac8"
 source_repo = "ecoPrimals/squirrel"
-build_timestamp = "2026-05-28T15:51:55Z"
+build_timestamp = "2026-05-28T16:03:54Z"
 rustc_version = "1.95.0"
 target = "armv7-unknown-linux-musleabihf"
-provenance_hash = "17a90f51274028fddda817971b9a312207b0a44a474be6b51f47db76687d61b4"
+provenance_hash = "bd0b245658f743e81a817dadc3929f3d159d5596d233bdd333c9abcad10221b7"
 
 [primals.squirrel."x86_64-unknown-linux-musl"]
 content_hash = "6dafdbf00ccdf195de50648b3357fa510e12f7badda6d7fba45a10f625ffef12"
-source_commit = "7e592e99882d686959e3827ad0a46ff43ca829c1"
+source_commit = "03a6470c4ebcea558791e5ea706b5c9a4d6baac8"
 source_repo = "ecoPrimals/squirrel"
-build_timestamp = "2026-05-28T15:53:40Z"
+build_timestamp = "2026-05-28T16:03:01Z"
 rustc_version = "1.95.0"
 target = "x86_64-unknown-linux-musl"
-provenance_hash = "de077e5c1112a60ab96e01ab5379aeff17db722493ebb88e84a6d7912813de0a"
+provenance_hash = "7e4d9e2a082c4458d2ae39246e4a7bd272444db7614e7631e3807f6e1ddb8d63"
 
 [primals.sweetgrass."aarch64-unknown-linux-musl"]
 content_hash = "468ac2ba184ee1917276a1c689724d1c83f13bf1c54d551011e51fc47b7dedd5"
