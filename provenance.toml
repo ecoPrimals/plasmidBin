@@ -241,31 +241,31 @@ target = "x86_64-unknown-linux-musl"
 provenance_hash = "0c1e4a5f76b305929865da6a9c1736e379b49baaa0a092f34076a916b8fc3d93"
 
 [primals.squirrel."aarch64-unknown-linux-musl"]
-content_hash = "9674eb0a6553679f976380be4b23d3170decf5784bec3486b5d947836ec2a064"
-source_commit = "88bc1b891935bd7ef82fbd377fbbae5d94be1577"
+content_hash = "a85dcfc8779697abf1ea1a82599a27bcd92803cc06ec8fa61e49516adf05a9b4"
+source_commit = "57c0ec5ad535a6953715035d6d3a3cc5a3ec39c2"
 source_repo = "ecoPrimals/squirrel"
-build_timestamp = "2026-05-28T12:42:10Z"
+build_timestamp = "2026-05-28T12:59:44Z"
 rustc_version = "1.95.0"
 target = "aarch64-unknown-linux-musl"
-provenance_hash = "d9adab1ca9b9b0306ac46d81748b525ffb029251501d2aeabefbda3f29aac136"
+provenance_hash = "7287d0db5b868732337b5d1e80bde21b99f3324272fccd9d234aa63957a3cf2b"
 
 [primals.squirrel."armv7-unknown-linux-musleabihf"]
-content_hash = "9bf39716355b5b76243b10297e9ebca5b8a56fc5d243dad6970262cb8d0f9e57"
-source_commit = "88bc1b891935bd7ef82fbd377fbbae5d94be1577"
+content_hash = "700f3fc583294bfc461448df28a32c474cd8f88c2286cff299740a1e1252b645"
+source_commit = "57c0ec5ad535a6953715035d6d3a3cc5a3ec39c2"
 source_repo = "ecoPrimals/squirrel"
-build_timestamp = "2026-05-28T12:42:58Z"
+build_timestamp = "2026-05-28T12:58:59Z"
 rustc_version = "1.95.0"
 target = "armv7-unknown-linux-musleabihf"
-provenance_hash = "84932c16fcac056f2ce06ef618a160a068d1b95c81ef5cadc6d696449d467d96"
+provenance_hash = "263b96636d7aa8e7a84f955ca94e1fcdbee9dc78556ab7a494f421707ff1c0ce"
 
 [primals.squirrel."x86_64-unknown-linux-musl"]
-content_hash = "a99b9b6c9d0b709e4dca8c6dd6ec29c7a6aeff14e31b26d590f5604bb74898d6"
-source_commit = "88bc1b891935bd7ef82fbd377fbbae5d94be1577"
+content_hash = "f6d2a388fd59c295163cd7bfcb05f78347f30aa96859287f0388df88ade80e75"
+source_commit = "57c0ec5ad535a6953715035d6d3a3cc5a3ec39c2"
 source_repo = "ecoPrimals/squirrel"
-build_timestamp = "2026-05-28T12:43:47Z"
+build_timestamp = "2026-05-28T13:00:38Z"
 rustc_version = "1.95.0"
 target = "x86_64-unknown-linux-musl"
-provenance_hash = "5a40fb1fe89d0f8a9fb509cd6d10b0c4052f1cf6f5befa5d7af9b85ca1363d16"
+provenance_hash = "142bcfdf4cac072c966028e1e2a43bab942190d76b3eccf3a5c2459ce5c59392"
 
 [primals.sweetgrass."aarch64-unknown-linux-musl"]
 content_hash = "468ac2ba184ee1917276a1c689724d1c83f13bf1c54d551011e51fc47b7dedd5"
