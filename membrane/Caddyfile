@@ -38,22 +38,23 @@ membrane.primals.eco {
 }
 
 # Lab static surface (intra layer — VPS-hosted dashboard)
-# Interactive hub/api paths proxy back to gate via tunnel.
+# Interactive paths (JupyterHub) remain gate-local until BTSP relay is wired.
+# Static lab content served from pappusCast rsync target.
 lab.primals.eco {
 	handle /hub/* {
-		reverse_proxy localhost:8866
+		respond "JupyterHub is gate-local. Connect via LAN or BTSP relay (pending)." 503
 	}
 
 	handle /user/* {
-		reverse_proxy localhost:8866
+		respond "JupyterHub is gate-local. Connect via LAN or BTSP relay (pending)." 503
 	}
 
 	handle /api/* {
-		reverse_proxy localhost:8866
+		respond "JupyterHub is gate-local. Connect via LAN or BTSP relay (pending)." 503
 	}
 
 	handle /services/* {
-		reverse_proxy localhost:8866
+		respond "JupyterHub is gate-local. Connect via LAN or BTSP relay (pending)." 503
 	}
 
 	handle {
