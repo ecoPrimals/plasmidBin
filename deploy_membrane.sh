@@ -631,6 +631,13 @@ deploy_node_composition() {
         fi
     done
 
+    for meta in checksums.toml provenance.toml manifest.toml; do
+        if [[ -f "$SCRIPT_DIR/$meta" ]]; then
+            log "  Pushing $meta to VPS..."
+            scp -q "$SCRIPT_DIR/$meta" "$remote:$REMOTE_MEMBRANE_DIR/$meta"
+        fi
+    done
+
     ssh "$remote" "bash -s" <<NODE_UNITS
 set -euo pipefail
 MEMBRANE_DIR="$REMOTE_MEMBRANE_DIR"
@@ -720,6 +727,13 @@ deploy_meta_composition() {
             log "  $primal already present, skipping fetch"
         else
             remote_fetch_primal "$remote" "$primal"
+        fi
+    done
+
+    for meta in checksums.toml provenance.toml manifest.toml; do
+        if [[ -f "$SCRIPT_DIR/$meta" ]]; then
+            log "  Pushing $meta to VPS..."
+            scp -q "$SCRIPT_DIR/$meta" "$remote:$REMOTE_MEMBRANE_DIR/$meta"
         fi
     done
 
@@ -1091,7 +1105,9 @@ do_deploy() {
     log "  Model A: all channels on single VPS"
     log ""
 
-    ssh "$REMOTE" "apt-get update -qq && apt-get install -y -qq ufw xxd curl >/dev/null 2>&1" 2>/dev/null || true
+    if ! $DRY_RUN; then
+        ssh "$REMOTE" "apt-get update -qq && apt-get install -y -qq ufw xxd curl >/dev/null 2>&1" 2>/dev/null || true
+    fi
 
     harden_ssh "$REMOTE"
     deploy_firewall "$REMOTE"
@@ -1151,8 +1167,14 @@ verify_composition() {
     log "Composition verification:"
 
     local check_primals="beardog songbird skunkbat"
+    if ssh "$remote" "test -x /opt/membrane/toadstool" 2>/dev/null; then
+        check_primals="$check_primals toadstool barracuda coralreef"
+    fi
     if ssh "$remote" "test -x /opt/membrane/nestgate" 2>/dev/null; then
-        check_primals="beardog songbird skunkbat nestgate rhizocrypt loamspine sweetgrass"
+        check_primals="$check_primals nestgate rhizocrypt loamspine sweetgrass"
+    fi
+    if ssh "$remote" "test -x /opt/membrane/biomeos" 2>/dev/null; then
+        check_primals="$check_primals biomeos squirrel petaltongue"
     fi
 
     for primal in $check_primals; do
@@ -1184,8 +1206,14 @@ verify_composition() {
     fi
 
     local check_svcs="beardog-membrane songbird-relay skunkbat-membrane"
+    if ssh "$remote" "test -x /opt/membrane/toadstool" 2>/dev/null; then
+        check_svcs="$check_svcs toadstool-membrane barracuda-membrane coralreef-membrane"
+    fi
     if ssh "$remote" "test -x /opt/membrane/nestgate" 2>/dev/null; then
         check_svcs="$check_svcs nestgate-membrane rhizocrypt-membrane loamspine-membrane sweetgrass-membrane"
+    fi
+    if ssh "$remote" "test -x /opt/membrane/biomeos" 2>/dev/null; then
+        check_svcs="$check_svcs biomeos-membrane squirrel-membrane petaltongue-membrane"
     fi
     for svc in $check_svcs; do
         local active
@@ -1220,11 +1248,35 @@ do_status() {
         status_channel_2_relay "$REMOTE"
     fi
 
+    local has_node
+    has_node=$(ssh "$REMOTE" "test -f /etc/systemd/system/toadstool-membrane.service && echo yes || echo no")
+    if [[ "$has_node" == "yes" ]]; then
+        log ""
+        log "Node tier status:"
+        for svc in toadstool-membrane barracuda-membrane coralreef-membrane; do
+            local state
+            state=$(ssh "$REMOTE" "systemctl is-active $svc 2>/dev/null || echo 'not-found'")
+            log "  $svc: $state"
+        done
+    fi
+
     local has_nest
     has_nest=$(ssh "$REMOTE" "test -f /etc/systemd/system/nestgate-membrane.service && echo yes || echo no")
     if [[ "$has_nest" == "yes" ]]; then
         log ""
         status_nest_composition "$REMOTE"
+    fi
+
+    local has_meta
+    has_meta=$(ssh "$REMOTE" "test -f /etc/systemd/system/biomeos-membrane.service && echo yes || echo no")
+    if [[ "$has_meta" == "yes" ]]; then
+        log ""
+        log "Meta tier status:"
+        for svc in biomeos-membrane squirrel-membrane petaltongue-membrane; do
+            local state
+            state=$(ssh "$REMOTE" "systemctl is-active $svc 2>/dev/null || echo 'not-found'")
+            log "  $svc: $state"
+        done
     fi
 
     if [[ "$has_rustdesk" == "yes" ]]; then

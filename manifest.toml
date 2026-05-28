@@ -29,9 +29,9 @@
 # Version: 5.7.0 (Wave 54: provenance-elevated checksums, sweetGrass braid integration, verify-provenance subcommand)
 
 [manifest]
-version = "5.6.0"
+version = "5.7.0"
 format = "genomeBin"
-generated = "2026-05-26T00:00:00Z"
+generated = "2026-05-27T00:00:00Z"
 checksum_algorithm = "blake3"
 # mirror_url = "https://bins.ecoprimals.dev/latest/"
 
@@ -333,13 +333,13 @@ note = "V71: compute trio in cell graphs, coralReef compile+validate, barraCuda 
 name = "primalSpring"
 org = "ecoPrimals"
 description = "Coordination validation — validates the ecosystem itself"
-latest = "0.9.27"
+latest = "0.9.30"
 evolution = "composing"
 particle_profile = "balanced"
 proto_nucleate = "nucleus_atomics_validate"
 required_atomics = ["tower", "node", "nest", "meta_tier"]
-tests = 784
-note = "Wave 46: glacial shift coordinator, 458-method registry, 49 scenarios (10 tracks), 80+ deploy graphs, 14 atomic signal graphs. Zero panics in production. All 13 primals verified."
+tests = 797
+note = "Wave 57: main.rs split, env_keys complete, NC-1 COMPLETE (biomeOS v3.81), 56 scenarios (10 tracks), 80+ deploy graphs, 14 atomic signal graphs. Zero panics, zero clippy warnings. All 13 primals verified."
 
 # =============================================================================
 # NICHES — Per-spring primal composition requirements
