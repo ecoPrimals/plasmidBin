@@ -186,3 +186,30 @@ rustc_version = "1.95.0"
 target = "x86_64-unknown-linux-musl"
 provenance_hash = "0c1e4a5f76b305929865da6a9c1736e379b49baaa0a092f34076a916b8fc3d93"
 
+[primals.sweetgrass."aarch64-unknown-linux-musl"]
+content_hash = "468ac2ba184ee1917276a1c689724d1c83f13bf1c54d551011e51fc47b7dedd5"
+source_commit = "83ad29e6a02f6286bc87794fc75d82a37636b34b"
+source_repo = "ecoPrimals/sweetGrass"
+build_timestamp = "2026-05-28T12:07:40Z"
+rustc_version = "1.95.0"
+target = "aarch64-unknown-linux-musl"
+provenance_hash = "60412ddf47ed179b4d70e6f28231abdb6530590326575d7e2a81df3b57add03a"
+
+[primals.sweetgrass."armv7-unknown-linux-musleabihf"]
+content_hash = "015f7b86c19010fe3fec9f3dad41677105a59625f7fb7d479773b33c979a0a57"
+source_commit = "83ad29e6a02f6286bc87794fc75d82a37636b34b"
+source_repo = "ecoPrimals/sweetGrass"
+build_timestamp = "2026-05-28T12:09:15Z"
+rustc_version = "1.95.0"
+target = "armv7-unknown-linux-musleabihf"
+provenance_hash = "19cd194ce24d55d2f662bc46407ea704413eca7a43c1bddc6ea5e8802a915164"
+
+[primals.sweetgrass."x86_64-unknown-linux-musl"]
+content_hash = "f49ae63e5e2b146dbe631f60c74b669fd83e6e68c6049c2314c3a9a801740be3"
+source_commit = "83ad29e6a02f6286bc87794fc75d82a37636b34b"
+source_repo = "ecoPrimals/sweetGrass"
+build_timestamp = "2026-05-28T12:09:50Z"
+rustc_version = "1.95.0"
+target = "x86_64-unknown-linux-musl"
+provenance_hash = "7dbcb1384bbec174a006c6f166ab224fd2120dc024f4fcce6a2af097a0ad879f"
+

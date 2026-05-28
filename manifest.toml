@@ -168,7 +168,7 @@ ecobin_grade = "A++"
 [primals.sweetgrass]
 name = "sweetGrass"
 description = "Attribution — PROV-O provenance tracking, credit allocation, witness retention"
-latest = "0.7.37"
+latest = "0.7.13"
 phase = 2
 capabilities = ["provenance", "attribution", "prov-o"]
 seed_fingerprint = "a5a35b5fae27db041395790e16a868208d21ac2311e835b23f1e0ac6d281b63f"
