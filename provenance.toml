@@ -105,6 +105,33 @@ rustc_version = "1.95.0"
 target = "x86_64-unknown-linux-musl"
 provenance_hash = "ab191803a8f8abc2865b99006bda74f5d0e1743f3c45d03b0a9c1c9c557ed468"
 
+[primals.petaltongue."aarch64-unknown-linux-musl"]
+content_hash = "5bc390139bc60fa40d34cf8c05b5c7333fd98e17551d68f795b4ba152bd03f1e"
+source_commit = "d96b301bb60e0abf0dc7ef95404f247edc9a3c41"
+source_repo = "ecoPrimals/petalTongue"
+build_timestamp = "2026-05-28T12:27:37Z"
+rustc_version = "1.95.0"
+target = "aarch64-unknown-linux-musl"
+provenance_hash = "1b4e0d09c4345e5df9ed9fb2da97d8688d7a465a5b759a4fce29f62dac8af564"
+
+[primals.petaltongue."armv7-unknown-linux-musleabihf"]
+content_hash = "824e606eb6e2efe4e46f20d32bd5d0f641b3c903a57ecb4ee51a14ed3abea9d5"
+source_commit = "d96b301bb60e0abf0dc7ef95404f247edc9a3c41"
+source_repo = "ecoPrimals/petalTongue"
+build_timestamp = "2026-05-28T12:29:56Z"
+rustc_version = "1.95.0"
+target = "armv7-unknown-linux-musleabihf"
+provenance_hash = "67d913a7011a81aae9d097109f0565e629aa974fd17a75dd80635bd6e4958117"
+
+[primals.petaltongue."x86_64-unknown-linux-musl"]
+content_hash = "79e63b55dd5ebceddd1453b6ee5669b2521b8f54e42aa78a67055553908ab969"
+source_commit = "d96b301bb60e0abf0dc7ef95404f247edc9a3c41"
+source_repo = "ecoPrimals/petalTongue"
+build_timestamp = "2026-05-28T12:28:46Z"
+rustc_version = "1.95.0"
+target = "x86_64-unknown-linux-musl"
+provenance_hash = "63b1e9e4c272bcbda333aa8d013a9d31b4b6163cb4573f77ac34fbc5722073d9"
+
 [primals.skunkbat."aarch64-unknown-linux-musl"]
 content_hash = "fc8a3147c805a403b716fa28b3135a2678874d85303b0bb47272aa9ab04af143"
 source_commit = "5479cdbf493803cbcc5baf37ea9f65f9daaa4f63"
