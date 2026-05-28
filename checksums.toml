@@ -35,8 +35,8 @@
 
 [primals.nestgate]
 "aarch64-unknown-linux-musl" = "4aec32864f91cda3525838c56fd20c592036ca0f7f73e91ed882f88d9a391ba6"
-"armv7-unknown-linux-musleabihf" = "e6d95d6000a5e8fee4615ba14829be3507de2988124dd7fa693ab9636d2b7864"
-"x86_64-unknown-linux-musl" = "d9fb87ade84cd229b44847f8d8ca901a9bdcf0a7fd0b82670bcbe7a03918de25"
+"armv7-unknown-linux-musleabihf" = "ac61e57b27bc2d40c9f8a6811d72488a786737d5a898f1a6a5141f49462bf23b"
+"x86_64-unknown-linux-musl" = "7667124abeb655869ede17154ea8d17c030240374f3e7af1c7f19a220045e502"
 
 [primals.petaltongue]
 "aarch64-unknown-linux-musl" = "ff034a99eb59832459876b1ad065b0627d05b4b868a5d1be6dce91bf2597dbca"

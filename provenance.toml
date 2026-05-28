@@ -87,6 +87,24 @@ rustc_version = "1.95.0"
 target = "x86_64-unknown-linux-musl"
 provenance_hash = "346fa3e89067f1bf71a7820f7fdd952c4c61a3688bdac8e64f183ac10c5b962a"
 
+[primals.nestgate."armv7-unknown-linux-musleabihf"]
+content_hash = "ac61e57b27bc2d40c9f8a6811d72488a786737d5a898f1a6a5141f49462bf23b"
+source_commit = "df81c77d690c3179428022501858f48e8633acb4"
+source_repo = "ecoPrimals/nestGate"
+build_timestamp = "2026-05-28T09:00:51Z"
+rustc_version = "1.95.0"
+target = "armv7-unknown-linux-musleabihf"
+provenance_hash = "8df5067c99677df446238e3e4df118a244b1dacb5dd0599936026f0ab6eeb243"
+
+[primals.nestgate."x86_64-unknown-linux-musl"]
+content_hash = "7667124abeb655869ede17154ea8d17c030240374f3e7af1c7f19a220045e502"
+source_commit = "df81c77d690c3179428022501858f48e8633acb4"
+source_repo = "ecoPrimals/nestGate"
+build_timestamp = "2026-05-28T09:01:53Z"
+rustc_version = "1.95.0"
+target = "x86_64-unknown-linux-musl"
+provenance_hash = "ab191803a8f8abc2865b99006bda74f5d0e1743f3c45d03b0a9c1c9c557ed468"
+
 [primals.songbird."aarch64-unknown-linux-musl"]
 content_hash = "e89a8c97a8620c2dc55bce6dbf6e2e2d714efd48d20bcb2c9152cc39c0e8bedb"
 source_commit = "93c4ee490a77cc73cd2624a038c4fec2eaac3c5f"
