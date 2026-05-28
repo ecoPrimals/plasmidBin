@@ -132,3 +132,30 @@ rustc_version = "1.95.0"
 target = "x86_64-unknown-linux-musl"
 provenance_hash = "12a3c000bc0a0eca8696b1c5b287e24f5f81715fa2492412038f02b9b427068c"
 
+[primals.sourdough."aarch64-unknown-linux-musl"]
+content_hash = "91e446f27d032faa4b1ed35567693fec5c5b69fb16c5e4cf6c75a657240fd9b4"
+source_commit = "e8aa4267227c24b54ce4876160c65c3857762f58"
+source_repo = "ecoPrimals/sourDough"
+build_timestamp = "2026-05-28T09:05:47Z"
+rustc_version = "1.95.0"
+target = "aarch64-unknown-linux-musl"
+provenance_hash = "594b4d4f61cbc122130aff90d350a56b830cb67e89cb69ef03c1331d1600702a"
+
+[primals.sourdough."armv7-unknown-linux-musleabihf"]
+content_hash = "d805f4f4e66da2e67876b1710d64783d1e6daecbd522279f498d7284f378062e"
+source_commit = "e8aa4267227c24b54ce4876160c65c3857762f58"
+source_repo = "ecoPrimals/sourDough"
+build_timestamp = "2026-05-28T09:05:15Z"
+rustc_version = "1.95.0"
+target = "armv7-unknown-linux-musleabihf"
+provenance_hash = "db427ad3c96c26642e4e1f8a17df4dc586415344185f38fb7b687e7f5d55277c"
+
+[primals.sourdough."x86_64-unknown-linux-musl"]
+content_hash = "7a8ee495810120e1cd22339b24d328d95a152c583662aba5d51a1a2f57cf46a8"
+source_commit = "e8aa4267227c24b54ce4876160c65c3857762f58"
+source_repo = "ecoPrimals/sourDough"
+build_timestamp = "2026-05-28T09:05:30Z"
+rustc_version = "1.95.0"
+target = "x86_64-unknown-linux-musl"
+provenance_hash = "0c1e4a5f76b305929865da6a9c1736e379b49baaa0a092f34076a916b8fc3d93"
+
