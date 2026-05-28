@@ -88,7 +88,7 @@ check_pass = ["x86_64-apple-darwin", "aarch64-apple-darwin"]
 [primals.squirrel]
 name = "Squirrel"
 description = "AI coordination — model inference, MCP, local/cloud AI bridge"
-latest = "0.1.0"
+latest = "0.1.0-alpha"
 phase = 1
 capabilities = ["ai", "inference", "mcp"]
 seed_fingerprint = "fc46542e6a76d863daa022d23f76ac2a5cf32fde4e407ec8e875c2dde8bc6ab3"
