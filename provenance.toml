@@ -294,3 +294,21 @@ rustc_version = "1.95.0"
 target = "x86_64-unknown-linux-musl"
 provenance_hash = "7dbcb1384bbec174a006c6f166ab224fd2120dc024f4fcce6a2af097a0ad879f"
 
+[primals.toadstool."aarch64-unknown-linux-musl"]
+content_hash = "b211f439905cbc5eb53943ca831c0e673c533ce196dc02112814f688a16b502b"
+source_commit = "69afe0163d1542bc9c80f9f372bdc59a4e11bf33"
+source_repo = "ecoPrimals/toadStool"
+build_timestamp = "2026-05-28T16:42:28Z"
+rustc_version = "1.95.0"
+target = "aarch64-unknown-linux-musl"
+provenance_hash = "ae47300a71b4c4e438ed8501c9791991187f2b6be962f1fdb9d9b74a31b082a7"
+
+[primals.toadstool."armv7-unknown-linux-musleabihf"]
+content_hash = "515aeb943bad38c7663f182d9185e0f097b137b16f3818d342815f19010e478b"
+source_commit = "69afe0163d1542bc9c80f9f372bdc59a4e11bf33"
+source_repo = "ecoPrimals/toadStool"
+build_timestamp = "2026-05-28T17:02:11Z"
+rustc_version = "1.95.0"
+target = "armv7-unknown-linux-musleabihf"
+provenance_hash = "5e9c5f016d67a409ca229523638cd0747747cdea9423dc4e7b2c0084ad4533eb"
+
