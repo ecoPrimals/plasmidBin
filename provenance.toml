@@ -105,6 +105,33 @@ rustc_version = "1.95.0"
 target = "x86_64-unknown-linux-musl"
 provenance_hash = "ab191803a8f8abc2865b99006bda74f5d0e1743f3c45d03b0a9c1c9c557ed468"
 
+[primals.skunkbat."aarch64-unknown-linux-musl"]
+content_hash = "fc8a3147c805a403b716fa28b3135a2678874d85303b0bb47272aa9ab04af143"
+source_commit = "5479cdbf493803cbcc5baf37ea9f65f9daaa4f63"
+source_repo = "ecoPrimals/skunkBat"
+build_timestamp = "2026-05-28T12:04:25Z"
+rustc_version = "1.95.0"
+target = "aarch64-unknown-linux-musl"
+provenance_hash = "31a5c8ea813e2cbd0da74314856b0dd66279b47b8b2649033fc1f4561f5239a0"
+
+[primals.skunkbat."armv7-unknown-linux-musleabihf"]
+content_hash = "c26e592f029c77a2aaf5f08f6ec9b7b86696089d37016654424e8ddedd96e34f"
+source_commit = "5479cdbf493803cbcc5baf37ea9f65f9daaa4f63"
+source_repo = "ecoPrimals/skunkBat"
+build_timestamp = "2026-05-28T12:02:20Z"
+rustc_version = "1.95.0"
+target = "armv7-unknown-linux-musleabihf"
+provenance_hash = "603275f074781d186c249e100d2f53e3dc17ae378118274205804c82c3e0806d"
+
+[primals.skunkbat."x86_64-unknown-linux-musl"]
+content_hash = "4c9841b360f4232d43530d72e252bbe9b5259adf397c10cde2cfb601dd2f40b5"
+source_commit = "5479cdbf493803cbcc5baf37ea9f65f9daaa4f63"
+source_repo = "ecoPrimals/skunkBat"
+build_timestamp = "2026-05-28T12:02:56Z"
+rustc_version = "1.95.0"
+target = "x86_64-unknown-linux-musl"
+provenance_hash = "240a41d3daea5525aba17ec3e79c34c4245742842138f9a5373ba1979fda39ea"
+
 [primals.songbird."aarch64-unknown-linux-musl"]
 content_hash = "e89a8c97a8620c2dc55bce6dbf6e2e2d714efd48d20bcb2c9152cc39c0e8bedb"
 source_commit = "93c4ee490a77cc73cd2624a038c4fec2eaac3c5f"
