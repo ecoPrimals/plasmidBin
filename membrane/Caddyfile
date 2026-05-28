@@ -1,0 +1,63 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+#
+# Membrane Channel 3 — Caddy TLS Surface
+#
+# Version-controlled source of truth for /etc/membrane/Caddyfile on VPS.
+# Deploy via: deploy_membrane.sh deploy <user@host> --channel3
+#
+# Domains:
+#   membrane.primals.eco  — sovereign surface (sporePrint cache, health, status)
+#   lab.primals.eco       — static lab pages on VPS, interactive hub stays on gate
+#
+# Transitional: Caddy handles TLS termination until Songbird absorbs it.
+
+{
+	email ops@primals.eco
+}
+
+# Primary sovereign surface
+membrane.primals.eco {
+	handle /health {
+		respond "membrane-relay TLS active" 200
+	}
+
+	handle /status {
+		respond "Channel 3 — sovereign TLS operational" 200
+	}
+
+	handle /hooks/* {
+		reverse_proxy unix//run/membrane/nestgate.sock
+	}
+
+	handle {
+		root * /var/cache/membrane/nestgate
+		file_server
+		try_files {path} {path}/ /index.html
+	}
+}
+
+# Lab static surface (intra layer — VPS-hosted dashboard)
+# Interactive hub/api paths proxy back to gate via tunnel.
+lab.primals.eco {
+	handle /hub/* {
+		reverse_proxy localhost:8866
+	}
+
+	handle /user/* {
+		reverse_proxy localhost:8866
+	}
+
+	handle /api/* {
+		reverse_proxy localhost:8866
+	}
+
+	handle /services/* {
+		reverse_proxy localhost:8866
+	}
+
+	handle {
+		root * /var/cache/membrane/lab
+		file_server
+		try_files {path} {path}/ /index.html
+	}
+}

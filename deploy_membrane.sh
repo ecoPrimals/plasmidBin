@@ -870,6 +870,76 @@ status_rustdesk() {
     ssh "$remote" "ss -tlnp 2>/dev/null | grep -E ':(21115|21116|21117)' | sed 's/^/  Listening: /' || echo '  RustDesk ports: not listening'"
 }
 
+# ── Channel 3: TLS Surface (Caddy + static content) ─────────────────
+# Deploys version-controlled Caddyfile, creates cache directories,
+# and ensures caddy-tls.service is running with lab + sporePrint routes.
+
+deploy_channel_3_surface() {
+    local remote="$1"
+
+    log "Channel 3 (Surface): deploying TLS surface to $remote"
+    log "  Caddyfile: $MEMBRANE_DIR/Caddyfile → /etc/membrane/Caddyfile"
+    log "  Service:   $MEMBRANE_DIR/caddy-tls.service"
+
+    if $DRY_RUN; then
+        log "[dry-run] Would upload Caddyfile to /etc/membrane/"
+        log "[dry-run] Would upload caddy-tls.service"
+        log "[dry-run] Would create cache dirs: /var/cache/membrane/{nestgate,lab}"
+        log "[dry-run] Would reload caddy-tls"
+        return 0
+    fi
+
+    if [[ ! -f "$MEMBRANE_DIR/Caddyfile" ]]; then
+        warn "No Caddyfile found at $MEMBRANE_DIR/Caddyfile — skipping Channel 3"
+        return 1
+    fi
+
+    ssh "$remote" "mkdir -p /etc/membrane /var/cache/membrane/nestgate /var/cache/membrane/lab"
+
+    log "  Uploading Caddyfile..."
+    scp -q "$MEMBRANE_DIR/Caddyfile" "$remote:/etc/membrane/Caddyfile"
+
+    log "  Uploading caddy-tls.service..."
+    scp -q "$MEMBRANE_DIR/caddy-tls.service" "$remote:/etc/systemd/system/caddy-tls.service"
+
+    ssh "$remote" "systemctl daemon-reload"
+
+    if ssh "$remote" "test -x /opt/membrane/caddy" 2>/dev/null; then
+        log "  Caddy binary present, validating config..."
+        if ssh "$remote" "/opt/membrane/caddy validate --config /etc/membrane/Caddyfile" 2>/dev/null; then
+            log "  Config valid — reloading caddy-tls..."
+            ssh "$remote" "systemctl enable caddy-tls 2>/dev/null"
+            ssh "$remote" "systemctl reload-or-restart caddy-tls" 2>/dev/null || true
+        else
+            warn "Caddyfile validation failed — not restarting caddy-tls"
+            return 1
+        fi
+    else
+        warn "Caddy binary not at /opt/membrane/caddy — service unit deployed but binary missing"
+        log "  Install caddy binary, then: systemctl enable --now caddy-tls"
+    fi
+
+    log ""
+    log "  Channel 3 (Surface) deployed."
+    log "    Caddyfile: /etc/membrane/Caddyfile"
+    log "    sporePrint cache: /var/cache/membrane/nestgate/"
+    log "    Lab static root:  /var/cache/membrane/lab/"
+    log "    Service:          caddy-tls.service"
+}
+
+status_channel_3_surface() {
+    local remote="$1"
+    log "Channel 3 (Surface) status:"
+
+    local state
+    state=$(ssh "$remote" "systemctl is-active caddy-tls 2>/dev/null || echo 'not-found'")
+    log "  caddy-tls: $state"
+
+    ssh "$remote" "ls -ld /var/cache/membrane/nestgate/ /var/cache/membrane/lab/ 2>/dev/null | sed 's/^/  Cache: /' || echo '  Cache dirs: not found'"
+    ssh "$remote" "du -sh /var/cache/membrane/nestgate/ /var/cache/membrane/lab/ 2>/dev/null | sed 's/^/  Size: /' || true"
+    ssh "$remote" "ss -tlnp 2>/dev/null | grep -E ':(80|443) ' | sed 's/^/  Listening: /' || echo '  Ports 80/443: not listening'"
+}
+
 # ── nucleus_launcher integration (VPS standard Wave 56) ──────────────
 # When --uds-only is set, the nucleus composition uses nucleus_launcher
 # instead of manually creating individual systemd units per primal.
@@ -1136,6 +1206,7 @@ do_deploy() {
                 deploy_nest_composition "$REMOTE"
                 deploy_meta_composition "$REMOTE"
             fi
+            deploy_channel_3_surface "$REMOTE"
             ;;
         rustdesk)
             deploy_channel_2_relay "$REMOTE"
@@ -1295,8 +1366,11 @@ do_status() {
     log "Channel 1 (Signal/DNS): $has_dns"
 
     local has_surface
-    has_surface=$(ssh "$REMOTE" "systemctl is-active caddy 2>/dev/null || echo 'not-found'")
+    has_surface=$(ssh "$REMOTE" "systemctl is-active caddy-tls 2>/dev/null || echo 'not-found'")
     log "Channel 3 (Surface/TLS): $has_surface"
+    if [[ "$has_surface" == "active" ]]; then
+        status_channel_3_surface "$REMOTE"
+    fi
 
     local has_launcher
     has_launcher=$(ssh "$REMOTE" "systemctl is-active nucleus-launcher 2>/dev/null || echo 'not-found'")
