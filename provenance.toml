@@ -6,6 +6,33 @@
 #
 # Validated by: plasmidbin verify-provenance
 
+[primals.barracuda."aarch64-unknown-linux-musl"]
+content_hash = "9c8eaf93416331ee8d2760a103cd648235ce821a303dcc95e815e33f8c105e42"
+source_commit = "738c0a6183279f29126fb2b4d6f6135787ea4354"
+source_repo = "ecoPrimals/barraCuda"
+build_timestamp = "2026-05-28T12:35:31Z"
+rustc_version = "1.95.0"
+target = "aarch64-unknown-linux-musl"
+provenance_hash = "1d16eedf222ccd0023ca0eda84ed57c563e5e924e4efa01bfa982a009d3fc170"
+
+[primals.barracuda."armv7-unknown-linux-musleabihf"]
+content_hash = "99bde5086e939318fff17a985a5075bd1aca5a39deed8e70ff8291dd981a2970"
+source_commit = "738c0a6183279f29126fb2b4d6f6135787ea4354"
+source_repo = "ecoPrimals/barraCuda"
+build_timestamp = "2026-05-28T12:32:16Z"
+rustc_version = "1.95.0"
+target = "armv7-unknown-linux-musleabihf"
+provenance_hash = "af7f414568fb51d15d7de7d22e8bd0d0b4fc25903fbda759983378eda4bc624b"
+
+[primals.barracuda."x86_64-unknown-linux-musl"]
+content_hash = "cc9c306a4f6b310a81c6af562abe1ba783a74623cd3af10b053316d5a8244099"
+source_commit = "738c0a6183279f29126fb2b4d6f6135787ea4354"
+source_repo = "ecoPrimals/barraCuda"
+build_timestamp = "2026-05-28T12:34:11Z"
+rustc_version = "1.95.0"
+target = "x86_64-unknown-linux-musl"
+provenance_hash = "0aac795e021ea82dcfd3eaa8ff71647457b1b457914c5f182afd473fe73fd736"
+
 [primals.beardog."aarch64-unknown-linux-musl"]
 content_hash = "614ee5265bb6b0719c6fa58bc2e7350ce8e18be2c36ff294a063fcbc73d2939c"
 source_commit = "8d8be87b37e328e970669456997ca0441f674a81"
