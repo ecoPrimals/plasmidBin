@@ -1,0 +1,38 @@
+# NUCLEUS + Meta — Full 13/13
+#
+# Complete NUCLEUS atom plus all meta-tier primals:
+# orchestration (biomeOS), AI coordination (squirrel), UI (petalTongue).
+# This is the reference composition that eastGate runs.
+
+[profile]
+name = "full"
+description = "Full NUCLEUS atom + all meta-tier primals (13/13)"
+extends = "nucleus"
+
+[primals]
+beardog = { required = true, role = "crypto-spine" }
+songbird = { required = true, role = "discovery-mesh" }
+skunkbat = { required = true, role = "threat-defense" }
+toadstool = { required = true, role = "compute-dispatch" }
+barracuda = { required = true, role = "gpu-math" }
+coralreef = { required = true, role = "shader-compile" }
+nestgate = { required = true, role = "storage-transport" }
+rhizocrypt = { required = true, role = "ephemeral-dag" }
+loamspine = { required = true, role = "permanent-ledger" }
+sweetgrass = { required = true, role = "attribution" }
+biomeos = { required = true, role = "orchestration" }
+squirrel = { required = true, role = "ai-coordination" }
+petaltongue = { required = true, role = "multi-modal-ui" }
+
+[health]
+min_healthy = 10
+critical = ["beardog", "toadstool", "nestgate", "biomeos"]
+
+[launch]
+order = [
+    "beardog", "songbird", "skunkbat",
+    "coralreef", "barracuda", "toadstool",
+    "nestgate", "rhizocrypt", "loamspine", "sweetgrass",
+    "biomeos", "squirrel", "petaltongue",
+]
+parallel_after = "beardog"

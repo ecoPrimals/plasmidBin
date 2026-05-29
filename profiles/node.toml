@@ -1,0 +1,27 @@
+# Node Atomic — Compute Substrate
+# Particle: proton
+#
+# Tower + compute dispatch + execute + compile.
+# Required for any gate running workloads.
+
+[profile]
+name = "node"
+description = "Compute substrate — dispatch + execute + compile"
+particle = "proton"
+extends = "tower"
+
+[primals]
+beardog = { required = true, role = "crypto-spine" }
+songbird = { required = true, role = "discovery-mesh" }
+skunkbat = { required = true, role = "threat-defense" }
+toadstool = { required = true, role = "compute-dispatch" }
+barracuda = { required = true, role = "gpu-math" }
+coralreef = { required = true, role = "shader-compile" }
+
+[health]
+min_healthy = 4
+critical = ["beardog", "toadstool"]
+
+[launch]
+order = ["beardog", "songbird", "skunkbat", "coralreef", "barracuda", "toadstool"]
+parallel_after = "beardog"

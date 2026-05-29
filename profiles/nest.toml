@@ -1,0 +1,28 @@
+# Nest Atomic — Storage + Provenance
+# Particle: neutron
+#
+# Tower + content-addressed storage + lineage.
+# Required for any gate persisting data or tracking provenance.
+
+[profile]
+name = "nest"
+description = "Storage + provenance — content-addressed data + lineage"
+particle = "neutron"
+extends = "tower"
+
+[primals]
+beardog = { required = true, role = "crypto-spine" }
+songbird = { required = true, role = "discovery-mesh" }
+skunkbat = { required = true, role = "threat-defense" }
+nestgate = { required = true, role = "storage-transport" }
+rhizocrypt = { required = true, role = "ephemeral-dag" }
+loamspine = { required = true, role = "permanent-ledger" }
+sweetgrass = { required = true, role = "attribution" }
+
+[health]
+min_healthy = 5
+critical = ["beardog", "nestgate"]
+
+[launch]
+order = ["beardog", "songbird", "skunkbat", "nestgate", "rhizocrypt", "loamspine", "sweetgrass"]
+parallel_after = "beardog"

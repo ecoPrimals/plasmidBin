@@ -1,0 +1,33 @@
+# Full NUCLEUS — Tower + Node + Nest
+#
+# The complete atom: 10 unique primals covering trust, compute,
+# storage, and provenance. This is the standard gate composition.
+
+[profile]
+name = "nucleus"
+description = "Full atom — Tower + Node + Nest (10 unique primals)"
+extends = ["tower", "node", "nest"]
+
+[primals]
+beardog = { required = true, role = "crypto-spine" }
+songbird = { required = true, role = "discovery-mesh" }
+skunkbat = { required = true, role = "threat-defense" }
+toadstool = { required = true, role = "compute-dispatch" }
+barracuda = { required = true, role = "gpu-math" }
+coralreef = { required = true, role = "shader-compile" }
+nestgate = { required = true, role = "storage-transport" }
+rhizocrypt = { required = true, role = "ephemeral-dag" }
+loamspine = { required = true, role = "permanent-ledger" }
+sweetgrass = { required = true, role = "attribution" }
+
+[health]
+min_healthy = 7
+critical = ["beardog", "toadstool", "nestgate"]
+
+[launch]
+order = [
+    "beardog", "songbird", "skunkbat",
+    "coralreef", "barracuda", "toadstool",
+    "nestgate", "rhizocrypt", "loamspine", "sweetgrass",
+]
+parallel_after = "beardog"

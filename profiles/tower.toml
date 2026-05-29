@@ -1,0 +1,24 @@
+# Tower Atomic — Trust Boundary
+# Particle: electron
+# Phase 32 aligned
+#
+# The minimal operational unit: crypto + discovery + defense.
+# Every gate runs at least Tower.
+
+[profile]
+name = "tower"
+description = "Trust boundary — crypto + discovery + defense"
+particle = "electron"
+
+[primals]
+beardog = { required = true, role = "crypto-spine" }
+songbird = { required = true, role = "discovery-mesh" }
+skunkbat = { required = true, role = "threat-defense" }
+
+[health]
+min_healthy = 2
+critical = ["beardog"]
+
+[launch]
+order = ["beardog", "songbird", "skunkbat"]
+parallel_after = "beardog"
