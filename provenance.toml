@@ -87,6 +87,33 @@ rustc_version = "1.95.0"
 target = "x86_64-unknown-linux-musl"
 provenance_hash = "02f47ac1c6917da73b842187b7c47e72a8ab391dff4b7e615b1532eb5e25949f"
 
+[primals.coralreef."aarch64-unknown-linux-musl"]
+content_hash = "ae392112dbdcf5807bb4db16eb3295b0d52f00c42f31b201c0a94e4366fca24c"
+source_commit = "7e244751e1ca4515031492140309bca5ddb7d001"
+source_repo = "ecoPrimals/coralReef"
+build_timestamp = "2026-05-29T16:58:08Z"
+rustc_version = "1.95.0"
+target = "aarch64-unknown-linux-musl"
+provenance_hash = "3b3eb1049557838dae4ac55da17f9a23cfd5ce13f7e6432cf5df8ed238052993"
+
+[primals.coralreef."armv7-unknown-linux-musleabihf"]
+content_hash = "bb2db18c7ea914927f50f5aba4b8b4ba9d9d2d70c4bec325ef65237d5efef1fc"
+source_commit = "7e244751e1ca4515031492140309bca5ddb7d001"
+source_repo = "ecoPrimals/coralReef"
+build_timestamp = "2026-05-29T16:59:04Z"
+rustc_version = "1.95.0"
+target = "armv7-unknown-linux-musleabihf"
+provenance_hash = "a3f5741d755f59d18c08eb9fbf563375124f9a7e4c34ae93e23319b1ae98604a"
+
+[primals.coralreef."x86_64-unknown-linux-musl"]
+content_hash = "9903f2d57ebe646d7c498dd002fe0fcfa4e32b47c8bf996b6a1db018bf6c405d"
+source_commit = "7e244751e1ca4515031492140309bca5ddb7d001"
+source_repo = "ecoPrimals/coralReef"
+build_timestamp = "2026-05-29T16:57:14Z"
+rustc_version = "1.95.0"
+target = "x86_64-unknown-linux-musl"
+provenance_hash = "3b031c136bb503336eaab9fe43802ea28a52343186bb2858b8214bbd41d7f7be"
+
 [primals.loamspine."aarch64-unknown-linux-musl"]
 content_hash = "6638f8b87f8252891ad4f5ef41fea21923313972c5e5d3e0dfd7793ccf5a4cac"
 source_commit = "a9aa6aaa248dc1d6282fb851f70dd1eb7639fa61"
