@@ -39,9 +39,9 @@
 "x86_64-unknown-linux-musl" = "81f1b8c930898647e370139bef98517c6f901332c1df484458f5c4d15f1d8a6d"
 
 [primals.petaltongue]
-"aarch64-unknown-linux-musl" = "5bc390139bc60fa40d34cf8c05b5c7333fd98e17551d68f795b4ba152bd03f1e"
-"armv7-unknown-linux-musleabihf" = "824e606eb6e2efe4e46f20d32bd5d0f641b3c903a57ecb4ee51a14ed3abea9d5"
-"x86_64-unknown-linux-musl" = "79e63b55dd5ebceddd1453b6ee5669b2521b8f54e42aa78a67055553908ab969"
+"aarch64-unknown-linux-musl" = "0f6365648e54ee5d45a16cfe823e8dfc89a35b8d39e6bed0de5322f5ce2a4b2f"
+"armv7-unknown-linux-musleabihf" = "e104a55624fcc7aa672fa89e1ecf62ccde7ac60fe0f7c12586f1cbe20acdd048"
+"x86_64-unknown-linux-musl" = "8d2e49019689fb829f471cbc55ce7ac18d137324dc37e7db393850a6543d9e62"
 
 [primals.rhizocrypt]
 "aarch64-linux-android" = "94258de191673b9a2d79f675365fb5a87617a7fd635cdd307380d57a8ac536ce"
