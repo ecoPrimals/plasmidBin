@@ -347,7 +347,6 @@ for source_id in $(list_sources); do
     fi
 
     if ! $got_it; then
-        local tag_count
         tag_count=$(echo "$RECENT_TAGS" | grep -c . 2>/dev/null || echo 1)
         echo "FAIL  could not download $bin_name (tried $asset_name_arch and $asset_name_plain across ${tag_count:-1} releases)"
         FAILED=$((FAILED + 1))
