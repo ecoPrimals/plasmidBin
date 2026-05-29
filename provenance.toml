@@ -88,31 +88,31 @@ target = "x86_64-unknown-linux-musl"
 provenance_hash = "fbcf6b20553824b10fc01165c1aeea9a701a5327293aff345c453d9a005fa819"
 
 [primals.loamspine."aarch64-unknown-linux-musl"]
-content_hash = "e32a2766c02aec75122d782501a882a41e90ab843290cd2f920a1d5511ea6ac3"
-source_commit = "b516c154453cf33de6fb93778f23fa44d0c7a04f"
+content_hash = "6638f8b87f8252891ad4f5ef41fea21923313972c5e5d3e0dfd7793ccf5a4cac"
+source_commit = "a9aa6aaa248dc1d6282fb851f70dd1eb7639fa61"
 source_repo = "ecoPrimals/loamSpine"
-build_timestamp = "2026-05-29T14:45:57Z"
+build_timestamp = "2026-05-29T15:13:33Z"
 rustc_version = "1.95.0"
 target = "aarch64-unknown-linux-musl"
-provenance_hash = "0fc7436a4a7f5ae102c85aa0db7ef69cdac432bf9835e274945d63ae392bc529"
+provenance_hash = "243065f94839be64f214c66ef2cf51517f0d647aa739144b14655cb935721ef8"
 
 [primals.loamspine."armv7-unknown-linux-musleabihf"]
-content_hash = "18f95eb1e825d2e6c4b48e595f95a2d341136cffeb0c62393d72393785e41819"
-source_commit = "b516c154453cf33de6fb93778f23fa44d0c7a04f"
+content_hash = "f00f69e86824d4afcd06f6226d4f8830041cc1b2ed7c3169f8d1b2fca8cd904f"
+source_commit = "a9aa6aaa248dc1d6282fb851f70dd1eb7639fa61"
 source_repo = "ecoPrimals/loamSpine"
-build_timestamp = "2026-05-29T14:44:49Z"
+build_timestamp = "2026-05-29T15:10:29Z"
 rustc_version = "1.95.0"
 target = "armv7-unknown-linux-musleabihf"
-provenance_hash = "64ed48c66055c2cef2241f65a53e06aa55f978e78002edda116647a10dd29f75"
+provenance_hash = "e1c1ec9b509b7a8b68bd83b0632e77c34e329b90db3b7258bfb0154b208f7d08"
 
 [primals.loamspine."x86_64-unknown-linux-musl"]
-content_hash = "c343f75253fc3a585bb2b844b5bf67ff34f3069df3fa76b8cbe2113e32972566"
-source_commit = "b516c154453cf33de6fb93778f23fa44d0c7a04f"
+content_hash = "e06778afb248c897ca1b363500f67160959933a3667a05edc34b5593df568f31"
+source_commit = "a9aa6aaa248dc1d6282fb851f70dd1eb7639fa61"
 source_repo = "ecoPrimals/loamSpine"
-build_timestamp = "2026-05-29T14:47:50Z"
+build_timestamp = "2026-05-29T15:11:20Z"
 rustc_version = "1.95.0"
 target = "x86_64-unknown-linux-musl"
-provenance_hash = "1d33ccb98d65f8e01808435b22336446f6fb65b73195c4e3f0789ee7dc86e64d"
+provenance_hash = "4ef720be6a21b08787f2248e8965ecf6f2e75b299d6912ddbdaeb0311eed6f88"
 
 [primals.nestgate."armv7-unknown-linux-musleabihf"]
 content_hash = "c228b295f94bd4e06ec950bfd49b93c0c74db9dfa244f9c33edcac0606bfd6e3"
