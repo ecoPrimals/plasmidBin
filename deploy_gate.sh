@@ -43,17 +43,22 @@ DARK_FOREST=false
 BEACON_SEED=""
 LOCAL_VALIDATE=false
 VALIDATE_TOPOLOGY=""
+SYSTEMD=false
+UDS_ONLY=false
+REMOTE_INSTALL_DIR="/opt/membrane"
 
 usage() {
     echo "Usage: $0 <user@host> [OPTIONS]"
     echo ""
     echo "Atomic compositions:"
-    echo "  tower         BearDog + Songbird (trust boundary)"
+    echo "  tower         BearDog + Songbird + SkunkBat (trust boundary)"
     echo "  node          Tower + ToadStool + barraCuda + coralReef (compute)"
     echo "  nest          Tower + NestGate + Provenance Trio (storage + lineage)"
-    echo "  nucleus       Tower + Node + Nest (9 primals)"
+    echo "  nucleus       Tower + Node + Nest (10 primals)"
     echo "  meta          biomeOS + Squirrel + petalTongue"
     echo "  full          NUCLEUS + Meta (13 primals)"
+    echo "  fieldMouse    Tower + Nest (7 primals — depot/beacon/archive)"
+    echo "  depot         Tower only (3 primals — minimal signal/rendezvous)"
     echo ""
     echo "Spring niche compositions (primals a spring needs):"
     echo "  niche-hotspring, niche-neuralspring, niche-wetspring,"
@@ -71,6 +76,9 @@ usage() {
     echo "  --remote-dir DIR     Remote plasmidBin directory (default: /opt/plasmidBin)"
     echo "  --dark-forest        Enable Dark Forest beacon mode"
     echo "  --beacon-seed PATH   .beacon.seed file for BirdSong discovery"
+    echo "  --systemd            Install systemd units (production mode, restart-on-failure)"
+    echo "  --uds-only           UDS-only: no TCP port binding (VPS standard)"
+    echo "  --install-dir DIR    Remote binary directory (default: /opt/membrane)"
     echo "  --local-validate     Run benchScale Docker validation before deploying"
     echo "  --topology NAME      benchScale topology for --local-validate (auto-detected)"
     echo "  --dry-run            Show what would happen, don't execute"
@@ -87,6 +95,9 @@ while [[ $# -gt 0 ]]; do
         --remote-dir)   REMOTE_PLASMID_DIR="$2"; shift 2 ;;
         --dark-forest)  DARK_FOREST=true; shift ;;
         --beacon-seed)  BEACON_SEED="$2"; shift 2 ;;
+        --systemd)      SYSTEMD=true; shift ;;
+        --uds-only)     UDS_ONLY=true; shift ;;
+        --install-dir)  REMOTE_INSTALL_DIR="$2"; shift 2 ;;
         --local-validate) LOCAL_VALIDATE=true; shift ;;
         --topology)     VALIDATE_TOPOLOGY="$2"; shift 2 ;;
         --dry-run)      DRY_RUN=true; shift ;;
@@ -135,6 +146,8 @@ echo "Composition: $COMPOSITION ($PRIMALS)"
 echo "Mode:        $MODE"
 echo "Node ID:     $NODE_ID"
 echo "Remote dir:  $REMOTE_PLASMID_DIR"
+$SYSTEMD && echo "Systemd:     enabled (production mode)"
+$UDS_ONLY && echo "Transport:   UDS-only (no TCP)"
 if [[ -n "$FAMILY_SEED" ]]; then
     echo "Family seed: $FAMILY_SEED"
 fi
@@ -292,12 +305,198 @@ if [[ -n "$FAMILY_SEED" || -n "$BEACON_SEED" ]]; then
     fi
 fi
 
+# ── Systemd unit generator ────────────────────────────────────────────────
+# Generates a systemd service unit for a single primal. Used by --systemd mode.
+
+generate_systemd_unit() {
+    local primal="$1"
+    local install_dir="$2"
+    local description port socket_flag
+
+    case "$primal" in
+        beardog)     description="BearDog — crypto spine" ;;
+        songbird)    description="Songbird — discovery + federation" ;;
+        skunkbat)    description="SkunkBat — defense + audit" ;;
+        toadstool)   description="ToadStool — compute dispatch" ;;
+        barracuda)   description="barraCuda — pure math" ;;
+        coralreef)   description="coralReef — shader compilation" ;;
+        nestgate)    description="NestGate — content-addressed storage" ;;
+        rhizocrypt)  description="rhizoCrypt — ephemeral DAG sessions" ;;
+        loamspine)   description="loamSpine — permanent ledger" ;;
+        sweetgrass)  description="sweetGrass — attribution braids" ;;
+        biomeos)     description="biomeOS — Neural API orchestrator" ;;
+        squirrel)    description="Squirrel — AI coordination" ;;
+        petaltongue) description="petalTongue — visualization" ;;
+        *)           description="$primal" ;;
+    esac
+
+    port=$(port_for_primal "$primal")
+
+    local exec_start
+    if $UDS_ONLY; then
+        socket_flag="--socket /run/membrane/${primal}.sock"
+        case "$primal" in
+            beardog)     exec_start="$install_dir/$primal server $socket_flag" ;;
+            songbird)    exec_start="$install_dir/$primal server $socket_flag" ;;
+            skunkbat)    exec_start="$install_dir/$primal server $socket_flag" ;;
+            nestgate)    exec_start="$install_dir/$primal service start $socket_flag" ;;
+            biomeos)     exec_start="$install_dir/$primal api $socket_flag" ;;
+            squirrel)    exec_start="$install_dir/$primal server $socket_flag" ;;
+            petaltongue) exec_start="$install_dir/$primal server $socket_flag" ;;
+            rhizocrypt|loamspine|sweetgrass)
+                         exec_start="$install_dir/$primal serve $socket_flag" ;;
+            *)           exec_start="$install_dir/$primal server $socket_flag" ;;
+        esac
+    else
+        socket_flag="--socket /run/membrane/${primal}.sock"
+        case "$primal" in
+            beardog)     exec_start="$install_dir/$primal server $socket_flag --listen 0.0.0.0:$port" ;;
+            songbird)    exec_start="$install_dir/$primal server --port $port $socket_flag" ;;
+            skunkbat)    exec_start="$install_dir/$primal server --port $port $socket_flag" ;;
+            nestgate)    exec_start="$install_dir/$primal service start --port $port --bind 0.0.0.0 $socket_flag" ;;
+            biomeos)     exec_start="$install_dir/$primal api --port $port $socket_flag" ;;
+            squirrel)    exec_start="$install_dir/$primal server --port $port --bind 0.0.0.0 $socket_flag" ;;
+            petaltongue) exec_start="$install_dir/$primal web --bind 0.0.0.0:$port" ;;
+            rhizocrypt)  exec_start="$install_dir/$primal server --port $port --host 0.0.0.0 $socket_flag" ;;
+            loamspine)   exec_start="$install_dir/$primal server --port $port --bind-address 0.0.0.0 $socket_flag" ;;
+            sweetgrass)  exec_start="$install_dir/$primal server --port 0.0.0.0:$port $socket_flag" ;;
+            *)           exec_start="$install_dir/$primal server --port $port $socket_flag" ;;
+        esac
+    fi
+
+    local after="network.target"
+    local wants=""
+    case "$primal" in
+        songbird|skunkbat) after="network.target ${primal%%_*}-membrane.service"; after="network.target beardog-membrane.service"; wants="beardog-membrane.service" ;;
+        biomeos) after="network.target beardog-membrane.service songbird-membrane.service"; wants="beardog-membrane.service songbird-membrane.service" ;;
+        squirrel|petaltongue) after="network.target biomeos-membrane.service" ;;
+    esac
+
+    cat <<UNIT
+[Unit]
+Description=$description (membrane)
+After=$after
+${wants:+Wants=$wants}
+
+[Service]
+Type=simple
+ExecStart=$exec_start
+Restart=on-failure
+RestartSec=5
+EnvironmentFile=-$install_dir/tower.env
+
+[Install]
+WantedBy=multi-user.target
+UNIT
+}
+
 # ── Phase 4: Start primal composition ────────────────────────────────────────
 
-echo "=== Phase 4: Start primals ==="
+if $SYSTEMD; then
+    echo "=== Phase 4: Install systemd units ==="
 
-# Build the remote startup script dynamically
-STARTUP_SCRIPT="#!/bin/bash
+    RESOLVED_FAMILY_ID="${FAMILY_ID:-$(echo $NODE_ID | md5sum | head -c 8)}"
+
+    if $DRY_RUN; then
+        echo "  [dry-run] Would generate tower.env at $REMOTE_INSTALL_DIR/tower.env"
+        for p in $PRIMALS; do
+            echo "  [dry-run] Would install ${p}-membrane.service"
+        done
+        echo "  [dry-run] Would enable and start all services"
+    else
+        echo "  Creating tower.env..."
+        SEED_VALUE=""
+        if [[ -n "$FAMILY_SEED" && -f "$FAMILY_SEED" ]]; then
+            SEED_VALUE=$(cat "$FAMILY_SEED")
+        elif [[ -n "$BEACON_SEED" && -f "$BEACON_SEED" ]]; then
+            SEED_VALUE=$(cat "$BEACON_SEED")
+        fi
+
+        run_ssh "mkdir -p $REMOTE_INSTALL_DIR /run/membrane"
+
+        if [[ -n "$SEED_VALUE" ]]; then
+            run_ssh "cat > $REMOTE_INSTALL_DIR/tower.env << 'TENV'
+MEMBRANE_ROLE=$COMPOSITION
+MEMBRANE_GATE_ID=$NODE_ID
+FAMILY_ID=$RESOLVED_FAMILY_ID
+BEARDOG_FAMILY_SEED=$SEED_VALUE
+FAMILY_SEED=$SEED_VALUE
+NODE_ID=$NODE_ID
+BEARDOG_NODE_ID=$NODE_ID
+SONGBIRD_NODE_ID=$NODE_ID
+TENV
+chmod 600 $REMOTE_INSTALL_DIR/tower.env"
+        else
+            run_ssh "test -f $REMOTE_INSTALL_DIR/tower.env || cat > $REMOTE_INSTALL_DIR/tower.env << TENV
+MEMBRANE_ROLE=$COMPOSITION
+MEMBRANE_GATE_ID=$NODE_ID
+FAMILY_ID=$RESOLVED_FAMILY_ID
+BEARDOG_FAMILY_SEED=\$(head -c 32 /dev/urandom | xxd -p -c 64)
+NODE_ID=$NODE_ID
+BEARDOG_NODE_ID=$NODE_ID
+SONGBIRD_NODE_ID=$NODE_ID
+TENV
+chmod 600 $REMOTE_INSTALL_DIR/tower.env"
+        fi
+
+        UNIT_NAMES=""
+        for p in $PRIMALS; do
+            UNIT_NAME="${p}-membrane.service"
+            UNIT_NAMES="$UNIT_NAMES $UNIT_NAME"
+            echo "  Installing $UNIT_NAME..."
+            UNIT_CONTENT=$(generate_systemd_unit "$p" "$REMOTE_INSTALL_DIR")
+            echo "$UNIT_CONTENT" | ssh "$GATE" "cat > /etc/systemd/system/$UNIT_NAME"
+        done
+
+        echo "  Enabling services..."
+        run_ssh "systemctl daemon-reload && systemctl enable $UNIT_NAMES"
+
+        echo "  Starting services..."
+        for p in $PRIMALS; do
+            UNIT_NAME="${p}-membrane.service"
+            run_ssh "systemctl restart $UNIT_NAME" 2>/dev/null || echo "  WARNING: $UNIT_NAME failed to start"
+            sleep 2
+        done
+    fi
+
+    echo ""
+    echo "=== Phase 5: Service verification ==="
+
+    if ! $DRY_RUN; then
+        ALL_OK=true
+        for p in $PRIMALS; do
+            STATE=$(ssh "$GATE" "systemctl is-active ${p}-membrane 2>/dev/null || echo inactive")
+            if [[ "$STATE" == "active" ]]; then
+                echo "  ${p}-membrane: ACTIVE"
+            else
+                echo "  ${p}-membrane: $STATE"
+                ALL_OK=false
+            fi
+        done
+
+        echo ""
+        if $ALL_OK; then
+            echo "All services active."
+        else
+            echo "Some services not active. Check: ssh $GATE 'journalctl -u <service> --no-pager -n 20'"
+        fi
+    else
+        for p in $PRIMALS; do
+            echo "  [dry-run] Would check ${p}-membrane.service"
+        done
+    fi
+
+    echo ""
+    echo "=== Deploy complete (systemd) ==="
+    echo "Manage:   ssh $GATE 'systemctl status ${PRIMALS%% *}-membrane'"
+    echo "Logs:     ssh $GATE 'journalctl -u ${PRIMALS%% *}-membrane --no-pager -n 50'"
+    echo "Validate: ./validate_gate.sh $(echo $GATE | cut -d@ -f2)"
+
+else
+    # ── Original foreground mode (nohup) ─────────────────────────────────────
+    echo "=== Phase 4: Start primals ==="
+
+    STARTUP_SCRIPT="#!/bin/bash
 set -euo pipefail
 export ECOPRIMALS_PLASMID_BIN=$REMOTE_PLASMID_DIR
 export XDG_RUNTIME_DIR=$REMOTE_RUNTIME_DIR
@@ -307,264 +506,109 @@ export FAMILY_ID=\"${FAMILY_ID:-$(echo $NODE_ID | md5sum | head -c 8)}\"
 export NODE_ID=\"$NODE_ID\"
 "
 
-if $DARK_FOREST; then
-    STARTUP_SCRIPT+="
+    if $DARK_FOREST; then
+        STARTUP_SCRIPT+="
 export SONGBIRD_DARK_FOREST=true
 export SONGBIRD_AUTO_DISCOVERY=true
 "
-fi
+    fi
 
-STARTUP_SCRIPT+="
+    STARTUP_SCRIPT+="
 echo \"Starting primal composition: $COMPOSITION\"
 echo \"Family: \$FAMILY_ID  Node: \$NODE_ID  Dark Forest: $DARK_FOREST\"
 echo \"\"
 
-# Kill any existing primal processes
 for p in $PRIMALS; do
     pkill -f \"\$ECOPRIMALS_PLASMID_BIN/primals/\$p\" 2>/dev/null || true
 done
 sleep 1
 "
 
-# Start each primal with TCP binding
-for p in $PRIMALS; do
-    PORT=$(port_for_primal "$p")
-    SOCKET_PATH="\$XDG_RUNTIME_DIR/biomeos/${p}-\$FAMILY_ID.sock"
-
-    case "$p" in
-        beardog)
-            STARTUP_SCRIPT+="
+    for p in $PRIMALS; do
+        PORT=$(port_for_primal "$p")
+        case "$p" in
+            beardog)
+                STARTUP_SCRIPT+="
 echo \"Starting beardog (UDS + TCP $PORT)...\"
 nohup \$ECOPRIMALS_PLASMID_BIN/primals/beardog server \\
     --socket \$XDG_RUNTIME_DIR/biomeos/beardog-\$FAMILY_ID.sock \\
     --family-id \$FAMILY_ID \\
     --listen 0.0.0.0:$PORT \\
     > /tmp/beardog.log 2>&1 &
-echo \"  PID: \$!\"
 sleep 2
 "
-            ;;
-        songbird)
-            STARTUP_SCRIPT+="
+                ;;
+            songbird)
+                STARTUP_SCRIPT+="
 echo \"Starting songbird (HTTP $PORT + UDS)...\"
 export BEARDOG_SOCKET=\$XDG_RUNTIME_DIR/biomeos/beardog-\$FAMILY_ID.sock
-export BEARDOG_MODE=direct
 export SONGBIRD_SECURITY_PROVIDER=beardog
-export FAMILY_ID=\$FAMILY_ID
 nohup \$ECOPRIMALS_PLASMID_BIN/primals/songbird server \\
     --port $PORT \\
     --socket \$XDG_RUNTIME_DIR/biomeos/songbird-\$FAMILY_ID.sock \\
     > /tmp/songbird.log 2>&1 &
-echo \"  PID: \$!\"
 sleep 2
 "
-            ;;
-        nestgate)
-            STARTUP_SCRIPT+="
-echo \"Starting nestgate (UDS)...\"
-export NESTGATE_SOCKET=\$XDG_RUNTIME_DIR/biomeos/nestgate-\$FAMILY_ID.sock
-export NESTGATE_FAMILY_ID=\$FAMILY_ID
-export NESTGATE_JWT_SECRET=\$(echo "plasmidbin-gate-\$FAMILY_ID" | b3sum --no-names 2>/dev/null || echo "plasmidbin-gate-\$FAMILY_ID-jwt-fallback-secret")
-nohup \$ECOPRIMALS_PLASMID_BIN/primals/nestgate daemon \\
-    --socket-only --dev \\
-    > /tmp/nestgate.log 2>&1 &
-echo \"  PID: \$!\"
-sleep 2
-"
-            ;;
-        toadstool)
-            STARTUP_SCRIPT+="
-echo \"Starting toadstool (capabilities mode)...\"
-export TOADSTOOL_SOCKET=\$XDG_RUNTIME_DIR/biomeos/toadstool-\$FAMILY_ID.sock
-export TOADSTOOL_FAMILY_ID=\$FAMILY_ID
-export TOADSTOOL_NODE_ID=\$NODE_ID
-export TOADSTOOL_SECURITY_WARNING_ACKNOWLEDGED=1
-export NESTGATE_SOCKET=\$XDG_RUNTIME_DIR/biomeos/nestgate-\$FAMILY_ID.sock
-echo \"  ToadStool capabilities:\"
-\$ECOPRIMALS_PLASMID_BIN/primals/toadstool capabilities 2>/dev/null | head -5 || echo \"  (capabilities check unavailable)\"
-echo \"  NOTE: ToadStool requires a biome.yaml manifest for full server mode.\"
-echo \"  For compute dispatch, use: toadstool run <biome.yaml>\"
-"
-            ;;
-        squirrel)
-            STARTUP_SCRIPT+="
-echo \"Starting squirrel (HTTP $PORT + UDS)...\"
-export SQUIRREL_MODE=server
-nohup \$ECOPRIMALS_PLASMID_BIN/primals/squirrel server \\
-    --port $PORT \\
-    --bind 0.0.0.0 \\
-    --socket \$XDG_RUNTIME_DIR/biomeos/squirrel-\$FAMILY_ID.sock \\
-    > /tmp/squirrel.log 2>&1 &
-echo \"  PID: \$!\"
-sleep 2
-"
-            ;;
-        biomeos)
-            STARTUP_SCRIPT+="
-echo \"Starting biomeos (API mode, HTTP $PORT + UDS)...\"
-export BIOMEOS_PORT=$PORT
-export FAMILY_ID=\$FAMILY_ID
-nohup \$ECOPRIMALS_PLASMID_BIN/primals/biomeos api \\
-    --port $PORT \\
-    --socket \$XDG_RUNTIME_DIR/biomeos/biomeos-\$FAMILY_ID.sock \\
-    > /tmp/biomeos.log 2>&1 &
-echo \"  PID: \$!\"
-sleep 3
-"
-            ;;
-        petaltongue)
-            STARTUP_SCRIPT+="
-echo \"Starting petaltongue (web $PORT)...\"
-nohup \$ECOPRIMALS_PLASMID_BIN/primals/petaltongue web \\
-    --bind 0.0.0.0:$PORT \\
-    > /tmp/petaltongue.log 2>&1 &
-echo \"  PID: \$!\"
-sleep 2
-"
-            ;;
-
-        barracuda)
-            STARTUP_SCRIPT+="
-echo \"Starting barracuda (UDS + TCP $PORT)...\"
-export BARRACUDA_SOCKET=\$XDG_RUNTIME_DIR/biomeos/barracuda-\$FAMILY_ID.sock
-nohup \$ECOPRIMALS_PLASMID_BIN/primals/barracuda server \\
-    --port $PORT \\
-    --socket \$XDG_RUNTIME_DIR/biomeos/barracuda-\$FAMILY_ID.sock \\
-    > /tmp/barracuda.log 2>&1 &
-echo \"  PID: \$!\"
-sleep 2
-"
-            ;;
-
-        coralreef)
-            STARTUP_SCRIPT+="
-echo \"Starting coralreef (UDS + TCP $PORT)...\"
-export CORALREEF_SOCKET=\$XDG_RUNTIME_DIR/biomeos/coralreef-\$FAMILY_ID.sock
-nohup \$ECOPRIMALS_PLASMID_BIN/primals/coralreef server \\
-    --port $PORT \\
-    --socket \$XDG_RUNTIME_DIR/biomeos/coralreef-\$FAMILY_ID.sock \\
-    > /tmp/coralreef.log 2>&1 &
-echo \"  PID: \$!\"
-sleep 2
-"
-            ;;
-
-        skunkbat)
-            STARTUP_SCRIPT+="
-echo \"Starting skunkbat (UDS + TCP $PORT)...\"
-nohup \$ECOPRIMALS_PLASMID_BIN/primals/skunkbat server \\
-    --port $PORT \\
-    --socket \$XDG_RUNTIME_DIR/biomeos/skunkbat-\$FAMILY_ID.sock \\
-    > /tmp/skunkbat.log 2>&1 &
-echo \"  PID: \$!\"
-sleep 2
-"
-            ;;
-
-        rhizocrypt|loamspine|sweetgrass)
-            STARTUP_SCRIPT+="
-echo \"Starting $p (UDS + TCP $PORT)...\"
-nohup \$ECOPRIMALS_PLASMID_BIN/primals/$p serve \\
+                ;;
+            *)
+                STARTUP_SCRIPT+="
+echo \"Starting $p...\"
+nohup \$ECOPRIMALS_PLASMID_BIN/primals/$p server \\
     --port $PORT \\
     --socket \$XDG_RUNTIME_DIR/biomeos/${p}-\$FAMILY_ID.sock \\
     > /tmp/${p}.log 2>&1 &
-echo \"  PID: \$!\"
 sleep 2
 "
-            ;;
+                ;;
+        esac
+    done
 
-        primalspring_primal)
-            STARTUP_SCRIPT+="
-echo \"Starting primalspring_primal (coordination, TCP $PORT)...\"
-nohup \$ECOPRIMALS_PLASMID_BIN/primals/primalspring_primal --mode server \\
-    --port $PORT \\
-    --socket \$XDG_RUNTIME_DIR/biomeos/primalspring-\$FAMILY_ID.sock \\
-    > /tmp/primalspring.log 2>&1 &
-echo \"  PID: \$!\"
-sleep 2
-"
-            ;;
-    esac
-done
-
-STARTUP_SCRIPT+="
+    STARTUP_SCRIPT+="
 echo \"\"
 echo \"=== Gate Ready ===\"
 echo \"Composition: $COMPOSITION\"
-echo \"Primals running:\"
-for p in $PRIMALS; do
-    pid=\$(pgrep -f \"\$ECOPRIMALS_PLASMID_BIN/primals/\$p\" 2>/dev/null | head -1)
-    if [ -n \"\$pid\" ]; then
-        echo \"  \$p: PID \$pid\"
+"
+
+    echo "  Deploying startup script..."
+    if $DRY_RUN; then
+        echo "  [dry-run] Startup script would be:"
+        echo "$STARTUP_SCRIPT" | head -20
+        echo "  ..."
     else
-        echo \"  \$p: FAILED TO START (check /tmp/\$p.log)\"
+        echo "$STARTUP_SCRIPT" | ssh "$GATE" "cat > $REMOTE_PLASMID_DIR/start_gate.sh && chmod +x $REMOTE_PLASMID_DIR/start_gate.sh"
+        echo "  Running startup..."
+        ssh "$GATE" "bash $REMOTE_PLASMID_DIR/start_gate.sh"
     fi
-done
-echo \"\"
-echo \"TCP endpoints:\"
-"
 
-for p in $PRIMALS; do
-    PORT=$(port_for_primal "$p")
-    STARTUP_SCRIPT+="echo \"  $p: tcp://0.0.0.0:$PORT\"
-"
-done
-
-STARTUP_SCRIPT+="
-echo \"\"
-echo \"Validate from local machine:\"
-echo \"  ./validate_gate.sh $(echo $GATE | cut -d@ -f2)\"
-"
-
-echo "  Deploying startup script..."
-if $DRY_RUN; then
-    echo ""
-    echo "  [dry-run] Startup script would be:"
-    echo "$STARTUP_SCRIPT" | head -20
-    echo "  ..."
-else
-    echo "$STARTUP_SCRIPT" | ssh "$GATE" "cat > $REMOTE_PLASMID_DIR/start_gate.sh && chmod +x $REMOTE_PLASMID_DIR/start_gate.sh"
-    echo "  Running startup..."
-    ssh "$GATE" "bash $REMOTE_PLASMID_DIR/start_gate.sh"
-fi
-
-# ── Phase 5: Quick TCP probe ────────────────────────────────────────────────
-
-REMOTE_HOST=$(echo "$GATE" | cut -d@ -f2)
-
-echo ""
-echo "=== Phase 5: Quick probe ==="
-
-if ! $DRY_RUN; then
-    sleep 2
-    ALL_OK=true
-    for p in $PRIMALS; do
-        PORT=$(port_for_primal "$p")
-        if timeout 3 bash -c "echo '' > /dev/tcp/$REMOTE_HOST/$PORT" 2>/dev/null; then
-            echo "  $p ($REMOTE_HOST:$PORT): REACHABLE"
-        else
-            echo "  $p ($REMOTE_HOST:$PORT): NOT REACHABLE"
-            ALL_OK=false
-        fi
-    done
+    # ── Phase 5: Quick TCP probe ──────────────────────────────────────────
+    REMOTE_HOST=$(echo "$GATE" | cut -d@ -f2)
 
     echo ""
-    if $ALL_OK; then
-        echo "Gate deployed and reachable."
-    else
-        echo "Some primals not reachable. Check firewall, logs on remote."
-        echo "Remote logs: ssh $GATE 'tail /tmp/{beardog,songbird,toadstool}.log'"
-    fi
-else
-    for p in $PRIMALS; do
-        PORT=$(port_for_primal "$p")
-        echo "  [dry-run] Would probe $REMOTE_HOST:$PORT ($p)"
-    done
-fi
+    echo "=== Phase 5: Quick probe ==="
 
-echo ""
-echo "=== Deploy complete ==="
-echo "Remote start script: $GATE:$REMOTE_PLASMID_DIR/start_gate.sh"
-echo "Remote logs:         ssh $GATE 'tail /tmp/*.log'"
-echo "Validate:            ./validate_gate.sh $REMOTE_HOST"
-echo "Stop:                ./stop_gate.sh $GATE"
+    if ! $DRY_RUN; then
+        sleep 2
+        ALL_OK=true
+        for p in $PRIMALS; do
+            PORT=$(port_for_primal "$p")
+            if timeout 3 bash -c "echo '' > /dev/tcp/$REMOTE_HOST/$PORT" 2>/dev/null; then
+                echo "  $p ($REMOTE_HOST:$PORT): REACHABLE"
+            else
+                echo "  $p ($REMOTE_HOST:$PORT): NOT REACHABLE"
+                ALL_OK=false
+            fi
+        done
+    else
+        for p in $PRIMALS; do
+            PORT=$(port_for_primal "$p")
+            echo "  [dry-run] Would probe $REMOTE_HOST:$PORT ($p)"
+        done
+    fi
+
+    echo ""
+    echo "=== Deploy complete ==="
+    echo "Remote start script: $GATE:$REMOTE_PLASMID_DIR/start_gate.sh"
+    echo "Remote logs:         ssh $GATE 'tail /tmp/*.log'"
+    echo "Validate:            ./validate_gate.sh $(echo $GATE | cut -d@ -f2)"
+    echo "Stop:                ./stop_gate.sh $GATE"
+fi

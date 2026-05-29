@@ -94,7 +94,7 @@ Options:
   --name NAME            Droplet / gate name (context-dependent)
   --pubkey KEY           Public key string (for keys add)
   --ssh-key FP           SSH key fingerprint for droplet access
-  --composition COMP     Deployment composition: relay, tower, nest, nucleus, or rustdesk
+  --composition COMP     Deployment composition: relay, tower, nest, fieldMouse, nucleus, or rustdesk
   --uds-only             UDS-only mode: zero TCP ports for NUCLEUS primals (VPS standard)
   --cell SPRING          Spring cell graph name for spring-overlay mode (e.g. hotspring)
   --validate             Run post-deploy composition verification
@@ -106,6 +106,7 @@ Compositions:
   rustdesk  Songbird relay + RustDesk (hbbs+hbbr) remote desktop
   tower     Full Tower + RustDesk: BearDog + Songbird + SkunkBat + hbbs/hbbr
   nest      Tower + Nest Atomic: adds NestGate + rhizoCrypt + loamSpine + sweetGrass
+  fieldMouse Tower + Nest (7 primals — depot/beacon/archive for VPS/NAS)
   nucleus   Full NUCLEUS: Tower + Node + Nest + Meta (all 13 primals)
 
 Deployment Models (from MEMBRANE_CHANNEL_ARCHITECTURE.md):
@@ -136,6 +137,7 @@ EOF
 
 GITHUB_REPO="ecoPrimals/plasmidBin"
 GITHUB_RAW="https://raw.githubusercontent.com/$GITHUB_REPO/main"
+RELEASE_BASE_URL="${PLASMIDBIN_RELEASE_URL:-https://github.com/$GITHUB_REPO/releases/download}"
 
 remote_fetch_songbird() {
     local remote="$1"
@@ -304,7 +306,7 @@ remote_fetch_primal() {
     local remote="$1"
     local primal="$2"
 
-    log "  Fetching $primal from GitHub Releases on VPS..."
+    log "  Fetching $primal on VPS (source: ${RELEASE_BASE_URL})..."
 
     ssh "$remote" "bash -s" <<FETCH
 set -euo pipefail
@@ -312,17 +314,18 @@ REPO="ecoPrimals/plasmidBin"
 DEST="/opt/membrane/$primal"
 ARCH="x86_64-unknown-linux-musl"
 ASSET="${primal}-\${ARCH}"
+RELEASE_BASE="${RELEASE_BASE_URL}"
 
 TAGS=\$(curl -sf --max-time 10 "https://api.github.com/repos/\$REPO/releases?per_page=10" \\
-    | grep -oP '"tag_name"\s*:\s*"\K[^"]+')
+    | grep -oP '"tag_name"\s*:\s*"\K[^"]+' || true)
 
 if [[ -z "\$TAGS" ]]; then
-    echo "ERROR: Could not list releases" >&2
-    exit 1
+    echo "WARNING: Could not list releases from API, trying known tags..." >&2
+    TAGS="v2026.05.28 v2026.05.27"
 fi
 
 for TAG in \$TAGS; do
-    URL="https://github.com/\$REPO/releases/download/\$TAG/\$ASSET"
+    URL="\${RELEASE_BASE}/\$TAG/\$ASSET"
     if curl -sfL --max-time 120 -o "\$DEST" "\$URL" 2>/dev/null; then
         chmod 755 "\$DEST"
         echo "  Release: \$TAG"
@@ -1194,6 +1197,12 @@ do_deploy() {
             deploy_tower_composition "$REMOTE"
             deploy_rustdesk "$REMOTE"
             deploy_nest_composition "$REMOTE"
+            ;;
+        fieldmouse|fieldMouse)
+            deploy_tower_composition "$REMOTE"
+            deploy_rustdesk "$REMOTE"
+            deploy_nest_composition "$REMOTE"
+            deploy_channel_3_surface "$REMOTE"
             ;;
         nucleus)
             if $UDS_ONLY; then

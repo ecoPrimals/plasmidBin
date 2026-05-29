@@ -28,6 +28,12 @@ PRODUCTS_DIR="$SCRIPT_DIR/products"
 
 GITHUB_REPO="ecoPrimals/plasmidBin"
 
+# Sovereign binary channel: override to fetch from Forgejo instead of GitHub.
+# Set PLASMIDBIN_RELEASE_URL to use a self-hosted mirror (e.g. Forgejo releases).
+# Default: GitHub Releases. Forgejo example:
+#   export PLASMIDBIN_RELEASE_URL="https://git.primals.eco/ecoPrimals/plasmidBin/releases/download"
+RELEASE_BASE_URL="${PLASMIDBIN_RELEASE_URL:-https://github.com/$GITHUB_REPO/releases/download}"
+
 DRY_RUN=false
 FETCH_ALL=false
 FORCE=false
@@ -221,7 +227,7 @@ download_from_release() {
     local asset_name="$2"
     local dest="$3"
 
-    local url="https://github.com/$GITHUB_REPO/releases/download/$tag/$asset_name"
+    local url="${RELEASE_BASE_URL}/$tag/$asset_name"
 
     if $DRY_RUN; then
         echo "    [dry-run] Would download: $url"

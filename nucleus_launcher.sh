@@ -43,6 +43,7 @@ DARK_FOREST=false
 SEED_ONLY=false
 DRY_RUN=false
 VALIDATE=false
+UDS_ONLY=false
 HEALTH_TIMEOUT=20
 STARTUP_WAIT=3
 PEERS=""
@@ -59,7 +60,8 @@ usage() {
     echo "Options:"
     echo "  --family-id ID       Family ID (REQUIRED)"
     echo "  --node-id ID         Node name (default: hostname)"
-    echo "  --composition NAME   tower|node|nest|nucleus|meta|full (default: nucleus)"
+    echo "  --composition NAME   tower|node|nest|nucleus|meta|full|fieldMouse|depot (default: nucleus)"
+    echo "  --uds-only           UDS-only mode: skip TCP binding, use socket health checks"
     echo "  --dark-forest        Enable Dark Forest beacon mode"
     echo "  --seed-only          Skip startup, only run Phase 5 registry seeding"
     echo "  --peers SPEC         Mesh peers for Songbird auto-seeding (comma-separated)"
@@ -77,6 +79,7 @@ while [[ $# -gt 0 ]]; do
         --node-id)         NODE_ID="$2"; shift 2 ;;
         --composition)     COMPOSITION="$2"; shift 2 ;;
         --peers)           PEERS="$2"; shift 2 ;;
+        --uds-only)        UDS_ONLY=true; shift ;;
         --dark-forest)     DARK_FOREST=true; shift ;;
         --seed-only)       SEED_ONLY=true; shift ;;
         --health-timeout)  HEALTH_TIMEOUT="$2"; shift 2 ;;
@@ -155,6 +158,7 @@ echo "  Composition: $COMPOSITION"
 echo "  Primals:     $ORDERED_PRIMALS"
 echo "  Seed:        ${FAMILY_SEED:0:16}... (${#FAMILY_SEED} chars)"
 echo "  Dark Forest: $DARK_FOREST"
+$UDS_ONLY && echo "  Transport:   UDS-only (no TCP binding)"
 [[ -n "$PEERS" ]] && echo "  Mesh Peers:  $PEERS"
 echo ""
 
@@ -184,7 +188,27 @@ capability_domains_for() {
 }
 
 # ── Health check ──────────────────────────────────────────────────────────
-check_health() {
+check_health_uds() {
+    local primal="$1"
+    local socket="$SOCKET_DIR/${primal}-${FAMILY_ID}.sock"
+    local payload='{"jsonrpc":"2.0","method":"health.check","params":{},"id":1}'
+
+    if [[ ! -S "$socket" ]]; then
+        return 1
+    fi
+
+    if command -v socat >/dev/null 2>&1; then
+        local response
+        response=$(echo "$payload" | timeout "$HEALTH_TIMEOUT" socat - UNIX-CONNECT:"$socket" 2>/dev/null | head -1) || true
+        if [[ "$response" == *'"jsonrpc"'* || "$response" == *'"result"'* ]]; then
+            return 0
+        fi
+    fi
+
+    return 1
+}
+
+check_health_tcp() {
     local primal="$1"
     local port
     port=$(port_for_primal "$primal")
@@ -218,6 +242,15 @@ check_health() {
     return 1
 }
 
+check_health() {
+    local primal="$1"
+    if $UDS_ONLY; then
+        check_health_uds "$primal"
+    else
+        check_health_tcp "$primal"
+    fi
+}
+
 # ── Phase 1–4: Start primals ─────────────────────────────────────────────
 
 if ! $SEED_ONLY; then
@@ -247,7 +280,11 @@ if ! $SEED_ONLY; then
         PORT=$(port_for_primal "$p")
         SOCKET="$SOCKET_DIR/${p}-${FAMILY_ID}.sock"
 
-        printf "  %-14s tcp=%-5s " "$p" "$PORT"
+        if $UDS_ONLY; then
+            printf "  %-14s uds=%-40s " "$p" "$SOCKET"
+        else
+            printf "  %-14s tcp=%-5s " "$p" "$PORT"
+        fi
 
         if $DRY_RUN; then
             printf "${YELLOW}[dry-run]${NC}\n"
@@ -271,12 +308,17 @@ if ! $SEED_ONLY; then
             fi
         fi
 
-        "$SCRIPT_DIR/start_primal.sh" "$p" \
-            --tcp-port "$PORT" \
-            --socket "$SOCKET" \
-            --family-id "$FAMILY_ID" \
-            $DF_FLAG $EXTRA_FLAGS \
-            --log-file "/tmp/${p}.log" \
+        START_ARGS=()
+        START_ARGS+=("$p")
+        if ! $UDS_ONLY; then
+            START_ARGS+=(--tcp-port "$PORT")
+        fi
+        START_ARGS+=(--socket "$SOCKET" --family-id "$FAMILY_ID")
+        [[ -n "$DF_FLAG" ]] && START_ARGS+=($DF_FLAG)
+        [[ -n "$EXTRA_FLAGS" ]] && START_ARGS+=($EXTRA_FLAGS)
+        START_ARGS+=(--log-file "/tmp/${p}.log")
+
+        "$SCRIPT_DIR/start_primal.sh" "${START_ARGS[@]}" \
             > /dev/null 2>&1 || true
 
         sleep "$STARTUP_WAIT"
@@ -299,8 +341,12 @@ if ! $SEED_ONLY; then
     UNHEALTHY=0
 
     for p in $ORDERED_PRIMALS; do
-        PORT=$(port_for_primal "$p")
-        printf "  %-14s :%s  " "$p" "$PORT"
+        if $UDS_ONLY; then
+            printf "  %-14s sock  " "$p"
+        else
+            PORT=$(port_for_primal "$p")
+            printf "  %-14s :%s  " "$p" "$PORT"
+        fi
 
         if $DRY_RUN; then
             printf "${YELLOW}[dry-run]${NC}\n"
@@ -330,6 +376,7 @@ fi
 echo "=== Phase 5: Registry seeding (Songbird ipc.register) ==="
 
 SB_PORT=$(port_for_primal "songbird")
+SB_SOCKET="$SOCKET_DIR/songbird-${FAMILY_ID}.sock"
 REGISTERED=0
 REG_SKIPPED=0
 
@@ -346,10 +393,11 @@ for p in $ORDERED_PRIMALS; do
 
     CAPS_JSON=$(echo "$CAPS" | tr ' ' '\n' | sed 's/.*/"&"/' | paste -sd',' | sed 's/^/[/;s/$/]/')
 
-    REGISTER_PAYLOAD=$(cat <<EOPAYLOAD
-{"jsonrpc":"2.0","method":"ipc.register","params":{"name":"$p","capabilities":$CAPS_JSON,"endpoint":"unix://$SOCKET","tcp_endpoint":"tcp://127.0.0.1:$PORT","family_id":"$FAMILY_ID","node_id":"$NODE_ID"},"id":99}
-EOPAYLOAD
-)
+    if $UDS_ONLY; then
+        REGISTER_PAYLOAD="{\"jsonrpc\":\"2.0\",\"method\":\"ipc.register\",\"params\":{\"name\":\"$p\",\"capabilities\":$CAPS_JSON,\"endpoint\":\"unix://$SOCKET\",\"family_id\":\"$FAMILY_ID\",\"node_id\":\"$NODE_ID\"},\"id\":99}"
+    else
+        REGISTER_PAYLOAD="{\"jsonrpc\":\"2.0\",\"method\":\"ipc.register\",\"params\":{\"name\":\"$p\",\"capabilities\":$CAPS_JSON,\"endpoint\":\"unix://$SOCKET\",\"tcp_endpoint\":\"tcp://127.0.0.1:$PORT\",\"family_id\":\"$FAMILY_ID\",\"node_id\":\"$NODE_ID\"},\"id\":99}"
+    fi
 
     printf "  %-14s %s  " "$p" "$CAPS_JSON"
 
@@ -360,7 +408,12 @@ EOPAYLOAD
     fi
 
     REG_RESP=""
-    if command -v curl >/dev/null 2>&1; then
+
+    if $UDS_ONLY && [[ -S "$SB_SOCKET" ]] && command -v socat >/dev/null 2>&1; then
+        REG_RESP=$(echo "$REGISTER_PAYLOAD" | timeout 5 socat - UNIX-CONNECT:"$SB_SOCKET" 2>/dev/null | head -1) || true
+    fi
+
+    if [[ -z "$REG_RESP" ]] && command -v curl >/dev/null 2>&1; then
         REG_RESP=$(curl -sf --max-time 5 \
             -H "Content-Type: application/json" \
             -d "$REGISTER_PAYLOAD" \
@@ -378,7 +431,7 @@ EOPAYLOAD
         printf "${YELLOW}RESP${NC} (non-standard: ${REG_RESP:0:60}...)\n"
         REGISTERED=$((REGISTERED + 1))
     else
-        printf "${RED}FAIL${NC} (Songbird not responding on $SB_PORT)\n"
+        printf "${RED}FAIL${NC} (Songbird not responding)\n"
         REG_SKIPPED=$((REG_SKIPPED + 1))
     fi
 done
