@@ -18,9 +18,9 @@
 "x86_64-unknown-linux-musl" = "8657066b959da2e27e4c9d2d893ce7b2461daff61a391432476a18eff8728e22"
 
 [primals.biomeos]
-"aarch64-unknown-linux-musl" = "37b2a39340edfbc1f85b1186db9297ba74d71f4c7f853cd6510ef47752512983"
-"armv7-unknown-linux-musleabihf" = "e1b6525d8ecaeec64716a47f8e20d429e07b8c66e751a2e58281f3d7139c7080"
-"x86_64-unknown-linux-musl" = "20a4c090ad1de5fee755da6ef9e6de8dfbf315afaa0d31315d5e20a7d6db582b"
+"aarch64-unknown-linux-musl" = "88c4b49b82479d803f7f00913ae3fb84d857715b459ebb537cc147e875ebc40f"
+"armv7-unknown-linux-musleabihf" = "f20b39f10ec2b75599f1fdae976c6df37f8c8064d29199489a8be0d44bdb6cb3"
+"x86_64-unknown-linux-musl" = "2554bb42af55f7254b54110c08e4ef91ff4722f756f8cd7e15835d6acaa831fd"
 
 [primals.coralreef]
 "aarch64-unknown-linux-musl" = "101596bd4804d407770c56c0c365ade02a70927f8e6cb6c8f4d0babf1a0da725"
