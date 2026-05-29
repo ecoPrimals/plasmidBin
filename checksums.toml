@@ -45,9 +45,9 @@
 
 [primals.rhizocrypt]
 "aarch64-linux-android" = "94258de191673b9a2d79f675365fb5a87617a7fd635cdd307380d57a8ac536ce"
-"aarch64-unknown-linux-musl" = "586dbb2624a3185067c1593467acdd8de5d79e7e2e3b92d20a0c95d0d8b9e9ef"
-"armv7-unknown-linux-musleabihf" = "c3f2d3546ec9aaa6d601732ab8286f0fecd296878f8869ea13f540a229e8cf67"
-"x86_64-unknown-linux-musl" = "3205055459020380aabeea8216f7fc1ab9ed7bc4d657afcdb9a9aa5cb275aae7"
+"aarch64-unknown-linux-musl" = "4f5a3b7a72d401ae8f160de8e913c219072346fd17a72d90bd77d44926d4785e"
+"armv7-unknown-linux-musleabihf" = "b9817c1fc2f1640074b24acfa744f9adf7ace5b99c4b39caf873d38edb2c2c32"
+"x86_64-unknown-linux-musl" = "5fa02a96501c76fa6838f03d738ae96fe715321b7d676fbadddeb460dc5425a2"
 
 [primals.skunkbat]
 "aarch64-unknown-linux-musl" = "fc8a3147c805a403b716fa28b3135a2678874d85303b0bb47272aa9ab04af143"
