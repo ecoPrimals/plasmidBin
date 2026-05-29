@@ -214,31 +214,31 @@ target = "x86_64-unknown-linux-musl"
 provenance_hash = "240a41d3daea5525aba17ec3e79c34c4245742842138f9a5373ba1979fda39ea"
 
 [primals.songbird."aarch64-unknown-linux-musl"]
-content_hash = "c993831b627dc47faa4b0ea8115d4ccb3e5c1c345caf8d7d37be1e00a20ffde7"
-source_commit = "f3f5990be5c25d8439934d935b5a8cffb5ea995b"
+content_hash = "4151772c167081cdf71187dc77e446f513204fe515acc61813834b112d360ee4"
+source_commit = "f20f95ee43abe35c2ab8a5bbdbdf77f92e0060e7"
 source_repo = "ecoPrimals/songBird"
-build_timestamp = "2026-05-29T14:52:43Z"
+build_timestamp = "2026-05-29T16:04:41Z"
 rustc_version = "1.95.0"
 target = "aarch64-unknown-linux-musl"
-provenance_hash = "eca9565a751ab922506886c08dbff1f06435eaca3b5d84c767dcf411dc2df2a9"
+provenance_hash = "81b69d5f501f37a04bcd22d093eba057efdc180dfc1816655031e24492194caa"
 
 [primals.songbird."armv7-unknown-linux-musleabihf"]
-content_hash = "4dd93aa8e886eb90d5857c3c6a18b95903d0f5af79d6f96b3b9f25b346e59324"
-source_commit = "f3f5990be5c25d8439934d935b5a8cffb5ea995b"
+content_hash = "0bed2b0cc4418ddf27d3cedb30528f02df9c48545b1f03a8efd57a9feef051d7"
+source_commit = "f20f95ee43abe35c2ab8a5bbdbdf77f92e0060e7"
 source_repo = "ecoPrimals/songBird"
-build_timestamp = "2026-05-29T14:58:25Z"
+build_timestamp = "2026-05-29T15:59:40Z"
 rustc_version = "1.95.0"
 target = "armv7-unknown-linux-musleabihf"
-provenance_hash = "c9ce7a5b7476464f031f9a7d40af191e79f0beeed942346fda58a486b66a4ca4"
+provenance_hash = "70f1ca9f569d2b5e5a268d34992808a06769717ffbf3690a9830794b615bcaff"
 
 [primals.songbird."x86_64-unknown-linux-musl"]
-content_hash = "b49511f0ec1a48468c3f3607c5644b7eeb8edc6c4cb0c3d76a6ea3ffaf82d24f"
-source_commit = "f3f5990be5c25d8439934d935b5a8cffb5ea995b"
+content_hash = "0fc04a316e38caeeae7be0154456314c06b5475fecafb3fd8510e00fc3a580e3"
+source_commit = "f20f95ee43abe35c2ab8a5bbdbdf77f92e0060e7"
 source_repo = "ecoPrimals/songBird"
-build_timestamp = "2026-05-29T14:55:30Z"
+build_timestamp = "2026-05-29T16:02:06Z"
 rustc_version = "1.95.0"
 target = "x86_64-unknown-linux-musl"
-provenance_hash = "0564eb8ca12b37b4746493ba09ab75a5e296b38f0c735478e64b27802cd37e0c"
+provenance_hash = "4ff8cb0fe7865b1e3c907e5f1969d0c1572638645b5c61341bf7571a93447418"
 
 [primals.sourdough."aarch64-unknown-linux-musl"]
 content_hash = "91e446f27d032faa4b1ed35567693fec5c5b69fb16c5e4cf6c75a657240fd9b4"
