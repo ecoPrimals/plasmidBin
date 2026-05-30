@@ -64,6 +64,29 @@ lab.primals.eco {
 	}
 }
 
+# Sovereign public surface — primals.eco
+# Replaces GitHub Pages as the primary face (S3 sovereignty cutover).
+# sporePrint Zola site + pseudoSpore gallery.
+primals.eco {
+	# pseudoSpore gallery — browsable computation artifacts
+	handle /lab/spores/* {
+		root * /opt/ecoPrimals/sporePrint/spores
+		file_server browse
+		try_files {path} {path}/ {path}/index.html
+	}
+
+	# sporePrint static site (Zola build output)
+	handle {
+		root * /opt/ecoPrimals/sporePrint/public
+		file_server
+		try_files {path} {path}/ /index.html
+	}
+}
+
+www.primals.eco {
+	redir https://primals.eco{uri} permanent
+}
+
 # golgiBody — Periplasmic Forgejo (sovereign git forge)
 # Packages, routes, and modifies git traffic between gate cytoplasms
 # and the extracellular GitHub trailing mirror.
