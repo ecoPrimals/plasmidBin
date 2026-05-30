@@ -62,30 +62,30 @@ provenance_hash = "899557e74e93cf9b14651636a1108fd2c3f2ca35b4bcac1d8d1f06985ee9d
 
 [primals.biomeos."aarch64-unknown-linux-musl"]
 content_hash = "421c0cba63c7df68a51691c66aa216ba8de4f7a424a1586e220abf915465a750"
-source_commit = "d45e1e0a88d5893715b4fdd10ac9a07b619bac97"
+source_commit = "e8c47e0179298d4ed29b3877993256d51561c71f"
 source_repo = "ecoPrimals/biomeOS"
-build_timestamp = "2026-05-29T18:19:59Z"
+build_timestamp = "2026-05-30T00:54:54Z"
 rustc_version = "1.95.0"
 target = "aarch64-unknown-linux-musl"
-provenance_hash = "7ea6ce051a906cb868ae12b961f019bd1584f27be4c87c0b2e20db760dbdce36"
+provenance_hash = "d71db4813cd0f9e66478724769fa8dbac9794705326725db1f5d2440b17424a9"
 
 [primals.biomeos."armv7-unknown-linux-musleabihf"]
 content_hash = "69a5130f5b1d613d1cce45273468d8a0c09c4a972ad8e2e68eefa3d4da1d0c3e"
-source_commit = "d45e1e0a88d5893715b4fdd10ac9a07b619bac97"
+source_commit = "e8c47e0179298d4ed29b3877993256d51561c71f"
 source_repo = "ecoPrimals/biomeOS"
-build_timestamp = "2026-05-29T18:22:01Z"
+build_timestamp = "2026-05-30T00:53:50Z"
 rustc_version = "1.95.0"
 target = "armv7-unknown-linux-musleabihf"
-provenance_hash = "f7e721271ce73857223f2c1bc8ce9276564d86e7706d3994189ee2da10bdf78d"
+provenance_hash = "b8594828139485f8d1e322b4a31c26fa82ae96df8aafba8f73016f6408ebb805"
 
 [primals.biomeos."x86_64-unknown-linux-musl"]
 content_hash = "27fade63675f77e61743b91c5461852fc21194a3a6c37c6b9a39604d6df66852"
-source_commit = "d45e1e0a88d5893715b4fdd10ac9a07b619bac97"
+source_commit = "e8c47e0179298d4ed29b3877993256d51561c71f"
 source_repo = "ecoPrimals/biomeOS"
-build_timestamp = "2026-05-29T18:23:59Z"
+build_timestamp = "2026-05-30T00:53:35Z"
 rustc_version = "1.95.0"
 target = "x86_64-unknown-linux-musl"
-provenance_hash = "1f94aceb498b7a3dca9fb80c3834c243698730c7831334b251ba10a3b4cff6ab"
+provenance_hash = "c2bbc529349e522165bb28b08b65de28c358cf033b6654c22f86252642c79c79"
 
 [primals.coralreef."aarch64-unknown-linux-musl"]
 content_hash = "101596bd4804d407770c56c0c365ade02a70927f8e6cb6c8f4d0babf1a0da725"
