@@ -7,31 +7,31 @@
 # Validated by: plasmidbin verify-provenance
 
 [primals.barracuda."aarch64-unknown-linux-musl"]
-content_hash = "9c686c8f9366855231e0abd996ea61482b2ec36e76f4a672ffc2911be1a5bb4a"
-source_commit = "8ac5dff7265a6b4d89adce80060be41a8ffefe04"
+content_hash = "15c0b06496e1c6d776e56cafdc61c4157133b7d09dbb2ebc80c3721ca504ab3e"
+source_commit = "5c70da46cbecde57ca133333917dfba57ceac75f"
 source_repo = "ecoPrimals/barraCuda"
-build_timestamp = "2026-05-30T12:43:57Z"
+build_timestamp = "2026-06-01T21:36:21Z"
 rustc_version = "1.95.0"
 target = "aarch64-unknown-linux-musl"
-provenance_hash = "1d73aabaefda27c30eff6b90e5eb081ca9702e1ff6e81854f1cf9d2b2499849e"
+provenance_hash = "1ffbb3acf167b746c883eff2e9c3adff537dc54d1855b182962030538afd7b6e"
 
 [primals.barracuda."armv7-unknown-linux-musleabihf"]
-content_hash = "da6497f9c9864f997ff598168909004ce5f4624baff6397057e88c2e614184e6"
-source_commit = "8ac5dff7265a6b4d89adce80060be41a8ffefe04"
+content_hash = "9bc64c4b95db7f90cbeb245a8a4ed3a73543ea92f0199bb46a37271a952b14af"
+source_commit = "5c70da46cbecde57ca133333917dfba57ceac75f"
 source_repo = "ecoPrimals/barraCuda"
-build_timestamp = "2026-05-30T12:42:08Z"
+build_timestamp = "2026-06-01T21:37:49Z"
 rustc_version = "1.95.0"
 target = "armv7-unknown-linux-musleabihf"
-provenance_hash = "287d92856d98ee3747bd7b6858ff650c414708990a2a3268a526ab8880d81381"
+provenance_hash = "74a35d282e9b983b06398ecfa68c3a5bb6ddcddb939fa0d54bc5231289879eac"
 
 [primals.barracuda."x86_64-unknown-linux-musl"]
-content_hash = "74e65c09a3eb96bdadc674c6c1aee43a53a876a99e5edb95b73403aefd3b66aa"
-source_commit = "8ac5dff7265a6b4d89adce80060be41a8ffefe04"
+content_hash = "6e644d7ed8ffe45f3d1a3b55296f21259c4da234f19fa42aacf57102ed0eaae5"
+source_commit = "5c70da46cbecde57ca133333917dfba57ceac75f"
 source_repo = "ecoPrimals/barraCuda"
-build_timestamp = "2026-05-30T12:39:19Z"
+build_timestamp = "2026-06-01T21:39:18Z"
 rustc_version = "1.95.0"
 target = "x86_64-unknown-linux-musl"
-provenance_hash = "42f263b19230be32204aad152159587aa153b7afafcd981f10a59db8af202e54"
+provenance_hash = "91c8cc8030214d23bc174fe78007794fb8d4db9e57b66682679e485f9f04f17c"
 
 [primals.beardog."aarch64-unknown-linux-musl"]
 content_hash = "c21fb13218beb1261836d880a0f3719ce8227d0359d40c31e6578cb9f5eaedd3"

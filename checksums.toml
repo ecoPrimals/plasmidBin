@@ -7,10 +7,10 @@
 
 [primals.barracuda]
 "aarch64-linux-android" = "e34e40f4b42f909d240dfce68785ff338231e1bd51fe5f2c2afbdfe0dfb974a0"
-"aarch64-unknown-linux-musl" = "9c686c8f9366855231e0abd996ea61482b2ec36e76f4a672ffc2911be1a5bb4a"
-"armv7-unknown-linux-musleabihf" = "da6497f9c9864f997ff598168909004ce5f4624baff6397057e88c2e614184e6"
+"aarch64-unknown-linux-musl" = "15c0b06496e1c6d776e56cafdc61c4157133b7d09dbb2ebc80c3721ca504ab3e"
+"armv7-unknown-linux-musleabihf" = "9bc64c4b95db7f90cbeb245a8a4ed3a73543ea92f0199bb46a37271a952b14af"
 "x86_64-pc-windows-gnu" = "607eff0abd370511646681c99a0e67cc7e5ee03aae52791b3933fded0552b141"
-"x86_64-unknown-linux-musl" = "74e65c09a3eb96bdadc674c6c1aee43a53a876a99e5edb95b73403aefd3b66aa"
+"x86_64-unknown-linux-musl" = "6e644d7ed8ffe45f3d1a3b55296f21259c4da234f19fa42aacf57102ed0eaae5"
 
 [primals.beardog]
 "aarch64-unknown-linux-musl" = "c21fb13218beb1261836d880a0f3719ce8227d0359d40c31e6578cb9f5eaedd3"
