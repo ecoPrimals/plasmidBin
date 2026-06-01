@@ -160,31 +160,31 @@ target = "x86_64-unknown-linux-musl"
 provenance_hash = "50bbc2f2dce4db3e7be96886731ad6759834bd7cde20cb1a42b3e0b7a649f9a4"
 
 [primals.petaltongue."aarch64-unknown-linux-musl"]
-content_hash = "8babe6fa313a57ffe80a2a667495ffe7a18a06db320a6b318c25e9c7b9edca57"
-source_commit = "02499e8843a22b7f7e78b4710d01b8fe4d5bf351"
+content_hash = "0557404788e7df05765e5412a674804acd7978702627815fb02593447e64fa0e"
+source_commit = "174bb696abc401fbcb7c8a57187488c6edf7c48b"
 source_repo = "ecoPrimals/petalTongue"
-build_timestamp = "2026-06-01T16:29:19Z"
+build_timestamp = "2026-06-01T20:29:47Z"
 rustc_version = "1.95.0"
 target = "aarch64-unknown-linux-musl"
-provenance_hash = "0c13863e5a482576c5ec55adc3d6bd69044ceb33378e8a58852b282d3d54c460"
+provenance_hash = "006314df21b27a16d872e38ec5bd82ab9d186884ab8b595860a3ada7aa258f79"
 
 [primals.petaltongue."armv7-unknown-linux-musleabihf"]
-content_hash = "bb2ad33bb1247da72249543e232ba1b3b295c6defb74f4cc5c40f0ada9306ba4"
-source_commit = "02499e8843a22b7f7e78b4710d01b8fe4d5bf351"
+content_hash = "8d69074a8e6e8a546335cb1a405adc43358ab81e34b202de5a21548a52014365"
+source_commit = "174bb696abc401fbcb7c8a57187488c6edf7c48b"
 source_repo = "ecoPrimals/petalTongue"
-build_timestamp = "2026-06-01T16:27:07Z"
+build_timestamp = "2026-06-01T20:28:31Z"
 rustc_version = "1.95.0"
 target = "armv7-unknown-linux-musleabihf"
-provenance_hash = "da91641ce6bde72cdc35cb61ce0fbf0743a7975cbf8b9aed1155af84e3a11cb4"
+provenance_hash = "f09edaac83bc27f8ca4c5da7c5772cf6675d095b700a4968eb589422380c50a2"
 
 [primals.petaltongue."x86_64-unknown-linux-musl"]
-content_hash = "d167dd195ce8f96b08e35e2d0ea14b08a7b7fadf3343012d0da03ef4b50c2fff"
-source_commit = "02499e8843a22b7f7e78b4710d01b8fe4d5bf351"
+content_hash = "aaaa35025b4bac8b4dc227c2e130b1a16f979e302ec7a483193e7cbfdfbd965b"
+source_commit = "174bb696abc401fbcb7c8a57187488c6edf7c48b"
 source_repo = "ecoPrimals/petalTongue"
-build_timestamp = "2026-06-01T16:28:12Z"
+build_timestamp = "2026-06-01T20:27:41Z"
 rustc_version = "1.95.0"
 target = "x86_64-unknown-linux-musl"
-provenance_hash = "67aadda6dfb90fd624a1aab9976de72c78eff6d18d1a1da47931100f8cf3b223"
+provenance_hash = "e6c7a7fcec0dca63bc7a979eea0cb4e1175fdba56223d77d01713d5fc0e6ae88"
 
 [primals.rhizocrypt."aarch64-unknown-linux-musl"]
 content_hash = "b61405d74243ea6099879fa6628be04492dc93d9f1086aa09f0524be717aa339"
