@@ -13,6 +13,7 @@ mod stop;
 mod deploy;
 mod bootstrap;
 mod build;
+mod install;
 mod update;
 mod seed;
 mod verify_provenance;
@@ -63,6 +64,8 @@ pub enum Command {
     Bootstrap(bootstrap::BootstrapArgs),
     /// Build a primal from source for a target triple
     Build(build::BuildArgs),
+    /// Build from local workspace source and install to ~/.local/bin
+    Install(install::InstallArgs),
     /// Check upstream releases and update local binaries
     Update(update::UpdateArgs),
     /// Dark Forest seed lifecycle via BearDog crypto
@@ -87,6 +90,7 @@ impl Command {
             Command::Deploy(args) => deploy::run(args),
             Command::Bootstrap(args) => bootstrap::run(args),
             Command::Build(args) => build::run(args),
+            Command::Install(args) => install::run(args),
             Command::Update(args) => update::run(args),
             Command::Seed(args) => seed::run(args),
             Command::VerifyProvenance(args) => verify_provenance::run(args),
