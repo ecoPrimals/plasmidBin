@@ -316,6 +316,45 @@ jobs:
               echo "ERROR: failed to push after 3 attempts"
               exit 1
             fi
+
+      - name: Sync harvest to Forgejo (sovereign membrane)
+        if: ${{ steps.commit.outputs.changed == 'true' }}
+        env:
+          FORGEJO_SSH_KEY: ${{ secrets.FORGEJO_DEPLOY_KEY }}
+        run: |
+          if [[ -z "$FORGEJO_SSH_KEY" ]]; then
+            echo "FORGEJO_DEPLOY_KEY not configured — skipping Forgejo sync"
+            echo "To enable: add an SSH deploy key for plasmidBin on git.primals.eco"
+            echo "and store it as FORGEJO_DEPLOY_KEY in this repo's GitHub secrets."
+            exit 0
+          fi
+          mkdir -p ~/.ssh
+          echo "$FORGEJO_SSH_KEY" > ~/.ssh/forgejo_deploy
+          chmod 600 ~/.ssh/forgejo_deploy
+          cat >> ~/.ssh/config <<SSH_EOF
+          Host git.primals.eco
+            HostName git.primals.eco
+            Port 2222
+            User git
+            IdentityFile ~/.ssh/forgejo_deploy
+            StrictHostKeyChecking accept-new
+          SSH_EOF
+
+          FORGEJO_URL="ssh://git@git.primals.eco:2222/ecoPrimals/plasmidBin.git"
+          if git remote get-url forgejo >/dev/null 2>&1; then
+            git remote set-url forgejo "$FORGEJO_URL"
+          else
+            git remote add forgejo "$FORGEJO_URL"
+          fi
+
+          for attempt in 1 2 3; do
+            if git push forgejo main; then
+              echo "Forgejo sync: SUCCESS"
+              break
+            fi
+            echo "Forgejo push attempt $attempt failed, pulling and retrying..."
+            git pull --rebase forgejo main 2>/dev/null || true
+          done
             echo "changed=true" >> "$GITHUB_OUTPUT"
           fi
 
