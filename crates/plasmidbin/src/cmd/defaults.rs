@@ -5,6 +5,11 @@
 //! All hardcoded paths, org/repo references, and build staging directories
 //! are consolidated here with env-var overrides. Follows the same pattern as
 //! primalSpring's `tolerances/mod.rs`.
+//!
+//! Some functions are pre-wired for upcoming integration (stop, doctor, deploy
+//! evolution) and not yet called.
+
+#![allow(dead_code)]
 
 use std::path::PathBuf;
 

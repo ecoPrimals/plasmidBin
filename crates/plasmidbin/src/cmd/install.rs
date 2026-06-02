@@ -253,7 +253,7 @@ fn resolve_local_source(workspace: &Path, repo: &str) -> Result<PathBuf> {
     let manifest: toml::Value = toml::from_str(&manifest_content)
         .context("parsing ecosystem_manifest.toml")?;
 
-    let repo_name = repo.split('/').last().unwrap_or(repo);
+    let repo_name = repo.split('/').next_back().unwrap_or(repo);
 
     if let Some(repos) = manifest.get("repos").and_then(|r| r.as_table()) {
         if let Some(entry) = repos.get(repo_name) {
