@@ -12,7 +12,7 @@ pub struct BootstrapArgs {
     host: String,
 
     /// Remote plasmidBin directory (env: ECOPRIMALS_PLASMID_BIN)
-    #[arg(long, default_value = super::DEFAULT_REMOTE_DIR, env = "ECOPRIMALS_PLASMID_BIN")]
+    #[arg(long, default_value = super::defaults::DEFAULT_REMOTE_DIR, env = "ECOPRIMALS_PLASMID_BIN")]
     remote_dir: String,
 
     /// Composition to launch after bootstrap
@@ -34,8 +34,9 @@ pub fn run(args: BootstrapArgs) -> Result<()> {
     // Step 1: Clone plasmidBin on remote
     println!("=== Step 1: Clone plasmidBin ===");
     let clone_cmd = format!(
-        "test -d {dir}/.git && (cd {dir} && git pull) || git clone https://github.com/ecoPrimals/plasmidBin.git {dir}",
-        dir = args.remote_dir
+        "test -d {dir}/.git && (cd {dir} && git pull) || git clone {url} {dir}",
+        dir = args.remote_dir,
+        url = super::defaults::clone_url()
     );
     ssh_run(&args.host, &clone_cmd)?;
 

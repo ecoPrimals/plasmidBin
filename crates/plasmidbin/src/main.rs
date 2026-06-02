@@ -2,7 +2,7 @@
 
 //! `plasmidbin` — unified CLI for sovereign binary distribution.
 
-#![allow(unsafe_code)]
+#![forbid(unsafe_code)]
 
 mod cmd;
 

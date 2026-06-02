@@ -30,7 +30,7 @@ struct GateArgs {
     host: String,
 
     /// Remote plasmidBin directory (env: ECOPRIMALS_PLASMID_BIN)
-    #[arg(long, default_value = super::DEFAULT_REMOTE_DIR, env = "ECOPRIMALS_PLASMID_BIN")]
+    #[arg(long, default_value = super::defaults::DEFAULT_REMOTE_DIR, env = "ECOPRIMALS_PLASMID_BIN")]
     remote_dir: String,
 
     /// Target architecture for the remote gate

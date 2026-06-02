@@ -149,7 +149,7 @@ fn is_static_elf(path: &Path) -> bool {
 }
 
 fn check_stale_sockets(c: &mut Counters) {
-    let uid = read_uid();
+    let uid = super::current_uid();
     let dirs = [
         format!("/run/user/{uid}/biomeos"),
         format!("/run/user/{uid}/ecoprimals"),
@@ -180,18 +180,6 @@ fn check_stale_sockets(c: &mut Counters) {
     if stale == 0 {
         c.check("Socket health", "pass", &format!("{live} live, 0 stale"));
     }
-}
-
-fn read_uid() -> u32 {
-    std::fs::read_to_string("/proc/self/status")
-        .ok()
-        .and_then(|s| {
-            s.lines()
-                .find(|l| l.starts_with("Uid:"))
-                .and_then(|l| l.split_whitespace().nth(1))
-                .and_then(|v| v.parse().ok())
-        })
-        .unwrap_or(1000)
 }
 
 fn human_size(bytes: u64) -> String {

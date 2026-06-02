@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+pub(crate) mod defaults;
 mod validate;
 mod harvest;
 mod fetch;
@@ -20,20 +21,20 @@ mod verify_provenance;
 
 use clap::Subcommand;
 
-/// Default remote directory for primal binaries on gates/VPS.
-/// Override with `ECOPRIMALS_PLASMID_BIN`.
-pub(crate) const DEFAULT_REMOTE_DIR: &str = "/opt/plasmidBin";
-
-/// Resolved remote plasmidBin directory (env override or compile-time default).
-pub(crate) fn remote_dir_default() -> String {
-    std::env::var("ECOPRIMALS_PLASMID_BIN")
-        .unwrap_or_else(|_| DEFAULT_REMOTE_DIR.to_string())
-}
-
-/// Returns the real UID of the calling process.
+/// Returns the real UID of the calling process (no libc, no unsafe).
+///
+/// Reads from `/proc/self/status` on Linux. Falls back to 1000 if
+/// the proc filesystem is unavailable (containers, non-Linux).
 pub(crate) fn current_uid() -> u32 {
-    // SAFETY: getuid() is always safe — it's a pure read of process metadata.
-    unsafe { libc::getuid() }
+    std::fs::read_to_string("/proc/self/status")
+        .ok()
+        .and_then(|s| {
+            s.lines()
+                .find(|l| l.starts_with("Uid:"))
+                .and_then(|l| l.split_whitespace().nth(1))
+                .and_then(|v| v.parse().ok())
+        })
+        .unwrap_or(1000)
 }
 
 #[derive(Subcommand)]

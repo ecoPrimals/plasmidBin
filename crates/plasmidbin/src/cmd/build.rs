@@ -39,8 +39,8 @@ pub fn run(args: BuildArgs) -> Result<()> {
     };
 
     let sources = SourcesFile::load(root).map_err(|e| anyhow::anyhow!(e))?;
-    let build_dir = PathBuf::from("/tmp/primalspring-build");
-    let deploy_dir = PathBuf::from(format!("/tmp/primalspring-deploy/primals/{}", arch.triple()));
+    let build_dir = super::defaults::build_dir();
+    let deploy_dir = super::defaults::deploy_dir(arch.triple());
 
     std::fs::create_dir_all(&build_dir)?;
     std::fs::create_dir_all(&deploy_dir)?;
@@ -163,7 +163,7 @@ pub fn run(args: BuildArgs) -> Result<()> {
                 source_commit,
                 source_repo: entry.repo.clone(),
                 rustc_version,
-                build_timestamp: chrono::Utc::now().to_rfc3339_opts(chrono::SecondsFormat::Secs, true),
+                build_timestamp: super::defaults::utc_now_rfc3339(),
             };
             match BuildSidecar::write_next_to(&staged_path, &sidecar) {
                 Ok(()) => println!("  OK: wrote provenance sidecar"),

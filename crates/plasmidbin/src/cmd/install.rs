@@ -179,7 +179,7 @@ pub fn run(args: InstallArgs) -> Result<()> {
         source_commit,
         source_repo: entry.repo.clone(),
         rustc_version: resolve_rustc_version(),
-        build_timestamp: chrono::Utc::now().to_rfc3339_opts(chrono::SecondsFormat::Secs, true),
+        build_timestamp: super::defaults::utc_now_rfc3339(),
     };
     let sidecar_path = provenance_dir.join(format!("{bin_name}.provenance.json"));
     match serde_json::to_string_pretty(&sidecar) {

@@ -219,7 +219,7 @@ fn resolve_release_tag(explicit: &Option<String>) -> Result<Option<String>> {
         return Ok(Some(tag.clone()));
     }
     let output = gh_output_with_timeout(
-        &["release", "view", "--repo", "ecoPrimals/plasmidBin", "--json", "tagName", "-q", ".tagName"],
+        &["release", "view", "--repo", &super::defaults::org_repo(), "--json", "tagName", "-q", ".tagName"],
         15,
     );
     match output {
@@ -233,7 +233,7 @@ fn resolve_release_tag(explicit: &Option<String>) -> Result<Option<String>> {
 
 fn resolve_recent_tags() -> Vec<String> {
     let output = gh_output_with_timeout(
-        &["release", "list", "--repo", "ecoPrimals/plasmidBin", "-L", "10"],
+        &["release", "list", "--repo", &super::defaults::org_repo(), "-L", "10"],
         15,
     );
     match output {
@@ -248,9 +248,7 @@ fn resolve_recent_tags() -> Vec<String> {
 }
 
 fn download_from_release(tag: &str, asset_name: &str, dest: &Path) -> bool {
-    let url = format!(
-        "https://github.com/ecoPrimals/plasmidBin/releases/download/{tag}/{asset_name}"
-    );
+    let url = super::defaults::release_download_url(tag, asset_name);
     let status = std::process::Command::new("curl")
         .args(["-sfL", "--max-time", "300", "-o"])
         .arg(dest)

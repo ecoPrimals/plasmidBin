@@ -12,7 +12,7 @@ pub struct StopArgs {
     gate: Option<String>,
 
     /// Remote plasmidBin directory (env: ECOPRIMALS_PLASMID_BIN)
-    #[arg(long, default_value = super::DEFAULT_REMOTE_DIR, env = "ECOPRIMALS_PLASMID_BIN")]
+    #[arg(long, default_value = super::defaults::DEFAULT_REMOTE_DIR, env = "ECOPRIMALS_PLASMID_BIN")]
     remote_dir: String,
 }
 
@@ -85,7 +85,7 @@ fn signal_pid(pid: u32, signal: &str) -> bool {
 }
 
 fn clean_stale_sockets() {
-    let uid = read_uid();
+    let uid = super::current_uid();
     let dirs = [
         format!("/run/user/{uid}/biomeos"),
         format!("/run/user/{uid}/ecoprimals"),
@@ -111,18 +111,6 @@ fn clean_stale_sockets() {
     if cleaned > 0 {
         println!("Cleaned {cleaned} stale socket(s).");
     }
-}
-
-fn read_uid() -> u32 {
-    std::fs::read_to_string("/proc/self/status")
-        .ok()
-        .and_then(|s| {
-            s.lines()
-                .find(|l| l.starts_with("Uid:"))
-                .and_then(|l| l.split_whitespace().nth(1))
-                .and_then(|v| v.parse().ok())
-        })
-        .unwrap_or(1000)
 }
 
 fn build_stop_script(remote_dir: &str) -> String {

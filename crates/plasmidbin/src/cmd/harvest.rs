@@ -313,18 +313,18 @@ fn upload_to_release(tag: &str, assets: &[PathBuf]) -> Result<()> {
     println!("Publishing to GitHub Release: {tag}");
 
     let check = std::process::Command::new("gh")
-        .args(["release", "view", tag, "--repo", "ecoPrimals/plasmidBin"])
+        .args(["release", "view", tag, "--repo", &super::defaults::org_repo()])
         .output();
 
     let exists = matches!(check, Ok(ref o) if o.status.success());
 
     let mut cmd = std::process::Command::new("gh");
     if exists {
-        cmd.args(["release", "upload", tag, "--repo", "ecoPrimals/plasmidBin", "--clobber"]);
+        cmd.args(["release", "upload", tag, "--repo", &super::defaults::org_repo(), "--clobber"]);
     } else {
         cmd.args([
             "release", "create", tag,
-            "--repo", "ecoPrimals/plasmidBin",
+            "--repo", &super::defaults::org_repo(),
             "--title", &format!("plasmidBin {tag}"),
             "--notes", &format!("Automated harvest — {tag}"),
         ]);
