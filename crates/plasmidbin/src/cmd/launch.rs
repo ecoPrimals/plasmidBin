@@ -117,9 +117,79 @@ pub fn run(args: LaunchArgs) -> Result<()> {
     }
 
     println!();
+
+    let symlinks = create_capability_symlinks(args.family_id.as_deref());
+    if symlinks > 0 {
+        println!("Capability symlinks: {symlinks} created");
+    }
+
     println!("Summary: {launched} launched, {skipped} skipped");
 
     Ok(())
+}
+
+/// Capability symlinks let primals resolve peers by role instead of name.
+///
+/// Mapping (from PRIMAL_IPC_PROTOCOL):
+///   security.sock      → beardog-{family}.sock  (or beardog.sock)
+///   discovery.sock      → songbird.sock
+///   orchestration.sock  → songbird.sock
+fn create_capability_symlinks(family_id: Option<&str>) -> u32 {
+    let socket_dir = resolve_socket_dir();
+    let Some(dir) = socket_dir else { return 0 };
+
+    if !dir.exists() && std::fs::create_dir_all(&dir).is_err() {
+        return 0;
+    }
+
+    let beardog_sock = if let Some(fid) = family_id {
+        format!("beardog-{fid}.sock")
+    } else {
+        "beardog.sock".to_string()
+    };
+
+    let links: &[(&str, &str)] = &[
+        ("security.sock", &beardog_sock),
+        ("discovery.sock", "songbird.sock"),
+        ("orchestration.sock", "songbird.sock"),
+    ];
+
+    let mut created = 0u32;
+    for (capability, target) in links {
+        let link_path = dir.join(capability);
+        let target_path = dir.join(target);
+
+        if link_path.exists() || link_path.symlink_metadata().is_ok() {
+            let _ = std::fs::remove_file(&link_path);
+        }
+
+        if !target_path.exists() {
+            println!("  [symlink] SKIP  {capability} → {target} (target not found)");
+            continue;
+        }
+
+        match std::os::unix::fs::symlink(target, &link_path) {
+            Ok(()) => {
+                println!("  [symlink] OK    {capability} → {target}");
+                created += 1;
+            }
+            Err(e) => {
+                println!("  [symlink] FAIL  {capability} → {target}: {e}");
+            }
+        }
+    }
+
+    created
+}
+
+fn resolve_socket_dir() -> Option<PathBuf> {
+    if let Ok(dir) = std::env::var("BIOMEOS_SOCKET_DIR") {
+        return Some(PathBuf::from(dir));
+    }
+    if let Ok(xdg) = std::env::var("XDG_RUNTIME_DIR") {
+        return Some(PathBuf::from(xdg).join("biomeos"));
+    }
+    None
 }
 
 fn resolve_binary(root: &std::path::Path, name: &str, arch: Arch) -> Option<PathBuf> {
