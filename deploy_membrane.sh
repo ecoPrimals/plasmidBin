@@ -10,12 +10,13 @@
 #   Channel 3: Surface (TLS — caddy + nestgate, :443)   [ACTIVE — Let's Encrypt]
 #
 # Compositions:
-#   relay      — Channel 2 only: Songbird TURN relay (default)
-#   rustdesk   — Songbird relay + RustDesk (hbbs+hbbr) for remote desktop
-#   tower      — Full Tower atomic + RustDesk: BearDog + Songbird + SkunkBat + hbbs/hbbr
-#                Adds BTSP identity, secrets delegation, defense audit, and remote desktop.
-#   nest       — Tower + Nest Atomic: NestGate + rhizoCrypt + loamSpine + sweetGrass
-#   nucleus    — Full NUCLEUS (13 primals): Tower + Node + Nest + Meta
+#   relay         — Channel 2 only: Songbird TURN relay (default)
+#   peptidoglycan — Trust barrier relay: Songbird TURN + temporal sync. Stores nothing.
+#   rustdesk      — Songbird relay + RustDesk (hbbs+hbbr) for remote desktop
+#   tower         — Full Tower atomic + RustDesk: BearDog + Songbird + SkunkBat + hbbs/hbbr
+#                   Adds BTSP identity, secrets delegation, defense audit, and remote desktop.
+#   nest          — Tower + Nest Atomic: NestGate + rhizoCrypt + loamSpine + sweetGrass
+#   nucleus       — Full NUCLEUS (13 primals): Tower + Node + Nest + Meta
 #
 # VPS Deployment Standard (Wave 56):
 #   Step 1: deploy_membrane.sh deploy --composition nucleus --uds-only
@@ -94,7 +95,7 @@ Options:
   --name NAME            Droplet / gate name (context-dependent)
   --pubkey KEY           Public key string (for keys add)
   --ssh-key FP           SSH key fingerprint for droplet access
-  --composition COMP     Deployment composition: relay, tower, nest, fieldMouse, nucleus, or rustdesk
+  --composition COMP     Deployment composition: relay, peptidoglycan, tower, nest, fieldMouse, nucleus, or rustdesk
   --uds-only             UDS-only mode: zero TCP ports for NUCLEUS primals (VPS standard)
   --cell SPRING          Spring cell graph name for spring-overlay mode (e.g. hotspring)
   --validate             Run post-deploy composition verification
@@ -1221,8 +1222,13 @@ do_deploy() {
             deploy_channel_2_relay "$REMOTE"
             deploy_rustdesk "$REMOTE"
             ;;
+        peptidoglycan)
+            deploy_channel_2_relay "$REMOTE"
+            log "Peptidoglycan composition: trust barrier relay (Songbird TURN + temporal sync)"
+            log "This node stores NOTHING beyond tower.env. Disposable and replicable."
+            ;;
         *)
-            die "Unknown composition: $COMPOSITION. Use relay, tower, nest, nucleus, or rustdesk."
+            die "Unknown composition: $COMPOSITION. Use relay, tower, nest, peptidoglycan, nucleus, or rustdesk."
             ;;
     esac
 
