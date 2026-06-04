@@ -53,7 +53,7 @@ pub fn run(args: StartArgs) -> Result<()> {
     let name = &args.primal;
     let root = &args.root;
 
-    let arch = Arch::detect().map_err(|e| anyhow::anyhow!(e))?;
+    let arch = Arch::detect()?;
     let bin_path = resolve_binary(root, name, arch)
         .ok_or_else(|| anyhow::anyhow!("binary not found for {name}"))?;
 
@@ -101,9 +101,13 @@ pub fn run(args: StartArgs) -> Result<()> {
 
 fn resolve_binary(root: &std::path::Path, name: &str, arch: Arch) -> Option<PathBuf> {
     let triple_path = root.join("primals").join(arch.triple()).join(name);
-    if triple_path.exists() { return Some(triple_path); }
+    if triple_path.exists() {
+        return Some(triple_path);
+    }
     let flat_path = root.join("primals").join(name);
-    if flat_path.exists() { return Some(flat_path); }
+    if flat_path.exists() {
+        return Some(flat_path);
+    }
     None
 }
 
@@ -120,9 +124,8 @@ fn build_primal_args(name: &str, args: &StartArgs) -> Vec<String> {
 
     // Most primals use "server" subcommand post-convergence
     match name {
-        "beardog" | "songbird" | "toadstool" | "barracuda" | "coralreef"
-        | "nestgate" | "rhizocrypt" | "loamspine" | "sweetgrass"
-        | "squirrel" | "petaltongue" | "skunkbat" => {
+        "beardog" | "songbird" | "toadstool" | "barracuda" | "coralreef" | "nestgate"
+        | "rhizocrypt" | "loamspine" | "sweetgrass" | "squirrel" | "petaltongue" | "skunkbat" => {
             cmd_args.push("server".to_string());
         }
         "biomeos" => {

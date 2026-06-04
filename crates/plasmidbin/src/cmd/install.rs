@@ -53,20 +53,26 @@ pub struct InstallArgs {
 
 pub fn run(args: InstallArgs) -> Result<()> {
     let arch = match &args.target {
-        Some(t) => t.parse::<Arch>().map_err(|e: String| anyhow::anyhow!(e))?,
-        None => Arch::detect().map_err(|e| anyhow::anyhow!(e))?,
+        Some(t) => t.parse::<Arch>()?,
+        None => Arch::detect()?,
     };
 
     let workspace = resolve_workspace(&args.workspace)?;
     let dest = resolve_dest(&args.dest)?;
-    let sources = SourcesFile::load(&args.root).map_err(|e| anyhow::anyhow!(e))?;
+    let sources = SourcesFile::load(&args.root)?;
 
-    let entry = sources.sources.get(&args.primal)
-        .ok_or_else(|| anyhow::anyhow!(
+    let entry = sources.sources.get(&args.primal).ok_or_else(|| {
+        anyhow::anyhow!(
             "primal '{}' not found in sources.toml. Available: {}",
             args.primal,
-            sources.sources.keys().cloned().collect::<Vec<_>>().join(", ")
-        ))?;
+            sources
+                .sources
+                .keys()
+                .cloned()
+                .collect::<Vec<_>>()
+                .join(", ")
+        )
+    })?;
 
     let bin_name = entry.binary_name(&args.primal);
     let local_path = resolve_local_source(&workspace, &entry.repo)?;
@@ -79,11 +85,17 @@ pub fn run(args: InstallArgs) -> Result<()> {
     println!("  Strip:     {}", if args.no_strip { "no" } else { "yes" });
 
     let source_commit = resolve_git_head(&local_path);
-    println!("  Commit:    {}", &source_commit[..source_commit.len().min(12)]);
+    println!(
+        "  Commit:    {}",
+        &source_commit[..source_commit.len().min(12)]
+    );
     println!();
 
     if args.dry_run {
-        println!("DRY RUN — would build and install {bin_name} to {}", dest.join(&bin_name).display());
+        println!(
+            "DRY RUN — would build and install {bin_name} to {}",
+            dest.join(&bin_name).display()
+        );
         return Ok(());
     }
 
@@ -117,30 +129,40 @@ pub fn run(args: InstallArgs) -> Result<()> {
 
     // Locate built binary
     let release_dir = if cross {
-        local_path.join("target").join(arch.triple()).join("release")
+        local_path
+            .join("target")
+            .join(arch.triple())
+            .join("release")
     } else {
         local_path.join("target").join("release")
     };
     let built_bin = release_dir.join(&bin_name);
     if !built_bin.exists() {
-        bail!("binary not found at {} — check build_args or binary_name in sources.toml", built_bin.display());
+        bail!(
+            "binary not found at {} — check build_args or binary_name in sources.toml",
+            built_bin.display()
+        );
     }
 
     let built_size = std::fs::metadata(&built_bin)?.len();
-    println!("  Built: {} ({:.1} MB)", built_bin.display(), built_size as f64 / 1_048_576.0);
+    println!(
+        "  Built: {} ({:.1} MB)",
+        built_bin.display(),
+        built_size as f64 / 1_048_576.0
+    );
 
     // Strip
     if !args.no_strip {
         println!("  Stripping...");
-        let strip_status = std::process::Command::new("strip")
-            .arg(&built_bin)
-            .status();
+        let strip_status = std::process::Command::new("strip").arg(&built_bin).status();
         match strip_status {
             Ok(s) if s.success() => {
                 let stripped_size = std::fs::metadata(&built_bin)?.len();
-                println!("  Stripped: {:.1} MB → {:.1} MB",
+                println!(
+                    "  Stripped: {:.1} MB → {:.1} MB",
                     built_size as f64 / 1_048_576.0,
-                    stripped_size as f64 / 1_048_576.0);
+                    stripped_size as f64 / 1_048_576.0
+                );
             }
             _ => println!("  WARN: strip failed, installing unstripped"),
         }
@@ -158,13 +180,11 @@ pub fn run(args: InstallArgs) -> Result<()> {
     let had_previous = installed_path.exists();
     if had_previous {
         let backup = dest.join(format!("{bin_name}.prev"));
-        std::fs::rename(&installed_path, &backup)
-            .context("backing up previous binary")?;
+        std::fs::rename(&installed_path, &backup).context("backing up previous binary")?;
         println!("  Backed up previous → {bin_name}.prev");
     }
 
-    std::fs::copy(&built_bin, &installed_path)
-        .context("installing binary")?;
+    std::fs::copy(&built_bin, &installed_path).context("installing binary")?;
 
     #[cfg(unix)]
     {
@@ -232,8 +252,7 @@ fn resolve_dest(explicit: &Option<PathBuf>) -> Result<PathBuf> {
     if let Ok(d) = std::env::var("XDG_BIN_HOME") {
         return Ok(PathBuf::from(d));
     }
-    let home = std::env::var("HOME")
-        .context("HOME not set")?;
+    let home = std::env::var("HOME").context("HOME not set")?;
     Ok(PathBuf::from(home).join(".local").join("bin"))
 }
 
@@ -242,16 +261,18 @@ fn dirs_provenance() -> Result<PathBuf> {
         let home = std::env::var("HOME").unwrap_or_else(|_| "/tmp".into());
         format!("{home}/.local/share")
     });
-    Ok(PathBuf::from(data_home).join("ecoPrimals").join("provenance"))
+    Ok(PathBuf::from(data_home)
+        .join("ecoPrimals")
+        .join("provenance"))
 }
 
 /// Map a GitHub org/repo to local workspace path using ecosystem_manifest.toml.
 fn resolve_local_source(workspace: &Path, repo: &str) -> Result<PathBuf> {
     let manifest_path = workspace.join("infra/wateringHole/ecosystem_manifest.toml");
-    let manifest_content = std::fs::read_to_string(&manifest_path)
-        .context("reading ecosystem_manifest.toml")?;
-    let manifest: toml::Value = toml::from_str(&manifest_content)
-        .context("parsing ecosystem_manifest.toml")?;
+    let manifest_content =
+        std::fs::read_to_string(&manifest_path).context("reading ecosystem_manifest.toml")?;
+    let manifest: toml::Value =
+        toml::from_str(&manifest_content).context("parsing ecosystem_manifest.toml")?;
 
     let repo_name = repo.split('/').next_back().unwrap_or(repo);
 

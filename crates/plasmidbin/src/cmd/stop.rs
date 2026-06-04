@@ -66,12 +66,10 @@ fn find_pids(name: &str) -> Vec<u32> {
         .args(["-x", name])
         .output();
     match output {
-        Ok(o) if o.status.success() => {
-            String::from_utf8_lossy(&o.stdout)
-                .lines()
-                .filter_map(|l| l.trim().parse().ok())
-                .collect()
-        }
+        Ok(o) if o.status.success() => String::from_utf8_lossy(&o.stdout)
+            .lines()
+            .filter_map(|l| l.trim().parse().ok())
+            .collect(),
         _ => Vec::new(),
     }
 }
@@ -86,14 +84,15 @@ fn signal_pid(pid: u32, signal: &str) -> bool {
 
 fn clean_stale_sockets() {
     let uid = super::current_uid();
-    let dirs = [
-        format!("/run/user/{uid}/biomeos"),
-        format!("/run/user/{uid}/ecoprimals"),
-        "/run/membrane".to_string(),
-    ];
+    let dirs: Vec<String> = super::defaults::runtime_socket_dirs(uid)
+        .into_iter()
+        .map(|p| p.to_string_lossy().into_owned())
+        .collect();
     let mut cleaned = 0;
     for dir in &dirs {
-        let Ok(entries) = std::fs::read_dir(dir) else { continue };
+        let Ok(entries) = std::fs::read_dir(dir) else {
+            continue;
+        };
         for entry in entries.flatten() {
             let path = entry.path();
             if path.extension().is_some_and(|e| e == "sock") {

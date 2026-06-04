@@ -24,25 +24,32 @@ pub struct LaunchArgs {
 }
 
 const LAUNCH_ORDER: &[&str] = &[
-    "beardog", "skunkbat", "songbird",
-    "nestgate", "rhizocrypt", "loamspine", "sweetgrass",
-    "toadstool", "barracuda", "coralreef",
-    "squirrel", "petaltongue", "biomeos",
+    "beardog",
+    "skunkbat",
+    "songbird",
+    "nestgate",
+    "rhizocrypt",
+    "loamspine",
+    "sweetgrass",
+    "toadstool",
+    "barracuda",
+    "coralreef",
+    "squirrel",
+    "petaltongue",
+    "biomeos",
 ];
 
 pub fn run(args: LaunchArgs) -> Result<()> {
     let root = &args.root;
-    let arch = Arch::detect().map_err(|e| anyhow::anyhow!(e))?;
-    let port_map = ports::load_port_map(root).map_err(|e| anyhow::anyhow!(e))?;
-    let compositions = ports::load_compositions(root).map_err(|e| anyhow::anyhow!(e))?;
+    let arch = Arch::detect()?;
+    let port_map = ports::load_port_map(root)?;
+    let compositions = ports::load_compositions(root)?;
 
     let comp_key = format!("COMP_{}", args.composition.to_uppercase());
     let primals: Vec<String> = compositions
         .get(&comp_key)
         .cloned()
-        .unwrap_or_else(|| {
-            LAUNCH_ORDER.iter().map(|s| s.to_string()).collect()
-        });
+        .unwrap_or_else(|| LAUNCH_ORDER.iter().map(|s| s.to_string()).collect());
 
     println!("plasmidBin launch — {}", args.composition);
     println!("Composition: {} primals", primals.len());
@@ -52,7 +59,9 @@ pub fn run(args: LaunchArgs) -> Result<()> {
     let mut skipped = 0u32;
 
     for name in LAUNCH_ORDER {
-        if !primals.contains(&name.to_string()) { continue; }
+        if !primals.contains(&name.to_string()) {
+            continue;
+        }
 
         let bin = resolve_binary(root, name, arch);
         let Some(bin_path) = bin else {
@@ -194,9 +203,13 @@ fn resolve_socket_dir() -> Option<PathBuf> {
 
 fn resolve_binary(root: &std::path::Path, name: &str, arch: Arch) -> Option<PathBuf> {
     let triple_path = root.join("primals").join(arch.triple()).join(name);
-    if triple_path.exists() { return Some(triple_path); }
+    if triple_path.exists() {
+        return Some(triple_path);
+    }
     let flat_path = root.join("primals").join(name);
-    if flat_path.exists() { return Some(flat_path); }
+    if flat_path.exists() {
+        return Some(flat_path);
+    }
     None
 }
 

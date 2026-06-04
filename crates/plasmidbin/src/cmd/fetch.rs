@@ -2,7 +2,7 @@
 
 //! `plasmidbin fetch` — download binaries from GitHub Releases with BLAKE3 verification.
 
-use anyhow::{Context, Result, bail};
+use anyhow::{Result, bail};
 use clap::Args;
 use plasmidbin_types::arch::Arch;
 use plasmidbin_types::checksums::ChecksumsFile;
@@ -42,10 +42,10 @@ pub fn run(args: FetchArgs) -> Result<()> {
     }
 
     let root = &args.root;
-    let arch = Arch::detect().map_err(|e| anyhow::anyhow!(e))?;
+    let arch = Arch::detect()?;
     let triple = arch.triple();
 
-    let sources = SourcesFile::load(root).map_err(|e| anyhow::anyhow!(e))?;
+    let sources = SourcesFile::load(root)?;
     let checksums = ChecksumsFile::load(root).unwrap_or_else(|_| ChecksumsFile {
         primals: Default::default(),
     });
@@ -55,7 +55,11 @@ pub fn run(args: FetchArgs) -> Result<()> {
 
     println!("plasmidBin fetch");
     println!("Arch:    {triple}");
-    println!("Release: {} ({} recent releases indexed)", tag.as_deref().unwrap_or("<none>"), recent_tags.len());
+    println!(
+        "Release: {} ({} recent releases indexed)",
+        tag.as_deref().unwrap_or("<none>"),
+        recent_tags.len()
+    );
     println!();
 
     let primals_dir = root.join("primals").join(triple);
@@ -69,7 +73,9 @@ pub fn run(args: FetchArgs) -> Result<()> {
     for (id, entry) in &sources.sources {
         if !args.all {
             if let Some(ref filter) = args.primal {
-                if id != filter { continue; }
+                if id != filter {
+                    continue;
+                }
             }
         }
 
@@ -102,7 +108,9 @@ pub fn run(args: FetchArgs) -> Result<()> {
 
         // Try latest tag first, then recent tags
         let mut tags_to_try: Vec<&str> = Vec::new();
-        if let Some(ref t) = tag { tags_to_try.push(t); }
+        if let Some(ref t) = tag {
+            tags_to_try.push(t);
+        }
         for t in &recent_tags {
             if Some(t.as_str()) != tag.as_deref() {
                 tags_to_try.push(t);
@@ -168,7 +176,9 @@ pub fn run(args: FetchArgs) -> Result<()> {
     println!("  Skipped:    {skipped}");
     println!("  Failed:     {failed}");
 
-    if failed > 0 { bail!("{failed} downloads failed"); }
+    if failed > 0 {
+        bail!("{failed} downloads failed");
+    }
     Ok(())
 }
 
@@ -189,17 +199,29 @@ fn gh_output_with_timeout(args: &[&str], timeout_secs: u64) -> Option<std::proce
     loop {
         match child.try_wait() {
             Ok(Some(status)) => {
-                let stdout = child.stdout.take().and_then(|mut s| {
-                    use std::io::Read;
-                    let mut buf = Vec::new();
-                    s.read_to_end(&mut buf).ok().map(|_| buf)
-                }).unwrap_or_default();
-                let stderr = child.stderr.take().and_then(|mut s| {
-                    use std::io::Read;
-                    let mut buf = Vec::new();
-                    s.read_to_end(&mut buf).ok().map(|_| buf)
-                }).unwrap_or_default();
-                return Some(std::process::Output { status, stdout, stderr });
+                let stdout = child
+                    .stdout
+                    .take()
+                    .and_then(|mut s| {
+                        use std::io::Read;
+                        let mut buf = Vec::new();
+                        s.read_to_end(&mut buf).ok().map(|_| buf)
+                    })
+                    .unwrap_or_default();
+                let stderr = child
+                    .stderr
+                    .take()
+                    .and_then(|mut s| {
+                        use std::io::Read;
+                        let mut buf = Vec::new();
+                        s.read_to_end(&mut buf).ok().map(|_| buf)
+                    })
+                    .unwrap_or_default();
+                return Some(std::process::Output {
+                    status,
+                    stdout,
+                    stderr,
+                });
             }
             Ok(None) => {
                 if Instant::now() >= deadline {
@@ -219,13 +241,26 @@ fn resolve_release_tag(explicit: &Option<String>) -> Result<Option<String>> {
         return Ok(Some(tag.clone()));
     }
     let output = gh_output_with_timeout(
-        &["release", "view", "--repo", &super::defaults::org_repo(), "--json", "tagName", "-q", ".tagName"],
+        &[
+            "release",
+            "view",
+            "--repo",
+            &super::defaults::org_repo(),
+            "--json",
+            "tagName",
+            "-q",
+            ".tagName",
+        ],
         15,
     );
     match output {
         Some(o) if o.status.success() => {
             let tag = String::from_utf8_lossy(&o.stdout).trim().to_string();
-            if tag.is_empty() { Ok(None) } else { Ok(Some(tag)) }
+            if tag.is_empty() {
+                Ok(None)
+            } else {
+                Ok(Some(tag))
+            }
         }
         _ => Ok(None),
     }
@@ -233,16 +268,21 @@ fn resolve_release_tag(explicit: &Option<String>) -> Result<Option<String>> {
 
 fn resolve_recent_tags() -> Vec<String> {
     let output = gh_output_with_timeout(
-        &["release", "list", "--repo", &super::defaults::org_repo(), "-L", "10"],
+        &[
+            "release",
+            "list",
+            "--repo",
+            &super::defaults::org_repo(),
+            "-L",
+            "10",
+        ],
         15,
     );
     match output {
-        Some(o) if o.status.success() => {
-            String::from_utf8_lossy(&o.stdout)
-                .lines()
-                .filter_map(|line| line.split_whitespace().last().map(String::from))
-                .collect()
-        }
+        Some(o) if o.status.success() => String::from_utf8_lossy(&o.stdout)
+            .lines()
+            .filter_map(|line| line.split_whitespace().last().map(String::from))
+            .collect(),
         _ => Vec::new(),
     }
 }
@@ -267,22 +307,25 @@ fn download_from_release(tag: &str, asset_name: &str, dest: &Path) -> bool {
     }
 }
 
-fn blake3_file(path: &Path) -> Result<String> {
-    let data = std::fs::read(path).context("reading file for blake3")?;
-    Ok(blake3::hash(&data).to_hex().to_string())
-}
+use super::defaults::blake3_file;
 
 fn create_compat_symlinks(root: &Path, triple: &str) -> Result<()> {
     let arch_dir = root.join("primals").join(triple);
-    if !arch_dir.exists() { return Ok(()); }
+    if !arch_dir.exists() {
+        return Ok(());
+    }
 
     let mut count = 0;
     for entry in std::fs::read_dir(&arch_dir)? {
         let entry = entry?;
-        if !entry.file_type()?.is_file() { continue; }
+        if !entry.file_type()?.is_file() {
+            continue;
+        }
         let name = entry.file_name();
         let link = root.join("primals").join(&name);
-        if link.exists() && !link.is_symlink() { continue; }
+        if link.exists() && !link.is_symlink() {
+            continue;
+        }
 
         #[cfg(unix)]
         {

@@ -4,8 +4,8 @@
 
 use anyhow::{Context, Result, bail};
 use clap::{Args, Subcommand};
-use plasmidbin_types::arch::Arch;
 use plasmidbin_types::KNOWN_PRIMALS;
+use plasmidbin_types::arch::Arch;
 use std::path::PathBuf;
 
 #[derive(Args)]
@@ -78,8 +78,8 @@ pub fn run(args: DeployArgs) -> Result<()> {
 fn deploy_gate(args: GateArgs) -> Result<()> {
     let root = &args.root;
     let arch: Arch = match &args.arch {
-        Some(a) => a.parse().map_err(|e: String| anyhow::anyhow!(e))?,
-        None => Arch::detect().map_err(|e| anyhow::anyhow!(e))?,
+        Some(a) => a.parse()?,
+        None => Arch::detect()?,
     };
 
     println!("plasmidBin deploy gate");
@@ -89,24 +89,35 @@ fn deploy_gate(args: GateArgs) -> Result<()> {
     println!();
 
     // Create remote directory structure
-    ssh_run(&args.host, &format!("mkdir -p {}/primals/{}", args.remote_dir, arch.triple()))?;
+    ssh_run(
+        &args.host,
+        &format!("mkdir -p {}/primals/{}", args.remote_dir, arch.triple()),
+    )?;
 
     let source_dir = root.join("primals").join(arch.triple());
     let mut deployed = 0u32;
 
     for name in KNOWN_PRIMALS {
         if let Some(ref filter) = args.primal {
-            if name != filter { continue; }
+            if name != filter {
+                continue;
+            }
         }
 
         let src = source_dir.join(name);
-        if !src.exists() { continue; }
+        if !src.exists() {
+            continue;
+        }
 
         let remote_path = format!("{}/primals/{}/{name}", args.remote_dir, arch.triple());
         println!("  [{name}] deploying...");
 
         let status = std::process::Command::new("scp")
-            .args(["-q", &src.display().to_string(), &format!("{}:{}", args.host, remote_path)])
+            .args([
+                "-q",
+                &src.display().to_string(),
+                &format!("{}:{}", args.host, remote_path),
+            ])
             .status()
             .context("scp")?;
 
@@ -124,7 +135,11 @@ fn deploy_gate(args: GateArgs) -> Result<()> {
         let src = root.join(meta);
         if src.exists() {
             let _ = std::process::Command::new("scp")
-                .args(["-q", &src.display().to_string(), &format!("{}:{}/{}", args.host, args.remote_dir, meta)])
+                .args([
+                    "-q",
+                    &src.display().to_string(),
+                    &format!("{}:{}/{}", args.host, args.remote_dir, meta),
+                ])
                 .status();
         }
     }
@@ -159,10 +174,16 @@ fn deploy_pixel(args: PixelArgs) -> Result<()> {
     let mut deployed = 0u32;
     for name in KNOWN_PRIMALS {
         let src = source_dir.join(name);
-        if !src.exists() { continue; }
+        if !src.exists() {
+            continue;
+        }
 
         let mut push_cmd = adb.clone();
-        push_cmd.extend(["push".into(), src.display().to_string(), format!("{remote_dir}/{name}")]);
+        push_cmd.extend([
+            "push".into(),
+            src.display().to_string(),
+            format!("{remote_dir}/{name}"),
+        ]);
 
         let status = std::process::Command::new(&push_cmd[0])
             .args(&push_cmd[1..])
@@ -199,9 +220,7 @@ fn deploy_membrane(args: MembraneArgs) -> Result<()> {
 
     let entries: Vec<_> = std::fs::read_dir(&membrane_dir)?
         .flatten()
-        .filter(|e| {
-            e.path().extension().is_some_and(|ext| ext == "service")
-        })
+        .filter(|e| e.path().extension().is_some_and(|ext| ext == "service"))
         .collect();
 
     for entry in &entries {
@@ -211,7 +230,11 @@ fn deploy_membrane(args: MembraneArgs) -> Result<()> {
             .args([
                 "-q",
                 &entry.path().display().to_string(),
-                &format!("{}:/etc/systemd/system/{}", args.host, name.to_string_lossy()),
+                &format!(
+                    "{}:/etc/systemd/system/{}",
+                    args.host,
+                    name.to_string_lossy()
+                ),
             ])
             .status();
     }

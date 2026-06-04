@@ -32,7 +32,7 @@ impl Arch {
     }
 
     /// Detect architecture from the current host.
-    pub fn detect() -> Result<Self, String> {
+    pub fn detect() -> crate::error::Result<Self> {
         #[cfg(target_arch = "x86_64")]
         return Ok(Arch::X86_64);
         #[cfg(target_arch = "aarch64")]
@@ -40,7 +40,9 @@ impl Arch {
         #[cfg(target_arch = "arm")]
         return Ok(Arch::Armv7);
         #[cfg(not(any(target_arch = "x86_64", target_arch = "aarch64", target_arch = "arm")))]
-        return Err(format!("unsupported host architecture: {}", std::env::consts::ARCH));
+        return Err(crate::error::TypesError::UnsupportedArch {
+            arch: std::env::consts::ARCH.into(),
+        });
     }
 
     /// Cross-compilation linker for this target.
@@ -73,14 +75,14 @@ impl Arch {
 }
 
 impl FromStr for Arch {
-    type Err = String;
+    type Err = crate::error::TypesError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
             "x86_64" | "x86_64-unknown-linux-musl" => Ok(Arch::X86_64),
             "aarch64" | "aarch64-unknown-linux-musl" => Ok(Arch::Aarch64),
             "armv7" | "armv7-unknown-linux-musleabihf" | "armv7l" => Ok(Arch::Armv7),
-            _ => Err(format!("unsupported architecture: {s}")),
+            _ => Err(crate::error::TypesError::UnsupportedArch { arch: s.into() }),
         }
     }
 }
@@ -104,9 +106,18 @@ mod tests {
 
     #[test]
     fn parse_full_triple() {
-        assert_eq!("x86_64-unknown-linux-musl".parse::<Arch>().unwrap(), Arch::X86_64);
-        assert_eq!("aarch64-unknown-linux-musl".parse::<Arch>().unwrap(), Arch::Aarch64);
-        assert_eq!("armv7-unknown-linux-musleabihf".parse::<Arch>().unwrap(), Arch::Armv7);
+        assert_eq!(
+            "x86_64-unknown-linux-musl".parse::<Arch>().unwrap(),
+            Arch::X86_64
+        );
+        assert_eq!(
+            "aarch64-unknown-linux-musl".parse::<Arch>().unwrap(),
+            Arch::Aarch64
+        );
+        assert_eq!(
+            "armv7-unknown-linux-musleabihf".parse::<Arch>().unwrap(),
+            Arch::Armv7
+        );
     }
 
     #[test]

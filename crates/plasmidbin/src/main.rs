@@ -10,7 +10,11 @@ use clap::Parser;
 use std::process::ExitCode;
 
 #[derive(Parser)]
-#[command(name = "plasmidbin", version, about = "Sovereign binary distribution CLI")]
+#[command(
+    name = "plasmidbin",
+    version,
+    about = "Sovereign binary distribution CLI"
+)]
 struct Cli {
     #[command(subcommand)]
     command: cmd::Command,

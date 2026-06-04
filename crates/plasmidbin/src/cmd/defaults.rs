@@ -9,9 +9,12 @@
 //! Some functions are pre-wired for upcoming integration (stop, doctor, deploy
 //! evolution) and not yet called.
 
-#![allow(dead_code)]
+#![expect(
+    dead_code,
+    reason = "pre-wired for upcoming stop/doctor/deploy integration"
+)]
 
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 /// Default remote directory for primal binaries on gates/VPS.
 /// Override: `ECOPRIMALS_PLASMID_BIN`
@@ -29,8 +32,8 @@ pub const ANDROID_DEPLOY_DIR: &str = "/data/local/tmp/plasmidBin/primals";
 /// Resolved GitHub org/repo slug (e.g. `"ecoPrimals/plasmidBin"`).
 pub fn org_repo() -> String {
     let org = std::env::var("ECOPRIMALS_ORG").unwrap_or_else(|_| DEFAULT_ORG.to_owned());
-    let repo =
-        std::env::var("ECOPRIMALS_PLASMID_REPO").unwrap_or_else(|_| DEFAULT_PLASMID_REPO.to_owned());
+    let repo = std::env::var("ECOPRIMALS_PLASMID_REPO")
+        .unwrap_or_else(|_| DEFAULT_PLASMID_REPO.to_owned());
     format!("{org}/{repo}")
 }
 
@@ -80,16 +83,16 @@ pub fn log_path(name: &str) -> PathBuf {
 /// GitHub release download URL for a given tag and asset name.
 pub fn release_download_url(tag: &str, asset_name: &str) -> String {
     let org = std::env::var("ECOPRIMALS_ORG").unwrap_or_else(|_| DEFAULT_ORG.to_owned());
-    let repo =
-        std::env::var("ECOPRIMALS_PLASMID_REPO").unwrap_or_else(|_| DEFAULT_PLASMID_REPO.to_owned());
+    let repo = std::env::var("ECOPRIMALS_PLASMID_REPO")
+        .unwrap_or_else(|_| DEFAULT_PLASMID_REPO.to_owned());
     format!("https://github.com/{org}/{repo}/releases/download/{tag}/{asset_name}")
 }
 
 /// Git clone URL for plasmidBin.
 pub fn clone_url() -> String {
     let org = std::env::var("ECOPRIMALS_ORG").unwrap_or_else(|_| DEFAULT_ORG.to_owned());
-    let repo =
-        std::env::var("ECOPRIMALS_PLASMID_REPO").unwrap_or_else(|_| DEFAULT_PLASMID_REPO.to_owned());
+    let repo = std::env::var("ECOPRIMALS_PLASMID_REPO")
+        .unwrap_or_else(|_| DEFAULT_PLASMID_REPO.to_owned());
     format!("https://github.com/{org}/{repo}.git")
 }
 
@@ -100,6 +103,7 @@ pub fn runtime_socket_dirs(uid: u32) -> Vec<PathBuf> {
     vec![
         PathBuf::from(format!("/run/user/{uid}/biomeos")),
         PathBuf::from(format!("/run/user/{uid}/ecoprimals")),
+        PathBuf::from("/run/membrane"),
     ]
 }
 
@@ -141,6 +145,27 @@ fn days_to_date(days_since_epoch: u64) -> (u32, u32, u32) {
     let d = doy - (153 * mp + 2) / 5 + 1;
     let m = if mp < 10 { mp + 3 } else { mp - 9 };
     let y = if m <= 2 { y + 1 } else { y };
-    #[expect(clippy::cast_sign_loss, reason = "year is positive for all valid dates post-epoch")]
+    #[expect(
+        clippy::cast_sign_loss,
+        reason = "year is positive for all valid dates post-epoch"
+    )]
     (y as u32, m, d)
+}
+
+/// Human-readable byte size (e.g. `"3.2M"`, `"512K"`, `"64B"`).
+pub fn human_size(bytes: u64) -> String {
+    if bytes >= 1_048_576 {
+        format!("{:.1}M", bytes as f64 / 1_048_576.0)
+    } else if bytes >= 1024 {
+        format!("{:.0}K", bytes as f64 / 1024.0)
+    } else {
+        format!("{bytes}B")
+    }
+}
+
+/// BLAKE3 hash of a file, returned as lowercase hex.
+pub fn blake3_file(path: &Path) -> anyhow::Result<String> {
+    let data =
+        std::fs::read(path).map_err(|e| anyhow::anyhow!("reading {}: {e}", path.display()))?;
+    Ok(blake3::hash(&data).to_hex().to_string())
 }

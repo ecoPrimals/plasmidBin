@@ -69,7 +69,7 @@ pub fn run(args: SeedArgs) -> Result<()> {
 
 fn seed_generate(args: SeedGenerateArgs) -> Result<()> {
     let root = &args.root;
-    let arch = Arch::detect().map_err(|e| anyhow::anyhow!(e))?;
+    let arch = Arch::detect()?;
 
     let beardog = root.join("primals").join(arch.triple()).join("beardog");
     if !beardog.exists() {
@@ -79,7 +79,12 @@ fn seed_generate(args: SeedGenerateArgs) -> Result<()> {
         }
     }
 
-    let beardog_path = if root.join("primals").join(arch.triple()).join("beardog").exists() {
+    let beardog_path = if root
+        .join("primals")
+        .join(arch.triple())
+        .join("beardog")
+        .exists()
+    {
         root.join("primals").join(arch.triple()).join("beardog")
     } else {
         root.join("primals").join("beardog")
@@ -95,7 +100,12 @@ fn seed_generate(args: SeedGenerateArgs) -> Result<()> {
 
     // Generate keypair via beardog
     let status = std::process::Command::new(&beardog_path)
-        .args(["crypto", "generate-keypair", "--output", &format!("{}/{}.key", output_dir, args.family)])
+        .args([
+            "crypto",
+            "generate-keypair",
+            "--output",
+            &format!("{}/{}.key", output_dir, args.family),
+        ])
         .status()
         .context("beardog crypto generate-keypair")?;
 

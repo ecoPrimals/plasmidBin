@@ -54,8 +54,7 @@ struct HarvestEntry {
 }
 
 fn harvest_map(arch: Arch, root: &Path) -> Result<Vec<HarvestEntry>> {
-    let sources = SourcesFile::load(root)
-        .map_err(|e| anyhow::anyhow!("cannot load sources.toml: {e}"))?;
+    let sources = SourcesFile::load(root)?;
 
     let triple = arch.triple();
     let short = arch.short();
@@ -81,21 +80,26 @@ fn harvest_map(arch: Arch, root: &Path) -> Result<Vec<HarvestEntry>> {
 }
 
 fn is_static_elf(path: &Path) -> bool {
-    let Ok(bytes) = std::fs::read(path) else { return false };
-    if bytes.len() < 4 { return false; }
+    let Ok(bytes) = std::fs::read(path) else {
+        return false;
+    };
+    if bytes.len() < 4 {
+        return false;
+    }
     // ELF magic: 0x7f 'E' 'L' 'F'
-    if bytes[..4] != [0x7f, b'E', b'L', b'F'] { return false; }
+    if bytes[..4] != [0x7f, b'E', b'L', b'F'] {
+        return false;
+    }
     // Check ELF type field at offset 16 (ET_EXEC=2, ET_DYN=3)
     // For static musl binaries: ET_EXEC or static-pie ET_DYN without PT_INTERP
-    if bytes.len() < 18 { return false; }
+    if bytes.len() < 18 {
+        return false;
+    }
     // Also accept ET_DYN (static-pie), the checksum is what really matters
     true
 }
 
-fn blake3_file(path: &Path) -> Result<String> {
-    let data = std::fs::read(path).context("reading file for blake3")?;
-    Ok(blake3::hash(&data).to_hex().to_string())
-}
+use super::defaults::blake3_file;
 
 fn strip_binary(arch: Arch, src: &Path, dest: &Path) -> Result<()> {
     let strip_bin = arch.strip_binary();
@@ -117,8 +121,8 @@ fn strip_binary(arch: Arch, src: &Path, dest: &Path) -> Result<()> {
 
 pub fn run(args: HarvestArgs) -> Result<()> {
     let arch: Arch = match &args.arch {
-        Some(a) => a.parse().map_err(|e: String| anyhow::anyhow!(e))?,
-        None => Arch::detect().map_err(|e| anyhow::anyhow!(e))?,
+        Some(a) => a.parse()?,
+        None => Arch::detect()?,
     };
 
     let source_dir = args.source.unwrap_or_else(|| {
@@ -143,8 +147,7 @@ pub fn run(args: HarvestArgs) -> Result<()> {
         bail!("source directory not found: {}", source_dir.display());
     }
 
-    std::fs::create_dir_all(&primals_dir)
-        .context("creating primals directory")?;
+    std::fs::create_dir_all(&primals_dir).context("creating primals directory")?;
 
     let mut checksums = ChecksumsFile::load(root).unwrap_or_else(|_| ChecksumsFile {
         primals: Default::default(),
@@ -214,9 +217,11 @@ pub fn run(args: HarvestArgs) -> Result<()> {
             continue;
         }
 
-        std::fs::rename(&tmp, &dest).or_else(|_| -> Result<()> {
-            std::fs::copy(&tmp, &dest).map(|_| ()).map_err(Into::into)
-        }).context("staging binary")?;
+        std::fs::rename(&tmp, &dest)
+            .or_else(|_| -> Result<()> {
+                std::fs::copy(&tmp, &dest).map(|_| ()).map_err(Into::into)
+            })
+            .context("staging binary")?;
         let _ = std::fs::remove_file(&tmp);
 
         checksums.set_hash(&entry.source_id, arch.triple(), &hash);
@@ -229,9 +234,12 @@ pub fn run(args: HarvestArgs) -> Result<()> {
     }
 
     if !args.dry_run {
-        checksums.save(root).map_err(|e| anyhow::anyhow!(e))?;
+        checksums.save(root)?;
         println!();
-        println!("checksums.toml updated ({} primals)", checksums.primals.len());
+        println!(
+            "checksums.toml updated ({} primals)",
+            checksums.primals.len()
+        );
 
         // Write provenance.toml for every harvested binary that has a sidecar
         let mut provenance = ProvenanceFile::load(root).unwrap_or_default();
@@ -268,7 +276,10 @@ pub fn run(args: HarvestArgs) -> Result<()> {
         for (source_id, entry, bin_size) in &mut braid_entries {
             match try_braid_create(source_id, entry, *bin_size) {
                 BraidResult::Created(braid_id) => {
-                    println!("  braid: {source_id} -> {}", &braid_id[..braid_id.len().min(40)]);
+                    println!(
+                        "  braid: {source_id} -> {}",
+                        &braid_id[..braid_id.len().min(40)]
+                    );
                     entry.braid_id = Some(braid_id.clone());
                     provenance.set_entry(source_id, arch.triple(), entry.clone());
                 }
@@ -280,7 +291,7 @@ pub fn run(args: HarvestArgs) -> Result<()> {
         }
 
         if prov_count > 0 {
-            provenance.save(root).map_err(|e| anyhow::anyhow!(e))?;
+            provenance.save(root)?;
             println!("provenance.toml updated ({prov_count} entries from build sidecars)");
         }
 
@@ -313,20 +324,38 @@ fn upload_to_release(tag: &str, assets: &[PathBuf]) -> Result<()> {
     println!("Publishing to GitHub Release: {tag}");
 
     let check = std::process::Command::new("gh")
-        .args(["release", "view", tag, "--repo", &super::defaults::org_repo()])
+        .args([
+            "release",
+            "view",
+            tag,
+            "--repo",
+            &super::defaults::org_repo(),
+        ])
         .output();
 
     let exists = matches!(check, Ok(ref o) if o.status.success());
 
     let mut cmd = std::process::Command::new("gh");
     if exists {
-        cmd.args(["release", "upload", tag, "--repo", &super::defaults::org_repo(), "--clobber"]);
+        cmd.args([
+            "release",
+            "upload",
+            tag,
+            "--repo",
+            &super::defaults::org_repo(),
+            "--clobber",
+        ]);
     } else {
         cmd.args([
-            "release", "create", tag,
-            "--repo", &super::defaults::org_repo(),
-            "--title", &format!("plasmidBin {tag}"),
-            "--notes", &format!("Automated harvest — {tag}"),
+            "release",
+            "create",
+            tag,
+            "--repo",
+            &super::defaults::org_repo(),
+            "--title",
+            &format!("plasmidBin {tag}"),
+            "--notes",
+            &format!("Automated harvest — {tag}"),
         ]);
     }
     for asset in assets {
@@ -349,20 +378,14 @@ fn tempfile_path() -> PathBuf {
     std::env::temp_dir().join(format!("plasmidbin-harvest-{id}"))
 }
 
-fn human_size(bytes: u64) -> String {
-    if bytes >= 1_048_576 {
-        format!("{:.1}M", bytes as f64 / 1_048_576.0)
-    } else if bytes >= 1024 {
-        format!("{:.0}K", bytes as f64 / 1024.0)
-    } else {
-        format!("{bytes}B")
-    }
-}
+use super::defaults::human_size;
 
 fn update_manifest_latest(root: &Path, primal_id: &str, tag: &str) {
     let version = tag.strip_prefix('v').unwrap_or(tag);
     let manifest_path = root.join("manifest.toml");
-    let Ok(content) = std::fs::read_to_string(&manifest_path) else { return };
+    let Ok(content) = std::fs::read_to_string(&manifest_path) else {
+        return;
+    };
 
     let section_header = format!("[primals.{primal_id}]");
     let Some(section_start) = content.find(&section_header) else {
@@ -403,22 +426,12 @@ enum BraidResult {
 }
 
 fn sweetgrass_socket() -> Option<PathBuf> {
-    // Try env override first, then XDG standard path
-    if let Ok(p) = std::env::var("SWEETGRASS_SOCKET") {
-        let path = PathBuf::from(p);
-        if path.exists() { return Some(path); }
-    }
     let uid = super::current_uid();
-    let xdg = PathBuf::from(format!("/run/user/{uid}/ecoprimals/sweetgrass.sock"));
-    if xdg.exists() { return Some(xdg); }
-    None
+    let path = super::defaults::sweetgrass_socket(uid);
+    if path.exists() { Some(path) } else { None }
 }
 
-fn try_braid_create(
-    source_id: &str,
-    entry: &ProvenanceEntry,
-    bin_size: u64,
-) -> BraidResult {
+fn try_braid_create(source_id: &str, entry: &ProvenanceEntry, bin_size: u64) -> BraidResult {
     let braid_name = format!(
         "harvest:{source_id}:{}:{}",
         entry.target,
@@ -454,12 +467,14 @@ fn try_braid_create(
 
     match send_uds_jsonrpc(&socket, &braid_request) {
         Ok(response) => {
-            if let Some(id) = response.get("result")
+            if let Some(id) = response
+                .get("result")
                 .and_then(|r| r.get("braid_id"))
                 .and_then(|v| v.as_str())
             {
                 BraidResult::Created(id.to_string())
-            } else if let Some(id) = response.get("result")
+            } else if let Some(id) = response
+                .get("result")
                 .and_then(|r| r.get("id"))
                 .and_then(|v| v.as_str())
             {
@@ -489,8 +504,7 @@ fn send_uds_jsonrpc(socket: &Path, request: &serde_json::Value) -> Result<serde_
     use std::os::unix::net::UnixStream;
     use std::time::Duration;
 
-    let mut stream = UnixStream::connect(socket)
-        .context("connecting to sweetGrass UDS")?;
+    let mut stream = UnixStream::connect(socket).context("connecting to sweetGrass UDS")?;
     stream.set_read_timeout(Some(Duration::from_secs(5)))?;
     stream.set_write_timeout(Some(Duration::from_secs(5)))?;
 
@@ -505,7 +519,9 @@ fn send_uds_jsonrpc(socket: &Path, request: &serde_json::Value) -> Result<serde_
             Ok(0) => break,
             Ok(n) => {
                 buf.extend_from_slice(&tmp[..n]);
-                if buf.contains(&b'\n') { break; }
+                if buf.contains(&b'\n') {
+                    break;
+                }
             }
             Err(e) if e.kind() == std::io::ErrorKind::WouldBlock => break,
             Err(e) if e.kind() == std::io::ErrorKind::TimedOut => break,

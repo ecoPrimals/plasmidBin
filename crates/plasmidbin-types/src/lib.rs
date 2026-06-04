@@ -11,6 +11,7 @@
 
 pub mod arch;
 pub mod checksums;
+pub mod error;
 pub mod manifest;
 pub mod ports;
 pub mod provenance;
@@ -38,7 +39,9 @@ pub const KNOWN_PRIMALS: &[&str] = &[
 ];
 
 pub fn is_valid_blake3_hex(s: &str) -> bool {
-    s.len() == 64 && s.bytes().all(|b| b.is_ascii_hexdigit() && !b.is_ascii_uppercase())
+    s.len() == 64
+        && s.bytes()
+            .all(|b| b.is_ascii_hexdigit() && !b.is_ascii_uppercase())
 }
 
 #[cfg(test)]

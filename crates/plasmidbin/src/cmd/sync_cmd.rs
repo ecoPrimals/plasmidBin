@@ -21,7 +21,7 @@ pub struct SyncArgs {
 
 pub fn run(args: SyncArgs) -> Result<()> {
     let root = &args.root;
-    let arch = Arch::detect().map_err(|e| anyhow::anyhow!(e))?;
+    let arch = Arch::detect()?;
 
     println!("plasmidBin sync\n");
 
@@ -39,7 +39,7 @@ pub fn run(args: SyncArgs) -> Result<()> {
     }
 
     println!("=== Checksum verification ===");
-    let checksums = ChecksumsFile::load(root).map_err(|e| anyhow::anyhow!(e))?;
+    let checksums = ChecksumsFile::load(root)?;
     let primals_dir = root.join("primals").join(arch.triple());
 
     let mut current = 0u32;
@@ -61,7 +61,11 @@ pub fn run(args: SyncArgs) -> Result<()> {
             }
         }
 
-        let path = if bin_path.exists() { &bin_path } else { &root.join("primals").join(name) };
+        let path = if bin_path.exists() {
+            &bin_path
+        } else {
+            &root.join("primals").join(name)
+        };
         let data = std::fs::read(path)?;
         let actual = blake3::hash(&data).to_hex().to_string();
 

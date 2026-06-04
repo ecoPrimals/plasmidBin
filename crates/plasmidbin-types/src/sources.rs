@@ -27,12 +27,17 @@ pub struct SourceEntry {
 }
 
 impl SourcesFile {
-    pub fn load(root: &Path) -> Result<Self, String> {
+    pub fn load(root: &Path) -> crate::error::Result<Self> {
         let path = root.join("sources.toml");
-        let content = std::fs::read_to_string(&path)
-            .map_err(|e| format!("cannot read {}: {e}", path.display()))?;
-        toml::from_str(&content)
-            .map_err(|e| format!("sources.toml schema error: {e}"))
+        let content =
+            std::fs::read_to_string(&path).map_err(|e| crate::error::TypesError::ReadFile {
+                path: path.clone(),
+                source: e,
+            })?;
+        toml::from_str(&content).map_err(|e| crate::error::TypesError::TomlParse {
+            file: "sources.toml",
+            source: e,
+        })
     }
 }
 
@@ -132,6 +137,9 @@ tag_pattern = "v{version}"
 binary_name = "primalspring_primal"
 "#;
         let s: SourcesFile = toml::from_str(toml_str).unwrap();
-        assert_eq!(s.sources["primalspring"].binary_name("primalspring"), "primalspring_primal");
+        assert_eq!(
+            s.sources["primalspring"].binary_name("primalspring"),
+            "primalspring_primal"
+        );
     }
 }

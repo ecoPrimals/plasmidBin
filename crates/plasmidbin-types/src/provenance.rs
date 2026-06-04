@@ -39,18 +39,23 @@ pub struct ProvenanceFile {
 }
 
 impl ProvenanceFile {
-    pub fn load(root: &Path) -> Result<Self, String> {
+    pub fn load(root: &Path) -> crate::error::Result<Self> {
         let path = root.join("provenance.toml");
         if !path.exists() {
             return Ok(Self::default());
         }
-        let content = std::fs::read_to_string(&path)
-            .map_err(|e| format!("cannot read {}: {e}", path.display()))?;
-        toml::from_str(&content)
-            .map_err(|e| format!("provenance.toml schema error: {e}"))
+        let content =
+            std::fs::read_to_string(&path).map_err(|e| crate::error::TypesError::ReadFile {
+                path: path.clone(),
+                source: e,
+            })?;
+        toml::from_str(&content).map_err(|e| crate::error::TypesError::TomlParse {
+            file: "provenance.toml",
+            source: e,
+        })
     }
 
-    pub fn save(&self, root: &Path) -> Result<(), String> {
+    pub fn save(&self, root: &Path) -> crate::error::Result<()> {
         let path = root.join("provenance.toml");
         let mut output = String::from(
             "# plasmidBin provenance — composite fingerprints\n\
@@ -67,18 +72,24 @@ impl ProvenanceFile {
                 output.push_str(&format!("content_hash = \"{}\"\n", entry.content_hash));
                 output.push_str(&format!("source_commit = \"{}\"\n", entry.source_commit));
                 output.push_str(&format!("source_repo = \"{}\"\n", entry.source_repo));
-                output.push_str(&format!("build_timestamp = \"{}\"\n", entry.build_timestamp));
+                output.push_str(&format!(
+                    "build_timestamp = \"{}\"\n",
+                    entry.build_timestamp
+                ));
                 output.push_str(&format!("rustc_version = \"{}\"\n", entry.rustc_version));
                 output.push_str(&format!("target = \"{}\"\n", entry.target));
-                output.push_str(&format!("provenance_hash = \"{}\"\n", entry.provenance_hash));
+                output.push_str(&format!(
+                    "provenance_hash = \"{}\"\n",
+                    entry.provenance_hash
+                ));
                 if let Some(ref braid) = entry.braid_id {
                     output.push_str(&format!("braid_id = \"{braid}\"\n"));
                 }
                 output.push('\n');
             }
         }
-        std::fs::write(&path, output)
-            .map_err(|e| format!("cannot write {}: {e}", path.display()))
+        std::fs::write(&path, &output)
+            .map_err(|e| crate::error::TypesError::WriteFile { path, source: e })
     }
 
     pub fn set_entry(&mut self, primal: &str, triple: &str, entry: ProvenanceEntry) {
@@ -126,10 +137,9 @@ impl BuildSidecar {
 
     pub fn write_next_to(binary_path: &Path, sidecar: &Self) -> Result<(), String> {
         let path = Self::sidecar_path(binary_path);
-        let json = serde_json::to_string_pretty(sidecar)
-            .map_err(|e| format!("serialize sidecar: {e}"))?;
-        std::fs::write(&path, json)
-            .map_err(|e| format!("cannot write {}: {e}", path.display()))
+        let json =
+            serde_json::to_string_pretty(sidecar).map_err(|e| format!("serialize sidecar: {e}"))?;
+        std::fs::write(&path, json).map_err(|e| format!("cannot write {}: {e}", path.display()))
     }
 
     pub fn read_next_to(binary_path: &Path) -> Option<Self> {
@@ -218,8 +228,20 @@ mod tests {
 
     #[test]
     fn provenance_hash_changes_with_commit() {
-        let h1 = compute_provenance_hash("aaa", "commit_a", "2026-05-27T10:00:00Z", "1.87.0", "x86_64");
-        let h2 = compute_provenance_hash("aaa", "commit_b", "2026-05-27T10:00:00Z", "1.87.0", "x86_64");
+        let h1 = compute_provenance_hash(
+            "aaa",
+            "commit_a",
+            "2026-05-27T10:00:00Z",
+            "1.87.0",
+            "x86_64",
+        );
+        let h2 = compute_provenance_hash(
+            "aaa",
+            "commit_b",
+            "2026-05-27T10:00:00Z",
+            "1.87.0",
+            "x86_64",
+        );
         assert_ne!(h1, h2);
     }
 
@@ -233,21 +255,27 @@ mod tests {
     #[test]
     fn round_trip_toml() {
         let mut prov = ProvenanceFile::default();
-        prov.set_entry("beardog", "x86_64-unknown-linux-musl", ProvenanceEntry {
-            content_hash: "a".repeat(64),
-            source_commit: "abc123".into(),
-            source_repo: "ecoPrimals/bearDog".into(),
-            build_timestamp: "2026-05-27T10:00:00Z".into(),
-            rustc_version: "1.87.0".into(),
-            target: "x86_64-unknown-linux-musl".into(),
-            provenance_hash: "b".repeat(64),
-            braid_id: None,
-        });
+        prov.set_entry(
+            "beardog",
+            "x86_64-unknown-linux-musl",
+            ProvenanceEntry {
+                content_hash: "a".repeat(64),
+                source_commit: "abc123".into(),
+                source_repo: "ecoPrimals/bearDog".into(),
+                build_timestamp: "2026-05-27T10:00:00Z".into(),
+                rustc_version: "1.87.0".into(),
+                target: "x86_64-unknown-linux-musl".into(),
+                provenance_hash: "b".repeat(64),
+                braid_id: None,
+            },
+        );
         let dir = std::env::temp_dir().join("plasmidbin-prov-test");
         let _ = std::fs::create_dir_all(&dir);
         prov.save(&dir).unwrap();
         let loaded = ProvenanceFile::load(&dir).unwrap();
-        let entry = loaded.get_entry("beardog", "x86_64-unknown-linux-musl").unwrap();
+        let entry = loaded
+            .get_entry("beardog", "x86_64-unknown-linux-musl")
+            .unwrap();
         assert_eq!(entry.source_commit, "abc123");
         let _ = std::fs::remove_dir_all(&dir);
     }

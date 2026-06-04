@@ -25,8 +25,8 @@ pub struct UpdateArgs {
 
 pub fn run(args: UpdateArgs) -> Result<()> {
     let root = &args.root;
-    let arch = Arch::detect().map_err(|e| anyhow::anyhow!(e))?;
-    let sources = SourcesFile::load(root).map_err(|e| anyhow::anyhow!(e))?;
+    let arch = Arch::detect()?;
+    let sources = SourcesFile::load(root)?;
 
     println!("plasmidBin update");
     println!("Arch: {}", arch.triple());
@@ -37,7 +37,9 @@ pub fn run(args: UpdateArgs) -> Result<()> {
 
     for (id, entry) in &sources.sources {
         if let Some(ref filter) = args.primal {
-            if id != filter { continue; }
+            if id != filter {
+                continue;
+            }
         }
 
         print!("  [{id}] ");
@@ -76,7 +78,10 @@ pub fn run(args: UpdateArgs) -> Result<()> {
                             #[cfg(unix)]
                             {
                                 use std::os::unix::fs::PermissionsExt;
-                                let _ = std::fs::set_permissions(&dest, std::fs::Permissions::from_mode(0o755));
+                                let _ = std::fs::set_permissions(
+                                    &dest,
+                                    std::fs::Permissions::from_mode(0o755),
+                                );
                             }
                             println!("    Downloaded from {tag}");
                             updates += 1;
@@ -103,7 +108,9 @@ pub fn run(args: UpdateArgs) -> Result<()> {
 
 fn get_latest_release(repo: &str) -> Option<String> {
     let output = std::process::Command::new("gh")
-        .args(["release", "view", "--repo", repo, "--json", "tagName", "-q", ".tagName"])
+        .args([
+            "release", "view", "--repo", repo, "--json", "tagName", "-q", ".tagName",
+        ])
         .output()
         .ok()?;
     if output.status.success() {

@@ -50,17 +50,15 @@ struct CellPrimal {
 
 pub fn run(args: CellArgs) -> Result<()> {
     let root = &args.root;
-    let arch = Arch::detect().map_err(|e| anyhow::anyhow!(e))?;
+    let arch = Arch::detect()?;
 
     let cell_file = root.join("cells").join(format!("{}_cell.toml", args.cell));
     if !cell_file.exists() {
         bail!("cell graph not found: {}", cell_file.display());
     }
 
-    let content = std::fs::read_to_string(&cell_file)
-        .context("reading cell graph")?;
-    let graph: CellGraph = toml::from_str(&content)
-        .context("parsing cell graph")?;
+    let content = std::fs::read_to_string(&cell_file).context("reading cell graph")?;
+    let graph: CellGraph = toml::from_str(&content).context("parsing cell graph")?;
 
     println!("plasmidBin cell — {}", graph.cell.name);
     println!("Spring: {}", graph.cell.spring);
@@ -121,9 +119,13 @@ pub fn run(args: CellArgs) -> Result<()> {
 
 fn resolve_binary(root: &std::path::Path, name: &str, arch: Arch) -> Option<PathBuf> {
     let triple_path = root.join("primals").join(arch.triple()).join(name);
-    if triple_path.exists() { return Some(triple_path); }
+    if triple_path.exists() {
+        return Some(triple_path);
+    }
     let flat_path = root.join("primals").join(name);
-    if flat_path.exists() { return Some(flat_path); }
+    if flat_path.exists() {
+        return Some(flat_path);
+    }
     None
 }
 

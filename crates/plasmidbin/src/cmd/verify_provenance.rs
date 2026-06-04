@@ -36,8 +36,7 @@ pub struct VerifyProvenanceArgs {
 pub fn run(args: VerifyProvenanceArgs) -> Result<()> {
     let root = &args.root;
 
-    let provenance = ProvenanceFile::load(root)
-        .map_err(|e| anyhow::anyhow!(e))?;
+    let provenance = ProvenanceFile::load(root)?;
 
     if provenance.primals.is_empty() {
         println!("provenance.toml is empty or not present — nothing to verify");
@@ -55,7 +54,9 @@ pub fn run(args: VerifyProvenanceArgs) -> Result<()> {
 
     for (primal_id, arches) in &provenance.primals {
         if let Some(ref filter) = args.primal {
-            if primal_id != filter { continue; }
+            if primal_id != filter {
+                continue;
+            }
         }
 
         for (triple, entry) in arches {
@@ -96,7 +97,9 @@ pub fn run(args: VerifyProvenanceArgs) -> Result<()> {
                         failed += 1;
                     }
                 } else {
-                    println!("  [{label}] WARN  no checksums.toml entry (not yet harvested for this triple?)");
+                    println!(
+                        "  [{label}] WARN  no checksums.toml entry (not yet harvested for this triple?)"
+                    );
                     warnings += 1;
                 }
             }
@@ -105,11 +108,18 @@ pub fn run(args: VerifyProvenanceArgs) -> Result<()> {
             if args.check_commits && !entry.source_repo.is_empty() {
                 match verify_commit_exists(&entry.source_repo, &entry.source_commit) {
                     CommitCheck::Exists => {
-                        println!("  [{label}] PASS  source_commit exists in {}", entry.source_repo);
+                        println!(
+                            "  [{label}] PASS  source_commit exists in {}",
+                            entry.source_repo
+                        );
                         passed += 1;
                     }
                     CommitCheck::NotFound => {
-                        println!("  [{label}] FAIL  source_commit {} not found in {}", &entry.source_commit[..12.min(entry.source_commit.len())], entry.source_repo);
+                        println!(
+                            "  [{label}] FAIL  source_commit {} not found in {}",
+                            &entry.source_commit[..12.min(entry.source_commit.len())],
+                            entry.source_repo
+                        );
                         failed += 1;
                     }
                     CommitCheck::Unavailable => {
@@ -124,7 +134,10 @@ pub fn run(args: VerifyProvenanceArgs) -> Result<()> {
                 if let Some(ref braid_id) = entry.braid_id {
                     match verify_braid(braid_id) {
                         BraidCheck::Valid => {
-                            println!("  [{label}] PASS  braid_id resolves: {}", &braid_id[..braid_id.len().min(40)]);
+                            println!(
+                                "  [{label}] PASS  braid_id resolves: {}",
+                                &braid_id[..braid_id.len().min(40)]
+                            );
                             passed += 1;
                         }
                         BraidCheck::NotFound => {
@@ -132,12 +145,16 @@ pub fn run(args: VerifyProvenanceArgs) -> Result<()> {
                             failed += 1;
                         }
                         BraidCheck::Unavailable => {
-                            println!("  [{label}] WARN  sweetGrass unavailable, cannot verify braid");
+                            println!(
+                                "  [{label}] WARN  sweetGrass unavailable, cannot verify braid"
+                            );
                             warnings += 1;
                         }
                     }
                 } else {
-                    println!("  [{label}] WARN  no braid_id recorded (sweetGrass was offline during harvest?)");
+                    println!(
+                        "  [{label}] WARN  no braid_id recorded (sweetGrass was offline during harvest?)"
+                    );
                     warnings += 1;
                 }
             }
@@ -161,7 +178,12 @@ enum CommitCheck {
 
 fn verify_commit_exists(repo: &str, commit: &str) -> CommitCheck {
     let output = std::process::Command::new("gh")
-        .args(["api", &format!("repos/{repo}/commits/{commit}"), "--jq", ".sha"])
+        .args([
+            "api",
+            &format!("repos/{repo}/commits/{commit}"),
+            "--jq",
+            ".sha",
+        ])
         .output();
 
     match output {
@@ -186,12 +208,11 @@ enum BraidCheck {
 
 fn verify_braid(braid_id: &str) -> BraidCheck {
     let uid = super::current_uid();
-    let socket_paths = [
-        std::env::var("SWEETGRASS_SOCKET").unwrap_or_default(),
-        format!("/run/user/{uid}/ecoprimals/sweetgrass.sock"),
-    ];
+    let canonical = super::defaults::sweetgrass_socket(uid);
+    let socket_paths = [canonical.to_string_lossy().into_owned()];
 
-    let socket = socket_paths.iter()
+    let socket = socket_paths
+        .iter()
         .map(std::path::PathBuf::from)
         .find(|p| p.exists());
 
@@ -235,7 +256,9 @@ fn verify_braid(braid_id: &str) -> BraidCheck {
             Ok(0) => break,
             Ok(n) => {
                 buf.extend_from_slice(&tmp[..n]);
-                if buf.contains(&b'\n') { break; }
+                if buf.contains(&b'\n') {
+                    break;
+                }
             }
             Err(_) => break,
         }

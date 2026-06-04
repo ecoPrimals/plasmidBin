@@ -26,10 +26,10 @@ pub struct PortsReport {
 }
 
 /// Load ports.env and return the port map (primal_name → port).
-pub fn load_port_map(root: &Path) -> Result<BTreeMap<String, u16>, String> {
+pub fn load_port_map(root: &Path) -> crate::error::Result<BTreeMap<String, u16>> {
     let path = root.join("ports.env");
     let content = std::fs::read_to_string(&path)
-        .map_err(|e| format!("cannot read {}: {e}", path.display()))?;
+        .map_err(|e| crate::error::TypesError::ReadFile { path, source: e })?;
     let mut map = BTreeMap::new();
     for line in content.lines() {
         if let Some(pa) = parse_port_assignment(line.trim()) {
@@ -41,10 +41,10 @@ pub fn load_port_map(root: &Path) -> Result<BTreeMap<String, u16>, String> {
 }
 
 /// Load compositions from ports.env.
-pub fn load_compositions(root: &Path) -> Result<BTreeMap<String, Vec<String>>, String> {
+pub fn load_compositions(root: &Path) -> crate::error::Result<BTreeMap<String, Vec<String>>> {
     let path = root.join("ports.env");
     let content = std::fs::read_to_string(&path)
-        .map_err(|e| format!("cannot read {}: {e}", path.display()))?;
+        .map_err(|e| crate::error::TypesError::ReadFile { path, source: e })?;
     let mut comps = BTreeMap::new();
     for line in content.lines() {
         if let Some(comp) = parse_composition(line.trim()) {
@@ -65,7 +65,12 @@ pub fn validate(root: &Path) -> PortsReport {
         Ok(c) => c,
         Err(e) => {
             report.fail(&format!("cannot read {}: {e}", path.display()));
-            return PortsReport { report, port_count: 0, port_map, compositions };
+            return PortsReport {
+                report,
+                port_count: 0,
+                port_map,
+                compositions,
+            };
         }
     };
 
@@ -84,9 +89,15 @@ pub fn validate(root: &Path) -> PortsReport {
     let mut ports_by_number: HashMap<u16, Vec<&str>> = HashMap::new();
     for pa in &assignments {
         if pa.port < 1024 {
-            report.fail(&format!("{} = {} (privileged port, requires root)", pa.var_name, pa.port));
+            report.fail(&format!(
+                "{} = {} (privileged port, requires root)",
+                pa.var_name, pa.port
+            ));
         }
-        ports_by_number.entry(pa.port).or_default().push(&pa.var_name);
+        ports_by_number
+            .entry(pa.port)
+            .or_default()
+            .push(&pa.var_name);
         let primal_name = var_to_primal(&pa.var_name);
         port_map.insert(primal_name, pa.port);
     }
@@ -99,26 +110,38 @@ pub fn validate(root: &Path) -> PortsReport {
 
     let unique_ports: BTreeSet<u16> = assignments.iter().map(|a| a.port).collect();
     if unique_ports.len() == assignments.len() && !assignments.is_empty() {
-        report.pass(&format!("{} port assignments, no conflicts", assignments.len()));
+        report.pass(&format!(
+            "{} port assignments, no conflicts",
+            assignments.len()
+        ));
     }
 
     if assignments.is_empty() {
         report.fail("no port assignments found in ports.env");
     }
 
-    let assigned_primals: BTreeSet<String> =
-        assignments.iter().map(|a| var_to_primal(&a.var_name)).collect();
+    let assigned_primals: BTreeSet<String> = assignments
+        .iter()
+        .map(|a| var_to_primal(&a.var_name))
+        .collect();
     for (name, primals) in &compositions {
         for p in primals {
             if !assigned_primals.contains(p) && !p.starts_with('$') {
-                report.fail(&format!("{name}: references '{p}' which has no port assignment"));
+                report.fail(&format!(
+                    "{name}: references '{p}' which has no port assignment"
+                ));
             }
         }
         report.pass(&format!("{name}: {} primals", primals.len()));
     }
 
     let port_count = assignments.len();
-    PortsReport { report, port_count, port_map, compositions }
+    PortsReport {
+        report,
+        port_count,
+        port_map,
+        compositions,
+    }
 }
 
 pub fn parse_port_assignment(line: &str) -> Option<PortAssignment> {
@@ -134,7 +157,10 @@ pub fn parse_port_assignment(line: &str) -> Option<PortAssignment> {
         .next()?
         .trim_end_matches(['"', '}']);
     let port: u16 = port_str.parse().ok()?;
-    Some(PortAssignment { var_name: var.to_owned(), port })
+    Some(PortAssignment {
+        var_name: var.to_owned(),
+        port,
+    })
 }
 
 pub fn parse_composition(line: &str) -> Option<CompositionDef> {
@@ -151,7 +177,10 @@ pub fn parse_composition(line: &str) -> Option<CompositionDef> {
     if primals.is_empty() {
         return None;
     }
-    Some(CompositionDef { name: var.to_owned(), primals })
+    Some(CompositionDef {
+        name: var.to_owned(),
+        primals,
+    })
 }
 
 pub fn var_to_primal(var: &str) -> String {

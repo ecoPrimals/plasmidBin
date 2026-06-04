@@ -34,24 +34,30 @@ pub struct BuildArgs {
 pub fn run(args: BuildArgs) -> Result<()> {
     let root = &args.root;
     let arch: Arch = match &args.target {
-        Some(t) => t.parse().map_err(|e: String| anyhow::anyhow!(e))?,
-        None => Arch::detect().map_err(|e| anyhow::anyhow!(e))?,
+        Some(t) => t.parse()?,
+        None => Arch::detect()?,
     };
 
-    let sources = SourcesFile::load(root).map_err(|e| anyhow::anyhow!(e))?;
+    let sources = SourcesFile::load(root)?;
     let build_dir = super::defaults::build_dir();
     let deploy_dir = super::defaults::deploy_dir(arch.triple());
 
     std::fs::create_dir_all(&build_dir)?;
     std::fs::create_dir_all(&deploy_dir)?;
 
-    let primals_to_build: Vec<(String, &plasmidbin_types::sources::SourceEntry)> = if args.primal == "all" {
-        sources.sources.iter().map(|(k, v)| (k.clone(), v)).collect()
-    } else {
-        let entry = sources.sources.get(&args.primal)
-            .ok_or_else(|| anyhow::anyhow!("primal '{}' not found in sources.toml", args.primal))?;
-        vec![(args.primal.clone(), entry)]
-    };
+    let primals_to_build: Vec<(String, &plasmidbin_types::sources::SourceEntry)> =
+        if args.primal == "all" {
+            sources
+                .sources
+                .iter()
+                .map(|(k, v)| (k.clone(), v))
+                .collect()
+        } else {
+            let entry = sources.sources.get(&args.primal).ok_or_else(|| {
+                anyhow::anyhow!("primal '{}' not found in sources.toml", args.primal)
+            })?;
+            vec![(args.primal.clone(), entry)]
+        };
 
     println!("plasmidBin build");
     println!("Target: {}", arch.triple());
@@ -82,7 +88,13 @@ pub fn run(args: BuildArgs) -> Result<()> {
 
         if !clone_dir.exists() {
             let status = std::process::Command::new("git")
-                .args(["clone", "--depth", "1", &repo_url, &clone_dir.display().to_string()])
+                .args([
+                    "clone",
+                    "--depth",
+                    "1",
+                    &repo_url,
+                    &clone_dir.display().to_string(),
+                ])
                 .status()
                 .context("git clone")?;
             if !status.success() {
@@ -137,7 +149,10 @@ pub fn run(args: BuildArgs) -> Result<()> {
         cargo.current_dir(&clone_dir);
 
         if let Some(linker) = arch.linker() {
-            let env_key = format!("CARGO_TARGET_{}_LINKER", arch.triple().to_uppercase().replace('-', "_"));
+            let env_key = format!(
+                "CARGO_TARGET_{}_LINKER",
+                arch.triple().to_uppercase().replace('-', "_")
+            );
             cargo.env(env_key, linker);
         }
 
@@ -150,7 +165,11 @@ pub fn run(args: BuildArgs) -> Result<()> {
 
         // Stage binary (plain name — triple is encoded in the directory)
         let bin_name = entry.binary_name(id);
-        let built_bin = clone_dir.join("target").join(arch.triple()).join("release").join(&bin_name);
+        let built_bin = clone_dir
+            .join("target")
+            .join(arch.triple())
+            .join("release")
+            .join(&bin_name);
         if built_bin.exists() {
             let staged_path = deploy_dir.join(&bin_name);
             std::fs::copy(&built_bin, &staged_path)?;
@@ -183,7 +202,17 @@ pub fn run(args: BuildArgs) -> Result<()> {
     if args.harvest && built > 0 {
         println!("\n=== Running harvest ===");
         let status = std::process::Command::new("cargo")
-            .args(["run", "-p", "plasmidbin", "--", "harvest", "--arch", arch.triple(), "--source", &deploy_dir.display().to_string()])
+            .args([
+                "run",
+                "-p",
+                "plasmidbin",
+                "--",
+                "harvest",
+                "--arch",
+                arch.triple(),
+                "--source",
+                &deploy_dir.display().to_string(),
+            ])
             .current_dir(root)
             .status()
             .context("harvest")?;
@@ -192,7 +221,9 @@ pub fn run(args: BuildArgs) -> Result<()> {
         }
     }
 
-    if failed > 0 { bail!("{failed} builds failed"); }
+    if failed > 0 {
+        bail!("{failed} builds failed");
+    }
     Ok(())
 }
 

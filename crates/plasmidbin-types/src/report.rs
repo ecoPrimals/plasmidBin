@@ -37,7 +37,10 @@ mod tests {
 
     #[test]
     fn report_display() {
-        let r = Report { passed: 5, failed: 2 };
+        let r = Report {
+            passed: 5,
+            failed: 2,
+        };
         assert_eq!(format!("{r}"), "5 passed, 2 failed");
     }
 }

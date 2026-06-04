@@ -4,9 +4,9 @@
 
 use anyhow::{Result, bail};
 use clap::Args;
+use plasmidbin_types::KNOWN_PRIMALS;
 use plasmidbin_types::arch::Arch;
 use plasmidbin_types::checksums::ChecksumsFile;
-use plasmidbin_types::KNOWN_PRIMALS;
 use std::path::{Path, PathBuf};
 
 #[derive(Args)]
@@ -27,15 +27,34 @@ struct Counters {
 }
 
 impl Counters {
-    fn new() -> Self { Self { pass: 0, warn: 0, fail: 0 } }
+    fn new() -> Self {
+        Self {
+            pass: 0,
+            warn: 0,
+            fail: 0,
+        }
+    }
 
     fn check(&mut self, label: &str, status: &str, detail: &str) {
         match status {
-            "pass" => { self.pass += 1; print!("  OK   {label}"); }
-            "warn" => { self.warn += 1; print!("  WARN {label}"); }
-            _      => { self.fail += 1; print!("  FAIL {label}"); }
+            "pass" => {
+                self.pass += 1;
+                print!("  OK   {label}");
+            }
+            "warn" => {
+                self.warn += 1;
+                print!("  WARN {label}");
+            }
+            _ => {
+                self.fail += 1;
+                print!("  FAIL {label}");
+            }
         }
-        if !detail.is_empty() { println!("  ({detail})"); } else { println!(); }
+        if !detail.is_empty() {
+            println!("  ({detail})");
+        } else {
+            println!();
+        }
     }
 }
 
@@ -52,7 +71,12 @@ pub fn run(args: DoctorArgs) -> Result<()> {
     check_prerequisite(&mut c, "strip", true);
 
     println!("\n=== Metadata ===");
-    for f in &["manifest.toml", "sources.toml", "checksums.toml", "ports.env"] {
+    for f in &[
+        "manifest.toml",
+        "sources.toml",
+        "checksums.toml",
+        "ports.env",
+    ] {
         if root.join(f).exists() {
             c.check(f, "pass", "");
         } else {
@@ -115,7 +139,9 @@ pub fn run(args: DoctorArgs) -> Result<()> {
     println!("  Fail: {}", c.fail);
     println!("  x86_64 primals: {x86_count} binaries ({x86_ecobin} ecoBin)");
 
-    if c.fail > 0 { bail!("plasmidBin has issues that need attention"); }
+    if c.fail > 0 {
+        bail!("plasmidBin has issues that need attention");
+    }
     Ok(())
 }
 
@@ -137,29 +163,36 @@ fn check_prerequisite(c: &mut Counters, name: &str, optional: bool) {
 fn resolve_binary(root: &Path, name: &str) -> Option<PathBuf> {
     let arch = Arch::detect().ok()?;
     let triple_path = root.join("primals").join(arch.triple()).join(name);
-    if triple_path.exists() { return Some(triple_path); }
+    if triple_path.exists() {
+        return Some(triple_path);
+    }
     let flat_path = root.join("primals").join(name);
-    if flat_path.exists() { return Some(flat_path); }
+    if flat_path.exists() {
+        return Some(flat_path);
+    }
     None
 }
 
 fn is_static_elf(path: &Path) -> bool {
-    let Ok(bytes) = std::fs::read(path) else { return false };
+    let Ok(bytes) = std::fs::read(path) else {
+        return false;
+    };
     bytes.len() >= 4 && bytes[..4] == [0x7f, b'E', b'L', b'F']
 }
 
 fn check_stale_sockets(c: &mut Counters) {
     let uid = super::current_uid();
-    let dirs = [
-        format!("/run/user/{uid}/biomeos"),
-        format!("/run/user/{uid}/ecoprimals"),
-        "/run/membrane".to_string(),
-    ];
+    let dirs: Vec<String> = super::defaults::runtime_socket_dirs(uid)
+        .into_iter()
+        .map(|p| p.to_string_lossy().into_owned())
+        .collect();
     let mut live = 0u32;
     let mut stale = 0u32;
 
     for dir in &dirs {
-        let Ok(entries) = std::fs::read_dir(dir) else { continue };
+        let Ok(entries) = std::fs::read_dir(dir) else {
+            continue;
+        };
         for entry in entries.flatten() {
             let path = entry.path();
             if path.extension().is_some_and(|e| e == "sock") {
@@ -182,8 +215,4 @@ fn check_stale_sockets(c: &mut Counters) {
     }
 }
 
-fn human_size(bytes: u64) -> String {
-    if bytes >= 1_048_576 { format!("{:.1}M", bytes as f64 / 1_048_576.0) }
-    else if bytes >= 1024 { format!("{:.0}K", bytes as f64 / 1024.0) }
-    else { format!("{bytes}B") }
-}
+use super::defaults::human_size;

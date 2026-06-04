@@ -4,8 +4,8 @@
 
 use anyhow::{Context, Result, bail};
 use clap::Args;
-use plasmidbin_types::arch::Arch;
 use plasmidbin_types::KNOWN_PRIMALS;
+use plasmidbin_types::arch::Arch;
 use std::path::PathBuf;
 
 #[derive(Args)]
@@ -38,8 +38,8 @@ pub struct StageUsbArgs {
 pub fn run(args: StageUsbArgs) -> Result<()> {
     let root = &args.root;
     let arch: Arch = match &args.arch {
-        Some(a) => a.parse().map_err(|e: String| anyhow::anyhow!(e))?,
-        None => Arch::detect().map_err(|e| anyhow::anyhow!(e))?,
+        Some(a) => a.parse()?,
+        None => Arch::detect()?,
     };
 
     let triple = arch.triple();
@@ -124,11 +124,7 @@ pub fn run(args: StageUsbArgs) -> Result<()> {
     Ok(())
 }
 
-fn human_size(bytes: u64) -> String {
-    if bytes >= 1_048_576 { format!("{:.1}M", bytes as f64 / 1_048_576.0) }
-    else if bytes >= 1024 { format!("{:.0}K", bytes as f64 / 1024.0) }
-    else { format!("{bytes}B") }
-}
+use super::defaults::human_size;
 
 fn chrono_now() -> String {
     let output = std::process::Command::new("date").arg("-Iseconds").output();

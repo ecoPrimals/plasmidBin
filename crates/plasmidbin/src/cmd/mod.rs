@@ -1,22 +1,22 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-pub(crate) mod defaults;
-mod validate;
-mod harvest;
-mod fetch;
-mod doctor;
-mod sync_cmd;
-mod start;
-mod launch;
-mod cell;
-mod stage_usb;
-mod stop;
-mod deploy;
 mod bootstrap;
 mod build;
+mod cell;
+pub(crate) mod defaults;
+mod deploy;
+mod doctor;
+mod fetch;
+mod harvest;
 mod install;
-mod update;
+mod launch;
 mod seed;
+mod stage_usb;
+mod start;
+mod stop;
+mod sync_cmd;
+mod update;
+mod validate;
 mod verify_provenance;
 
 use clap::Subcommand;

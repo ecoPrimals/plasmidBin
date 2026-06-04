@@ -2,7 +2,7 @@
 
 //! Typed parsing and validation for `manifest.toml`.
 
-use crate::{Report, MIN_PRIMALS, is_valid_blake3_hex};
+use crate::{MIN_PRIMALS, Report, is_valid_blake3_hex};
 use serde::Deserialize;
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
@@ -98,12 +98,17 @@ pub struct ManifestReport {
 }
 
 impl ManifestFile {
-    pub fn load(root: &Path) -> Result<Self, String> {
+    pub fn load(root: &Path) -> crate::error::Result<Self> {
         let path = root.join("manifest.toml");
-        let content = std::fs::read_to_string(&path)
-            .map_err(|e| format!("cannot read {}: {e}", path.display()))?;
-        toml::from_str(&content)
-            .map_err(|e| format!("manifest.toml schema error: {e}"))
+        let content =
+            std::fs::read_to_string(&path).map_err(|e| crate::error::TypesError::ReadFile {
+                path: path.clone(),
+                source: e,
+            })?;
+        toml::from_str(&content).map_err(|e| crate::error::TypesError::TomlParse {
+            file: "manifest.toml",
+            source: e,
+        })
     }
 }
 
@@ -117,7 +122,11 @@ pub fn validate(root: &Path) -> ManifestReport {
         Ok(c) => c,
         Err(e) => {
             report.fail(&format!("cannot read {}: {e}", path.display()));
-            return ManifestReport { report, primal_ids, spring_ids };
+            return ManifestReport {
+                report,
+                primal_ids,
+                spring_ids,
+            };
         }
     };
 
@@ -128,7 +137,11 @@ pub fn validate(root: &Path) -> ManifestReport {
         }
         Err(e) => {
             report.fail(&format!("manifest.toml schema error: {e}"));
-            return ManifestReport { report, primal_ids, spring_ids };
+            return ManifestReport {
+                report,
+                primal_ids,
+                spring_ids,
+            };
         }
     };
 
@@ -159,7 +172,10 @@ pub fn validate(root: &Path) -> ManifestReport {
     }
 
     if primal_ids.len() >= MIN_PRIMALS {
-        report.pass(&format!("{} primal entries (>= {MIN_PRIMALS})", primal_ids.len()));
+        report.pass(&format!(
+            "{} primal entries (>= {MIN_PRIMALS})",
+            primal_ids.len()
+        ));
     } else {
         report.fail(&format!(
             "only {} primal entries (expected >= {MIN_PRIMALS})",
@@ -190,7 +206,11 @@ pub fn validate(root: &Path) -> ManifestReport {
         report.pass(&format!("{} spring entries", spring_ids.len()));
     }
 
-    ManifestReport { report, primal_ids, spring_ids }
+    ManifestReport {
+        report,
+        primal_ids,
+        spring_ids,
+    }
 }
 
 #[cfg(test)]
