@@ -53,8 +53,15 @@ pub fn run(args: FetchArgs) -> Result<()> {
     let tag = resolve_release_tag(&args.release)?;
     let recent_tags = resolve_recent_tags();
 
+    let source = if super::defaults::has_sovereign_release_url() {
+        "sovereign (PLASMIDBIN_RELEASE_URL)"
+    } else {
+        "GitHub Releases"
+    };
+
     println!("plasmidBin fetch");
     println!("Arch:    {triple}");
+    println!("Source:  {source}");
     println!(
         "Release: {} ({} recent releases indexed)",
         tag.as_deref().unwrap_or("<none>"),

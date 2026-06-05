@@ -10,74 +10,90 @@
 "aarch64-unknown-linux-musl" = "15c0b06496e1c6d776e56cafdc61c4157133b7d09dbb2ebc80c3721ca504ab3e"
 "armv7-unknown-linux-musleabihf" = "9bc64c4b95db7f90cbeb245a8a4ed3a73543ea92f0199bb46a37271a952b14af"
 "x86_64-pc-windows-gnu" = "607eff0abd370511646681c99a0e67cc7e5ee03aae52791b3933fded0552b141"
-"x86_64-unknown-linux-musl" = "6e644d7ed8ffe45f3d1a3b55296f21259c4da234f19fa42aacf57102ed0eaae5"
+"x86_64-unknown-linux-musl" = "c73235e0e829076f95af423f67db16a91db21f24ccaec0eaeeba8bc5f2d17c5e"
 
+"x86_64-linux-musl" = "74bf320d3283bfd5cc9d258b940f550845a44e984ecd9db00b9c475563a6536d"
 [primals.beardog]
 "aarch64-unknown-linux-musl" = "c21fb13218beb1261836d880a0f3719ce8227d0359d40c31e6578cb9f5eaedd3"
 "armv7-unknown-linux-musleabihf" = "577585685a90a519a813328cff4b34d3998b190070db01ff2541b3387db7b0a3"
-"x86_64-unknown-linux-musl" = "96ac259acb5fa1ff992c74bcc26bd0e1d2ba484cf6fab08cb7cd27680f2b8133"
+"x86_64-unknown-linux-musl" = "7ae3049784081b6ef79bf2d588f6ff3af3682cbe3d1b24a29450faaf2b003370"
 
+"x86_64-linux-musl" = "ce3e477a96aa122fa775ee81bf2a3bf4e311673a917fada870eda3de9493cf29"
 [primals.biomeos]
 "aarch64-unknown-linux-musl" = "421c0cba63c7df68a51691c66aa216ba8de4f7a424a1586e220abf915465a750"
 "armv7-unknown-linux-musleabihf" = "69a5130f5b1d613d1cce45273468d8a0c09c4a972ad8e2e68eefa3d4da1d0c3e"
-"x86_64-unknown-linux-musl" = "27fade63675f77e61743b91c5461852fc21194a3a6c37c6b9a39604d6df66852"
+"x86_64-unknown-linux-musl" = "e83127a0b39d50575cb1789191c214c737e13e736e6d7f200db5ce63f35603a2"
 
+"x86_64-linux-musl" = "c0ef4631765b9c445f89d81309f3b7c989787984925cb6f067fe4b1e521bc8fc"
 [primals.coralreef]
 "aarch64-unknown-linux-musl" = "7a060ac837604253111c43ecc071d5a220cefd8bf560a2ec0498430fc7fe8d25"
 "armv7-unknown-linux-musleabihf" = "a9327b45475b681f3786f23a5db41afb6ba1461202070c6a78265e3d424cf25e"
-"x86_64-unknown-linux-musl" = "b0b5d063117da46f44ed642d1e7f0a3162f07b648726497e2daadaa933b94d95"
+"x86_64-unknown-linux-musl" = "8d81357ed6c4e111bcf2b8ddc77023649f2d285925533f5b90337d7e29dff997"
 
+"x86_64-linux-musl" = "ace44b4bb566d719e4ce1471cb7a38dd3f5a30d208b25321c1da740e967c2a75"
 [primals.loamspine]
 "aarch64-linux-android" = "d61f6c420390d80df1fed005f1066188cddcf47ad738de9c729e7669f28a8cbb"
 "aarch64-unknown-linux-musl" = "6638f8b87f8252891ad4f5ef41fea21923313972c5e5d3e0dfd7793ccf5a4cac"
 "armv7-unknown-linux-musleabihf" = "f00f69e86824d4afcd06f6226d4f8830041cc1b2ed7c3169f8d1b2fca8cd904f"
-"x86_64-unknown-linux-musl" = "e06778afb248c897ca1b363500f67160959933a3667a05edc34b5593df568f31"
+"x86_64-unknown-linux-musl" = "9b454bb4572561dac8116bdbd7a7de17b0b5272b2a2d23f809aeb8f67f5f2782"
 
+"x86_64-linux-musl" = "e105852c61a7d6a26ac4da3a534d7fe5d8e1a2c36289216a0ea58a3517d09ea4"
 [primals.nestgate]
 "aarch64-unknown-linux-musl" = "4aec32864f91cda3525838c56fd20c592036ca0f7f73e91ed882f88d9a391ba6"
 "armv7-unknown-linux-musleabihf" = "38ca0450fed4cff709f88b6352935f11c42c7ca5628832f96832ecbfc07e096e"
-"x86_64-unknown-linux-musl" = "81f1b8c930898647e370139bef98517c6f901332c1df484458f5c4d15f1d8a6d"
+"x86_64-unknown-linux-musl" = "d9fb87ade84cd229b44847f8d8ca901a9bdcf0a7fd0b82670bcbe7a03918de25"
 
+"x86_64-linux-musl" = "e96dbbfc4c709d893804ad1093d3d92ba0b2dfc2b93aa4b9b5ea30af15000fda"
 [primals.petaltongue]
 "aarch64-unknown-linux-musl" = "0557404788e7df05765e5412a674804acd7978702627815fb02593447e64fa0e"
 "armv7-unknown-linux-musleabihf" = "8d69074a8e6e8a546335cb1a405adc43358ab81e34b202de5a21548a52014365"
-"x86_64-unknown-linux-musl" = "aaaa35025b4bac8b4dc227c2e130b1a16f979e302ec7a483193e7cbfdfbd965b"
+"x86_64-unknown-linux-musl" = "65455fa3ea23bae5130bc955d050f32430ac5b1dc8b331795d4c75c951c17a5a"
+
+"x86_64-linux-musl" = "07d311fb147c80b4e97c6c06afb7fc0d1456dd06911a42ccbfe35b1db5e1cd87"
+[primals.primalspring_primal]
+"x86_64-unknown-linux-musl" = "1ee1d3bf031809d04cb0702cc8b9e17fc233264de5354a5a81383979edbb50fa"
 
 [primals.rhizocrypt]
 "aarch64-linux-android" = "94258de191673b9a2d79f675365fb5a87617a7fd635cdd307380d57a8ac536ce"
 "aarch64-unknown-linux-musl" = "b61405d74243ea6099879fa6628be04492dc93d9f1086aa09f0524be717aa339"
 "armv7-unknown-linux-musleabihf" = "b8a48a1fe8103850f80e8e45dd2b5febbafa4e0282bebaa8bee7f0faf49643b7"
-"x86_64-unknown-linux-musl" = "c4f07b9988faf3a31456295ea89578a3002c0f7b972337108007b47e4a46c90b"
+"x86_64-unknown-linux-musl" = "3205055459020380aabeea8216f7fc1ab9ed7bc4d657afcdb9a9aa5cb275aae7"
 
+"x86_64-linux-musl" = "a9e936f75ac16454d9890b48d349113eb86971178aa229bbf826b73d51b6c25e"
 [primals.skunkbat]
 "aarch64-unknown-linux-musl" = "fc8a3147c805a403b716fa28b3135a2678874d85303b0bb47272aa9ab04af143"
 "armv7-unknown-linux-musleabihf" = "c26e592f029c77a2aaf5f08f6ec9b7b86696089d37016654424e8ddedd96e34f"
-"x86_64-unknown-linux-musl" = "4c9841b360f4232d43530d72e252bbe9b5259adf397c10cde2cfb601dd2f40b5"
+"x86_64-unknown-linux-musl" = "1ee3ecb9ed45b411ec0d86f3ecc1fa7832aea9e4650c05e1a4dbe1b79f471e56"
 
+"x86_64-linux-musl" = "2217791af4505b09066e780eaf504f621df67018f7d3ef7ccdc6d94327c38192"
 [primals.songbird]
 "aarch64-linux-android" = "9024e9c4500e3f842dcb51d64e29683fc21554488880273dd48e94f9d3c2543b"
 "aarch64-unknown-linux-musl" = "4151772c167081cdf71187dc77e446f513204fe515acc61813834b112d360ee4"
 "armv7-unknown-linux-musleabihf" = "0bed2b0cc4418ddf27d3cedb30528f02df9c48545b1f03a8efd57a9feef051d7"
-"x86_64-unknown-linux-musl" = "0fc04a316e38caeeae7be0154456314c06b5475fecafb3fd8510e00fc3a580e3"
+"x86_64-unknown-linux-musl" = "ebe5e174ba5b8a94c484b147e665cd32a0be4fe8666849939c1c866ab5934b9b"
 
+"x86_64-linux-musl" = "36573f618b09e78c434c598e8622f09e909d25b62cde1617c0c2e8c5cc9d3b4e"
 [primals.sourdough]
 "aarch64-unknown-linux-musl" = "91e446f27d032faa4b1ed35567693fec5c5b69fb16c5e4cf6c75a657240fd9b4"
 "armv7-unknown-linux-musleabihf" = "d805f4f4e66da2e67876b1710d64783d1e6daecbd522279f498d7284f378062e"
-"x86_64-unknown-linux-musl" = "7a8ee495810120e1cd22339b24d328d95a152c583662aba5d51a1a2f57cf46a8"
+"x86_64-unknown-linux-musl" = "fe2cc4faf829d31ff04813c08e318ce343b338881c24eb8d1d72de7130ec9485"
 
 [primals.squirrel]
 "aarch64-unknown-linux-musl" = "072421449a6284374aacd69a906468b5e8744ec87b101d3a73795fd974a0c079"
 "armv7-unknown-linux-musleabihf" = "305e3718ac387e443b9a2a92856b119be55b40779fb9448589d0855429ca82ce"
-"x86_64-unknown-linux-musl" = "c995e752f20defca1a70e158453a8994e3a61dca40f9cf9d53e4a4084854ad55"
+"x86_64-unknown-linux-musl" = "09a6df5afe37c0bf72b6515de0999c815ad17278dc02cc32613b42588717d889"
 
+"x86_64-linux-musl" = "c3fa9b6a1218ce300b8c4264f85d76a4b9184d7edaa428d5d8eca5447b1610b1"
 [primals.sweetgrass]
 "aarch64-linux-android" = "24ec1d011ec52f8dc0428b5273825929167fc10705de5dca6ef998a6c11c8468"
 "aarch64-unknown-linux-musl" = "1c8242730b37313ad82125672fa03ed9f7a679f63bb4172f88f691f3986d42ac"
 "armv7-unknown-linux-musleabihf" = "9571f23019591d7bf1fcaee3b4ab846097792fe1c4fd9404c6d75fec3d465d07"
-"x86_64-unknown-linux-musl" = "04f5c8db394d40d953994d79e2911e308b541787d879af0f99beb8ed5695713f"
+"x86_64-unknown-linux-musl" = "8dfab7a258bce7b6d9659d8c990c83d635a32301b6bd288e72d99e922a7bac57"
 
+"x86_64-linux-musl" = "79c3fa4b94d1004ccb00a120f8e93073d1f6ac0ab5b2395f653a991a99c7468a"
 [primals.toadstool]
 "aarch64-unknown-linux-musl" = "e0fdf8b5b9eff16d1ece0438f0ec67a29840d7540ffff72158dabc4a025aa7ac"
 "armv7-unknown-linux-musleabihf" = "2e9c997f3fb8b2f3c538b4b8c499234ee59492e3b4f52b89962375b96e1e86ab"
-"x86_64-unknown-linux-musl" = "66dc570c5d495e1884d9f9dbcd61b475b53efb5e1f33750a3bf7aa18540a6c1f"
+"x86_64-unknown-linux-musl" = "6685834ce7be852068f013d0d6cbb5b6184b00da634e2eae7d9face9f939ecd0"
 
+"x86_64-linux-musl" = "f208af6fc656ee35e07b86b1e7c63e64a8241bb36993ea18fdb7105275092f3f"

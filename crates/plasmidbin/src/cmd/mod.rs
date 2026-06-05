@@ -10,6 +10,7 @@ mod fetch;
 mod harvest;
 mod install;
 mod launch;
+mod rehash;
 mod seed;
 mod stage_usb;
 mod start;
@@ -73,6 +74,8 @@ pub enum Command {
     Seed(seed::SeedArgs),
     /// Verify provenance chain: composite hashes, checksum cross-ref, braids
     VerifyProvenance(verify_provenance::VerifyProvenanceArgs),
+    /// Recompute BLAKE3 checksums for local binaries
+    Rehash(rehash::RehashArgs),
 }
 
 impl Command {
@@ -95,6 +98,7 @@ impl Command {
             Command::Update(args) => update::run(args),
             Command::Seed(args) => seed::run(args),
             Command::VerifyProvenance(args) => verify_provenance::run(args),
+            Command::Rehash(args) => rehash::run(args),
         }
     }
 }

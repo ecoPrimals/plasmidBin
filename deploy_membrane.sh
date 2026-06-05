@@ -239,13 +239,26 @@ deploy_firewall() {
         return 0
     fi
 
-    local rustdesk_rules=""
-    if [[ "$COMPOSITION" == "rustdesk" || "$COMPOSITION" == "tower" ]]; then
-        rustdesk_rules="
+    local extra_rules=""
+    if [[ "$COMPOSITION" == "rustdesk" || "$COMPOSITION" == "tower" || "$COMPOSITION" == "nest" || "$COMPOSITION" == "nucleus" || "$COMPOSITION" == "fieldMouse" || "$COMPOSITION" == "fieldmouse" ]]; then
+        extra_rules="$extra_rules
     ufw allow 21115/tcp comment 'RustDesk: NAT type test'
     ufw allow 21116/tcp comment 'RustDesk: ID registration'
     ufw allow 21116/udp comment 'RustDesk: hole punching'
     ufw allow 21117/tcp comment 'RustDesk: relay'"
+    fi
+    if [[ "$COMPOSITION" == "tower" || "$COMPOSITION" == "nest" || "$COMPOSITION" == "nucleus" || "$COMPOSITION" == "fieldMouse" || "$COMPOSITION" == "fieldmouse" ]]; then
+        extra_rules="$extra_rules
+    ufw allow 7700/tcp comment 'Songbird Federation (Tower mesh hub)'"
+    fi
+    if [[ "$COMPOSITION" == "nest" || "$COMPOSITION" == "nucleus" || "$COMPOSITION" == "fieldMouse" || "$COMPOSITION" == "fieldmouse" ]]; then
+        extra_rules="$extra_rules
+    ufw allow 80/tcp comment 'HTTP (ACME + redirect)'
+    ufw allow 443/tcp comment 'HTTPS (TLS Surface)'
+    ufw allow 2222/tcp comment 'Forgejo SSH git'
+    ufw allow 53/tcp comment 'DNS (sovereign NS)'
+    ufw allow 53/udp comment 'DNS (sovereign NS)'
+    ufw allow 49152:65535/udp comment 'Songbird TURN relay data'"
     fi
 
     ssh "$remote" "bash -s" <<FIREWALL
@@ -256,9 +269,9 @@ if command -v ufw >/dev/null 2>&1; then
     ufw allow 22/tcp comment 'SSH management'
     ufw allow 3478/tcp comment 'Channel 2: Relay (TURN)'
     ufw allow 3478/udp comment 'Channel 2: Relay (TURN)'
-    ${rustdesk_rules}
+    ${extra_rules}
     ufw --force enable
-    echo "UFW configured (composition: $COMPOSITION)."
+    echo "UFW configured (composition: $COMPOSITION). Zero standalone primal TCP ports."
 else
     echo "UFW not found — install with: apt install ufw"
 fi
@@ -467,9 +480,8 @@ deploy_nest_composition() {
 
     if $DRY_RUN; then
         log "[dry-run] Would fetch nestgate, rhizocrypt, loamspine, sweetgrass from GitHub Releases"
-        log "[dry-run] Would generate systemd units for Nest primals"
-        log "[dry-run] Would open ports 9500 (NestGate), 9601 (rhizoCrypt), 9700 (loamSpine), 9850 (sweetGrass)"
-        log "[dry-run] Would enable and start Nest services"
+        log "[dry-run] Would generate UDS-only systemd units for Nest primals"
+        log "[dry-run] Would enable and start Nest services (zero TCP ports)"
         return 0
     fi
 
@@ -510,7 +522,7 @@ Wants=beardog-membrane.service
 
 [Service]
 Type=simple
-ExecStart=\$MEMBRANE_DIR/nestgate service start --port 9500 --bind 0.0.0.0
+ExecStart=\$MEMBRANE_DIR/nestgate service start --port 9500 --bind 127.0.0.1
 Restart=on-failure
 RestartSec=5
 EnvironmentFile=-\$MEMBRANE_DIR/tower.env
@@ -526,7 +538,7 @@ After=network.target
 
 [Service]
 Type=simple
-ExecStart=\$MEMBRANE_DIR/rhizocrypt server --port 9601 --host 0.0.0.0
+ExecStart=\$MEMBRANE_DIR/rhizocrypt server --unix /run/membrane/rhizocrypt.sock
 Restart=on-failure
 RestartSec=5
 EnvironmentFile=-\$MEMBRANE_DIR/tower.env
@@ -542,7 +554,7 @@ After=network.target
 
 [Service]
 Type=simple
-ExecStart=\$MEMBRANE_DIR/loamspine server --port 9700 --bind-address 0.0.0.0
+ExecStart=\$MEMBRANE_DIR/loamspine server --socket /run/membrane/loamspine.sock
 Restart=on-failure
 RestartSec=5
 EnvironmentFile=-\$MEMBRANE_DIR/tower.env
@@ -559,10 +571,11 @@ Wants=rhizocrypt-membrane.service loamspine-membrane.service
 
 [Service]
 Type=simple
-ExecStart=\$MEMBRANE_DIR/sweetgrass server --port 0.0.0.0:9850
+ExecStart=\$MEMBRANE_DIR/sweetgrass server --socket /run/membrane/sweetgrass.sock --http-address 127.0.0.1:0
 Restart=on-failure
 RestartSec=5
 EnvironmentFile=-\$MEMBRANE_DIR/tower.env
+Environment=SWEETGRASS_SOCKET=/run/membrane/sweetgrass.sock
 
 [Install]
 WantedBy=multi-user.target
@@ -571,23 +584,17 @@ SVC
 mkdir -p /var/lib/membrane/nestgate /var/lib/membrane/loamspine
 NEST_UNITS
 
-    log "  Opening firewall ports for Nest primals..."
-    ssh "$remote" "ufw allow 9500/tcp comment 'NestGate storage' >/dev/null 2>&1" || true
-    ssh "$remote" "ufw allow 9601/tcp comment 'rhizoCrypt DAG' >/dev/null 2>&1" || true
-    ssh "$remote" "ufw allow 9700/tcp comment 'loamSpine ledger' >/dev/null 2>&1" || true
-    ssh "$remote" "ufw allow 9850/tcp comment 'sweetGrass braids' >/dev/null 2>&1" || true
-
     log "  Enabling Nest services..."
     ssh "$remote" "systemctl daemon-reload"
     ssh "$remote" "systemctl enable nestgate-membrane rhizocrypt-membrane loamspine-membrane sweetgrass-membrane"
     ssh "$remote" "systemctl restart nestgate-membrane rhizocrypt-membrane loamspine-membrane sweetgrass-membrane" 2>/dev/null || true
 
     log ""
-    log "  Nest expansion deployed."
-    log "    NestGate:   /run/membrane/nestgate.sock   + :9500  (storage)"
-    log "    rhizoCrypt: /run/membrane/rhizocrypt.sock + :9601  (DAG sessions)"
-    log "    loamSpine:  /run/membrane/loamspine.sock  + :9700  (ledger)"
-    log "    sweetGrass: /run/membrane/sweetgrass.sock + :9850  (attribution)"
+    log "  Nest expansion deployed (UDS-only)."
+    log "    NestGate:   /run/membrane/nestgate.sock   (storage)"
+    log "    rhizoCrypt: /run/membrane/rhizocrypt.sock (DAG sessions)"
+    log "    loamSpine:  /run/membrane/loamspine.sock  (ledger)"
+    log "    sweetGrass: /run/membrane/sweetgrass.sock (attribution)"
 }
 
 status_nest_composition() {
@@ -603,9 +610,6 @@ status_nest_composition() {
     done
 
     ssh "$remote" "ls -la /run/membrane/nestgate.sock /run/membrane/rhizocrypt.sock /run/membrane/loamspine.sock /run/membrane/sweetgrass.sock 2>/dev/null | sed 's/^/  Socket: /' || echo '  No Nest sockets found'"
-    for port in 9500 9601 9700 9850; do
-        ssh "$remote" "ss -tlnp 2>/dev/null | grep \":$port\" | sed 's/^/  Listening: /' || echo \"  Port $port: not listening\""
-    done
 }
 
 # ── Node composition (compute tier) ─────────────────────────────────
@@ -958,7 +962,7 @@ deploy_nucleus_via_launcher() {
 
     if $DRY_RUN; then
         log "[dry-run] Would deploy nucleus_launcher binary to VPS"
-        log "[dry-run] Would invoke: nucleus_launcher start --uds-only --family-id <id>"
+        log "[dry-run] Would invoke: nucleus_launcher start --family-id <id> (UDS-only default)"
         log "[dry-run] Would create nucleus-launcher.service systemd unit"
         return 0
     fi
@@ -1009,7 +1013,7 @@ After=network.target
 
 [Service]
 Type=simple
-ExecStart=$REMOTE_MEMBRANE_DIR/nucleus_launcher start --uds-only --family-id ${family_id:0:16}
+ExecStart=$REMOTE_MEMBRANE_DIR/nucleus_launcher start --family-id ${family_id:0:16}
 Restart=on-failure
 RestartSec=10
 EnvironmentFile=-$REMOTE_MEMBRANE_DIR/tower.env
@@ -1278,9 +1282,6 @@ verify_composition() {
     done
 
     local ufw_pattern="22/tcp|3478|21115|21116|21117|80/tcp|443/tcp"
-    if ssh "$remote" "test -x /opt/membrane/nestgate" 2>/dev/null; then
-        ufw_pattern="$ufw_pattern|9500|9601|9700|9850"
-    fi
     local ufw_rules
     ufw_rules=$(ssh "$remote" "ufw status 2>/dev/null | grep -cE '$ufw_pattern' || echo 0")
     log "  UFW rules matching composition: $ufw_rules"

@@ -80,12 +80,25 @@ pub fn log_path(name: &str) -> PathBuf {
     PathBuf::from(format!("/tmp/{name}.log"))
 }
 
-/// GitHub release download URL for a given tag and asset name.
+/// Release download URL for a given tag and asset name.
+///
+/// Checks `PLASMIDBIN_RELEASE_URL` first for sovereign Forgejo-based fetching
+/// (e.g. `https://git.primals.eco/ecoPrimals/plasmidBin/releases/download`),
+/// then falls back to GitHub Releases.
 pub fn release_download_url(tag: &str, asset_name: &str) -> String {
+    if let Ok(base) = std::env::var("PLASMIDBIN_RELEASE_URL") {
+        let base = base.trim_end_matches('/');
+        return format!("{base}/{tag}/{asset_name}");
+    }
     let org = std::env::var("ECOPRIMALS_ORG").unwrap_or_else(|_| DEFAULT_ORG.to_owned());
     let repo = std::env::var("ECOPRIMALS_PLASMID_REPO")
         .unwrap_or_else(|_| DEFAULT_PLASMID_REPO.to_owned());
     format!("https://github.com/{org}/{repo}/releases/download/{tag}/{asset_name}")
+}
+
+/// Whether a sovereign release URL is configured.
+pub fn has_sovereign_release_url() -> bool {
+    std::env::var("PLASMIDBIN_RELEASE_URL").is_ok()
 }
 
 /// Git clone URL for plasmidBin.
