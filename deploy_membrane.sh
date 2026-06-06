@@ -80,6 +80,8 @@ Modes:
   provision              Create a DigitalOcean droplet and deploy channels
   deploy <user@host>     Deploy channel binaries to an existing VPS
   refresh <user@host>    Push pre-built local binaries from plasmidBin/primals/ to VPS
+  check <user@host>      Compare VPS binaries against local checksums (detect stale)
+  self-refresh           Run ON the VPS: pull plasmidBin from Forgejo, refresh stale
   spring-overlay <u@h>   Deploy a spring cell graph overlay on a live NUCLEUS
   status <user@host>     Check health of deployed channels
   keys <action> <u@h>    Manage SSH keys for multi-gate access
@@ -1129,6 +1131,175 @@ do_refresh() {
     log "Refresh summary: $refreshed pushed, $skipped skipped, $failed failed"
 }
 
+# ── Mode: check ─────────────────────────────────────────────────────
+# Compare VPS running binaries against local plasmidBin checksums.
+# Reports which primals are stale, current, or missing on the VPS.
+# Enables the peptidoglycan layer to self-detect upstream evolution.
+
+do_check() {
+    [[ -n "$REMOTE" ]] || die "No remote specified. Usage: deploy_membrane.sh check root@<ip>"
+
+    local checksums_file="$SCRIPT_DIR/checksums.toml"
+    [[ -f "$checksums_file" ]] || die "checksums.toml not found at $checksums_file"
+
+    local arch="x86_64-unknown-linux-musl"
+    local all_primals="beardog songbird skunkbat toadstool barracuda coralreef nestgate rhizocrypt loamspine sweetgrass biomeos squirrel petaltongue"
+
+    log "Check: comparing VPS binaries against local checksums"
+    log "  Remote:  $REMOTE"
+    log "  Arch:    $arch"
+    log ""
+
+    local current=0
+    local stale=0
+    local missing=0
+
+    for primal in $all_primals; do
+        local expected
+        expected=$(awk -v p="$primal" -v a="$arch" '
+            $0 ~ "^\\[primals\\." p "\\]" { found=1; next }
+            found && /^\[/ { found=0 }
+            found && $0 ~ "\"" a "\"" { gsub(/.*= *"/, ""); gsub(/".*/, ""); print; exit }
+        ' "$checksums_file")
+
+        if [[ -z "$expected" ]]; then
+            log "  [$primal] SKIP  no checksum for $arch"
+            continue
+        fi
+
+        local remote_exists
+        remote_exists=$(ssh "$REMOTE" "test -f $REMOTE_MEMBRANE_DIR/$primal && echo yes || echo no" 2>/dev/null || echo no)
+
+        if [[ "$remote_exists" != "yes" ]]; then
+            log "  [$primal] MISSING  not found on VPS"
+            missing=$((missing + 1))
+            continue
+        fi
+
+        local remote_hash
+        remote_hash=$(ssh "$REMOTE" "b3sum $REMOTE_MEMBRANE_DIR/$primal 2>/dev/null | awk '{print \$1}'" 2>/dev/null || true)
+
+        if [[ -z "$remote_hash" ]]; then
+            log "  [$primal] EXISTS   (b3sum unavailable on VPS — install with: cargo install b3sum)"
+            missing=$((missing + 1))
+            continue
+        fi
+
+        if [[ "$remote_hash" == "$expected" ]]; then
+            log "  [$primal] CURRENT"
+            current=$((current + 1))
+        else
+            log "  [$primal] STALE    vps=${remote_hash:0:16}... local=${expected:0:16}..."
+            stale=$((stale + 1))
+        fi
+    done
+
+    log ""
+    log "Check summary: $current current, $stale stale, $missing missing"
+
+    if [[ $stale -gt 0 || $missing -gt 0 ]]; then
+        log ""
+        log "Run './deploy_membrane.sh refresh $REMOTE' to update stale/missing binaries."
+        return 1
+    fi
+}
+
+# ── Mode: self-refresh ─────────────────────────────────────────────
+# Designed to run ON the VPS itself. Pulls latest plasmidBin from
+# sovereign Forgejo, compares checksums, and refreshes stale binaries.
+# This is how the peptidoglycan layer self-detects upstream evolution.
+
+do_self_refresh() {
+    local plasmidbin_dir="${PLASMIDBIN_DIR:-/opt/plasmidBin}"
+    local forgejo_remote="${FORGEJO_REMOTE:-ssh://git@git.primals.eco:2222/ecoPrimals/plasmidBin.git}"
+
+    log "Self-refresh: pulling latest plasmidBin from sovereign Forgejo"
+
+    if [[ ! -d "$plasmidbin_dir" ]]; then
+        log "  Cloning plasmidBin to $plasmidbin_dir ..."
+        git clone --depth 1 "$forgejo_remote" "$plasmidbin_dir" 2>&1 || die "Clone failed"
+    else
+        log "  Pulling latest..."
+        git -C "$plasmidbin_dir" fetch origin main --depth 1 2>&1 || die "Fetch failed"
+        git -C "$plasmidbin_dir" reset --hard origin/main 2>&1 || die "Reset failed"
+    fi
+
+    local checksums_file="$plasmidbin_dir/checksums.toml"
+    [[ -f "$checksums_file" ]] || die "checksums.toml not found after pull"
+
+    local arch="x86_64-unknown-linux-musl"
+    local all_primals="beardog songbird skunkbat toadstool barracuda coralreef nestgate rhizocrypt loamspine sweetgrass biomeos squirrel petaltongue"
+
+    local stale_list=""
+    local stale_count=0
+    local current_count=0
+
+    for primal in $all_primals; do
+        local expected
+        expected=$(awk -v p="$primal" -v a="$arch" '
+            $0 ~ "^\\[primals\\." p "\\]" { found=1; next }
+            found && /^\[/ { found=0 }
+            found && $0 ~ "\"" a "\"" { gsub(/.*= *"/, ""); gsub(/".*/, ""); print; exit }
+        ' "$checksums_file")
+
+        [[ -n "$expected" ]] || continue
+
+        local running_hash=""
+        if [[ -f "$REMOTE_MEMBRANE_DIR/$primal" ]]; then
+            running_hash=$(b3sum "$REMOTE_MEMBRANE_DIR/$primal" 2>/dev/null | awk '{print $1}' || true)
+        fi
+
+        if [[ "$running_hash" == "$expected" ]]; then
+            current_count=$((current_count + 1))
+        else
+            stale_list="$stale_list $primal"
+            stale_count=$((stale_count + 1))
+            log "  [$primal] STALE"
+        fi
+    done
+
+    log "  $current_count current, $stale_count stale"
+
+    if [[ $stale_count -eq 0 ]]; then
+        log "All primals current — nothing to do."
+        return 0
+    fi
+
+    local primals_source="$plasmidbin_dir/primals/$arch"
+    if [[ ! -d "$primals_source" ]]; then
+        log "WARNING: No pre-built binaries at $primals_source"
+        log "Stale primals detected but no binaries available for self-refresh."
+        log "Operator action: build + harvest on a gate, then push to Forgejo."
+        return 1
+    fi
+
+    local refreshed=0
+    for primal in $stale_list; do
+        local src="$primals_source/$primal"
+        if [[ ! -f "$src" ]]; then
+            log "  [$primal] SKIP  binary not in plasmidBin/primals/"
+            continue
+        fi
+        log "  [$primal] refreshing..."
+        cp "$src" "$REMOTE_MEMBRANE_DIR/$primal.new"
+        chmod 755 "$REMOTE_MEMBRANE_DIR/$primal.new"
+        mv "$REMOTE_MEMBRANE_DIR/$primal.new" "$REMOTE_MEMBRANE_DIR/$primal"
+        systemctl restart "${primal}-membrane" 2>/dev/null || true
+        refreshed=$((refreshed + 1))
+    done
+
+    if [[ $refreshed -gt 0 ]]; then
+        systemctl restart membrane-socket-bridge 2>/dev/null || true
+        sleep 3
+        if [[ -x "$REMOTE_MEMBRANE_DIR/nucleus_launcher" ]]; then
+            "$REMOTE_MEMBRANE_DIR/nucleus_launcher" status 2>&1 || true
+        fi
+    fi
+
+    log ""
+    log "Self-refresh complete: $refreshed refreshed, $((stale_count - refreshed)) skipped"
+}
+
 # ── Mode: spring-overlay ────────────────────────────────────────────
 # Deploys a spring cell graph overlay on a live NUCLEUS.
 # Requires NUCLEUS already running (via deploy --composition nucleus --uds-only).
@@ -1602,10 +1773,12 @@ case "$MODE" in
     provision)      do_provision ;;
     deploy)         do_deploy ;;
     refresh)        do_refresh ;;
+    check)          do_check ;;
+    self-refresh)   do_self_refresh ;;
     spring-overlay) do_spring_overlay ;;
     status)         do_status ;;
     keys)           do_keys ;;
     teardown)       do_teardown ;;
     --help)         usage ;;
-    *)              die "Unknown mode: $MODE. Use provision, deploy, refresh, spring-overlay, status, keys, or teardown." ;;
+    *)              die "Unknown mode: $MODE. Use provision, deploy, refresh, check, self-refresh, spring-overlay, status, keys, or teardown." ;;
 esac
