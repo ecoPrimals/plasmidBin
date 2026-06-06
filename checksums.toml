@@ -1,83 +1,18 @@
-# plasmidBin checksums — blake3
-#
-# One entry per binary, keyed by full target triple.
-# Validated by plasmidbin validate.
-#
-# genomeBin layout: primals/{target-triple}/{primal}
+# plasmidBin checksums — BLAKE3
+# Generated: 2026-06-06T19:02:50Z
+# Target: x86_64-unknown-linux-musl
 
-[primals.barracuda]
-"aarch64-linux-android" = "e34e40f4b42f909d240dfce68785ff338231e1bd51fe5f2c2afbdfe0dfb974a0"
-"aarch64-unknown-linux-musl" = "15c0b06496e1c6d776e56cafdc61c4157133b7d09dbb2ebc80c3721ca504ab3e"
-"armv7-unknown-linux-musleabihf" = "9bc64c4b95db7f90cbeb245a8a4ed3a73543ea92f0199bb46a37271a952b14af"
-"x86_64-pc-windows-gnu" = "607eff0abd370511646681c99a0e67cc7e5ee03aae52791b3933fded0552b141"
-"x86_64-unknown-linux-musl" = "74bf320d3283bfd5cc9d258b940f550845a44e984ecd9db00b9c475563a6536d"
-
-[primals.beardog]
-"aarch64-unknown-linux-musl" = "c21fb13218beb1261836d880a0f3719ce8227d0359d40c31e6578cb9f5eaedd3"
-"armv7-unknown-linux-musleabihf" = "577585685a90a519a813328cff4b34d3998b190070db01ff2541b3387db7b0a3"
-"x86_64-unknown-linux-musl" = "ce3e477a96aa122fa775ee81bf2a3bf4e311673a917fada870eda3de9493cf29"
-
-[primals.biomeos]
-"aarch64-unknown-linux-musl" = "421c0cba63c7df68a51691c66aa216ba8de4f7a424a1586e220abf915465a750"
-"armv7-unknown-linux-musleabihf" = "69a5130f5b1d613d1cce45273468d8a0c09c4a972ad8e2e68eefa3d4da1d0c3e"
-"x86_64-unknown-linux-musl" = "c0ef4631765b9c445f89d81309f3b7c989787984925cb6f067fe4b1e521bc8fc"
-
-[primals.coralreef]
-"aarch64-unknown-linux-musl" = "7a060ac837604253111c43ecc071d5a220cefd8bf560a2ec0498430fc7fe8d25"
-"armv7-unknown-linux-musleabihf" = "a9327b45475b681f3786f23a5db41afb6ba1461202070c6a78265e3d424cf25e"
-"x86_64-unknown-linux-musl" = "ace44b4bb566d719e4ce1471cb7a38dd3f5a30d208b25321c1da740e967c2a75"
-
-[primals.loamspine]
-"aarch64-linux-android" = "d61f6c420390d80df1fed005f1066188cddcf47ad738de9c729e7669f28a8cbb"
-"aarch64-unknown-linux-musl" = "6638f8b87f8252891ad4f5ef41fea21923313972c5e5d3e0dfd7793ccf5a4cac"
-"armv7-unknown-linux-musleabihf" = "f00f69e86824d4afcd06f6226d4f8830041cc1b2ed7c3169f8d1b2fca8cd904f"
-"x86_64-unknown-linux-musl" = "e105852c61a7d6a26ac4da3a534d7fe5d8e1a2c36289216a0ea58a3517d09ea4"
-
-[primals.nestgate]
-"aarch64-unknown-linux-musl" = "4aec32864f91cda3525838c56fd20c592036ca0f7f73e91ed882f88d9a391ba6"
-"armv7-unknown-linux-musleabihf" = "38ca0450fed4cff709f88b6352935f11c42c7ca5628832f96832ecbfc07e096e"
-"x86_64-unknown-linux-musl" = "e96dbbfc4c709d893804ad1093d3d92ba0b2dfc2b93aa4b9b5ea30af15000fda"
-
-[primals.petaltongue]
-"aarch64-unknown-linux-musl" = "0557404788e7df05765e5412a674804acd7978702627815fb02593447e64fa0e"
-"armv7-unknown-linux-musleabihf" = "8d69074a8e6e8a546335cb1a405adc43358ab81e34b202de5a21548a52014365"
-"x86_64-unknown-linux-musl" = "07d311fb147c80b4e97c6c06afb7fc0d1456dd06911a42ccbfe35b1db5e1cd87"
-
-[primals.rhizocrypt]
-"aarch64-linux-android" = "94258de191673b9a2d79f675365fb5a87617a7fd635cdd307380d57a8ac536ce"
-"aarch64-unknown-linux-musl" = "b61405d74243ea6099879fa6628be04492dc93d9f1086aa09f0524be717aa339"
-"armv7-unknown-linux-musleabihf" = "b8a48a1fe8103850f80e8e45dd2b5febbafa4e0282bebaa8bee7f0faf49643b7"
-"x86_64-unknown-linux-musl" = "a9e936f75ac16454d9890b48d349113eb86971178aa229bbf826b73d51b6c25e"
-
-[primals.skunkbat]
-"aarch64-unknown-linux-musl" = "fc8a3147c805a403b716fa28b3135a2678874d85303b0bb47272aa9ab04af143"
-"armv7-unknown-linux-musleabihf" = "c26e592f029c77a2aaf5f08f6ec9b7b86696089d37016654424e8ddedd96e34f"
-"x86_64-unknown-linux-musl" = "2217791af4505b09066e780eaf504f621df67018f7d3ef7ccdc6d94327c38192"
-
-[primals.songbird]
-"aarch64-linux-android" = "9024e9c4500e3f842dcb51d64e29683fc21554488880273dd48e94f9d3c2543b"
-"aarch64-unknown-linux-musl" = "4151772c167081cdf71187dc77e446f513204fe515acc61813834b112d360ee4"
-"armv7-unknown-linux-musleabihf" = "0bed2b0cc4418ddf27d3cedb30528f02df9c48545b1f03a8efd57a9feef051d7"
-"x86_64-unknown-linux-musl" = "36573f618b09e78c434c598e8622f09e909d25b62cde1617c0c2e8c5cc9d3b4e"
-
-[primals.sourdough]
-"aarch64-unknown-linux-musl" = "91e446f27d032faa4b1ed35567693fec5c5b69fb16c5e4cf6c75a657240fd9b4"
-"armv7-unknown-linux-musleabihf" = "d805f4f4e66da2e67876b1710d64783d1e6daecbd522279f498d7284f378062e"
-"x86_64-unknown-linux-musl" = "fe2cc4faf829d31ff04813c08e318ce343b338881c24eb8d1d72de7130ec9485"
-
-[primals.squirrel]
-"aarch64-unknown-linux-musl" = "072421449a6284374aacd69a906468b5e8744ec87b101d3a73795fd974a0c079"
-"armv7-unknown-linux-musleabihf" = "305e3718ac387e443b9a2a92856b119be55b40779fb9448589d0855429ca82ce"
-"x86_64-unknown-linux-musl" = "c3fa9b6a1218ce300b8c4264f85d76a4b9184d7edaa428d5d8eca5447b1610b1"
-
-[primals.sweetgrass]
-"aarch64-linux-android" = "24ec1d011ec52f8dc0428b5273825929167fc10705de5dca6ef998a6c11c8468"
-"aarch64-unknown-linux-musl" = "1c8242730b37313ad82125672fa03ed9f7a679f63bb4172f88f691f3986d42ac"
-"armv7-unknown-linux-musleabihf" = "9571f23019591d7bf1fcaee3b4ab846097792fe1c4fd9404c6d75fec3d465d07"
-"x86_64-unknown-linux-musl" = "79c3fa4b94d1004ccb00a120f8e93073d1f6ac0ab5b2395f653a991a99c7468a"
-
-[primals.toadstool]
-"aarch64-unknown-linux-musl" = "e0fdf8b5b9eff16d1ece0438f0ec67a29840d7540ffff72158dabc4a025aa7ac"
-"armv7-unknown-linux-musleabihf" = "2e9c997f3fb8b2f3c538b4b8c499234ee59492e3b4f52b89962375b96e1e86ab"
-"x86_64-unknown-linux-musl" = "5541a8a3e0129d64d37f441354325d2d8bf4d82c9dfb22dfc6db90358d8bac75"
-
+[x86_64-unknown-linux-musl]
+barracuda = { blake3 = "ebeb56813036e488c022ce96726091a3c6ab7bf791e3a49b7a86267abad3a599", size = 8161728 }
+beardog = { blake3 = "c088d1bbdebb14cd03fa6dd73eecb3c262af9984e49120cd6d7dfab4325c1d44", size = 12878032 }
+biomeos = { blake3 = "466733eb1086206c3b62813bd0b5b84665f8d8640c467ce10372a0be77c69e29", size = 20335328 }
+coralreef = { blake3 = "1c6415f59756d81a9c19615b7cb705f650d4ccd46e528a8b522ad711b25f857c", size = 11088504 }
+loamspine = { blake3 = "e105852c61a7d6a26ac4da3a534d7fe5d8e1a2c36289216a0ea58a3517d09ea4", size = 4802752 }
+nestgate = { blake3 = "75f43fe9cdb92ae67cf49115a82ac6777f4b6c8401d91b2c620a3b4535b06c76", size = 8383920 }
+petaltongue = { blake3 = "008b7d7b5b528c51faebda12282149d6f6b6b3553c1dee5e76574f9c371415e7", size = 27836224 }
+rhizocrypt = { blake3 = "93357fe10bce4e28610aef4201ee1399ef751b1f5da38f8a7390157a370fe193", size = 7204352 }
+skunkbat = { blake3 = "eaa320db11affaf18c91334095ba43957c6be1ab51df59454883c41a72f987fa", size = 2695392 }
+songbird = { blake3 = "3546e227d6ab3dda1b54566c170c2b9337a6e8c793450eeaae2ca62f34ad941e", size = 22690960 }
+squirrel = { blake3 = "4ea3e3b56077cbc9eec7f8a4ac5bd7e45c846a9f72b9e02fd6fdbb09659663e5", size = 8212056 }
+sweetgrass = { blake3 = "f067677743d73bb8bcf89503d7319de903f2733bfc95059035e529a041267fa3", size = 6960576 }
+toadstool = { blake3 = "5541a8a3e0129d64d37f441354325d2d8bf4d82c9dfb22dfc6db90358d8bac75", size = 12623440 }
