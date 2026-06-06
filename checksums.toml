@@ -1,5 +1,5 @@
 # plasmidBin checksums — BLAKE3
-# Generated: 2026-06-06T19:46:23Z
+# Generated: 2026-06-06T20:35:12Z
 # Target: x86_64-unknown-linux-musl
 
 [x86_64-unknown-linux-musl]
@@ -15,4 +15,4 @@ skunkbat = { blake3 = "eaa320db11affaf18c91334095ba43957c6be1ab51df59454883c41a7
 songbird = { blake3 = "3546e227d6ab3dda1b54566c170c2b9337a6e8c793450eeaae2ca62f34ad941e", size = 22690960 }
 squirrel = { blake3 = "810aa8cf3e50aa7bc2ff08d4db9536bdcc688603f67f8e5ecec5e6359a8a0d67", size = 3679296 }
 sweetgrass = { blake3 = "f067677743d73bb8bcf89503d7319de903f2733bfc95059035e529a041267fa3", size = 6960576 }
-toadstool = { blake3 = "5541a8a3e0129d64d37f441354325d2d8bf4d82c9dfb22dfc6db90358d8bac75", size = 12623440 }
+toadstool = { blake3 = "531963782d9008400839ff80018371e0d6e81eab6cc98b00a8f0134ddd99956b", size = 14499904 }
