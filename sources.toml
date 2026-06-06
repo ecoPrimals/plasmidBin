@@ -23,7 +23,10 @@
 #   - Validating composition readiness before release
 #   - Finding gaps to report upstream to primal teams
 #
-# Updated: 2026-05-26
+# NOTE: Ownership transferring to cellMembrane (Wave 82c+).
+# cellMembrane CLI (`membrane plasmid.harvest`) replaces bash scripts.
+#
+# Updated: 2026-06-06
 
 # =============================================================================
 # PRIMALS — Tower Atomic (electron: trust boundary)
