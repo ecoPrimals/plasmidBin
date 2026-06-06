@@ -162,9 +162,12 @@ build_one() {
 
     echo "  [$id] building for $TARGET ..."
 
+    local target_dir="$clone_dir/target"
+
     # shellcheck disable=SC2086
     if ! cargo build --release --target "$TARGET" \
         --manifest-path "$clone_dir/Cargo.toml" \
+        --target-dir "$target_dir" \
         $build_args \
         2>"/tmp/build_cargo_${id}.log"; then
         echo "  [$id] FAIL  build failed (see /tmp/build_cargo_${id}.log)"
@@ -172,7 +175,7 @@ build_one() {
         return
     fi
 
-    local bin_dir="$clone_dir/target/$TARGET/release"
+    local bin_dir="$target_dir/$TARGET/release"
     local copied=0
 
     # If binary_name override exists, look for that specifically
