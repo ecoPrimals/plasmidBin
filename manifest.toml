@@ -601,23 +601,6 @@ static = true
 stripped = true
 static = true
 
-# ── Coordination primal (primalSpring) ────────────────────────────────
-[binaries.primalspring_primal."x86_64-unknown-linux-musl"]
-stripped = true
-static = true
-
-[binaries.primalspring_primal."aarch64-unknown-linux-musl"]
-stripped = true
-static = true
-
-[binaries.primalspring_primal."armv7-unknown-linux-musleabihf"]
-stripped = true
-static = true
-
-[binaries.primalspring_primal."riscv64gc-unknown-linux-musl"]
-stripped = true
-static = true
-
 # =============================================================================
 # ATOMICS — Phase 31 aligned
 # =============================================================================

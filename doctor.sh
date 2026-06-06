@@ -205,26 +205,8 @@ if ! $JSON; then echo ""; fi
 
 # ── Coordination primal ──────────────────────────────────────────────────────
 
-if ! $JSON; then echo "=== Coordination Primal ==="; fi
-
-bin="$SCRIPT_DIR/primals/primalspring_primal"
-if [[ -f "$bin" ]]; then
-    file_out=$(file -L "$bin" 2>/dev/null)
-    is_static=false
-    is_stripped=false
-    if echo "$file_out" | grep -qE "statically linked|static-pie"; then is_static=true; fi
-    if ! echo "$file_out" | grep -q "not stripped"; then is_stripped=true; fi
-    sz=$(du -hL "$bin" | cut -f1)
-    if $is_static && $is_stripped; then
-        check "primalspring_primal" pass "${sz}, static, stripped"
-    elif $is_static; then
-        check "primalspring_primal" warn "${sz}, static, NOT stripped"
-    else
-        check "primalspring_primal" warn "${sz}, dynamic"
-    fi
-else
-    check "primalspring_primal" warn "not built yet"
-fi
+# primalspring_primal DEPRECATED (Wave 80) — primalSpring composes primals
+# via NUCLEUS. It is not itself a primal binary.
 
 if ! $JSON; then echo ""; fi
 
@@ -319,7 +301,7 @@ if ! $QUICK && command -v b3sum >/dev/null 2>&1 && [[ -f "$SCRIPT_DIR/checksums.
 
     GNU_TRIPLE="${ARCH}-linux-gnu"
 
-    for name in beardog songbird toadstool barracuda coralreef nestgate rhizocrypt loamspine sweetgrass biomeos squirrel petaltongue skunkbat primalspring_primal; do
+    for name in beardog songbird toadstool barracuda coralreef nestgate rhizocrypt loamspine sweetgrass biomeos squirrel petaltongue skunkbat; do
         bin="$SCRIPT_DIR/primals/$name"
         [[ ! -f "$bin" ]] && continue
 

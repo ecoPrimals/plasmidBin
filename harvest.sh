@@ -43,7 +43,6 @@ FAILED=0
 # artifact-name matches build_ecosystem_genomeBin.sh output: {binary}-{arch}-linux-musl
 # Harvest maps: PRIMALS ONLY.
 # Springs do not ship binaries via plasmidBin — they compose primals.
-# The only exception is primalspring_primal (coordination primal).
 HARVEST_MAP_X86_64=(
     # Tower Atomic
     "beardog-x86_64-linux-musl:primals/beardog"
@@ -63,8 +62,6 @@ HARVEST_MAP_X86_64=(
     "petaltongue-x86_64-linux-musl:primals/petaltongue"
     # Defense
     "skunkbat-x86_64-linux-musl:primals/skunkbat"
-    # Coordination primal
-    "primalspring_primal-x86_64-linux-musl:primals/primalspring_primal"
     # Launcher
     "nucleus_launcher-x86_64-linux-musl:primals/nucleus_launcher"
 )
@@ -88,8 +85,6 @@ HARVEST_MAP_AARCH64=(
     "petaltongue-aarch64-linux-musl:primals/aarch64/petaltongue"
     # Defense
     "skunkbat-aarch64-linux-musl:primals/aarch64/skunkbat"
-    # Coordination primal
-    "primalspring_primal-aarch64-linux-musl:primals/aarch64/primalspring_primal"
     # Launcher
     "nucleus_launcher-aarch64-linux-musl:primals/aarch64/nucleus_launcher"
 )

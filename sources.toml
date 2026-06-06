@@ -127,17 +127,6 @@ assets = ["sourdough"]
 note = "Starter culture — scaffolding, template propagation, primal-factory evolution path"
 
 # =============================================================================
-# COORDINATION PRIMAL (from primalSpring)
-# =============================================================================
-
-[sources.primalspring]
-repo = "syntheticChemistry/primalSpring"
-tag_pattern = "v{version}"
-assets = ["primalspring_primal"]
-binary_name = "primalspring_primal"
-note = "primalSpring's domain IS composition — this is a primal, not a spring binary"
-
-# =============================================================================
 # SPOREGARDEN — gen4 consumers (ecosystem awareness)
 # =============================================================================
 

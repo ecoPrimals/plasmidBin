@@ -48,7 +48,7 @@ usage() {
     echo ""
     echo "Primals: beardog, songbird, toadstool, barracuda, coralreef, nestgate,"
     echo "         rhizocrypt, loamspine, sweetgrass, biomeos, squirrel, petaltongue,"
-    echo "         skunkbat, primalspring_primal, ludospring"
+    echo "         skunkbat, ludospring"
     echo ""
     echo "Generic options (mapped to per-primal CLI):"
     echo "  --tcp-port PORT        TCP port"
@@ -214,11 +214,6 @@ case "$PRIMAL" in
         ARGS+=(server)
         [[ -n "$SOCKET_PATH" ]] && ARGS+=(--socket "$SOCKET_PATH")
         [[ -n "$TCP_PORT" ]] && export LUDOSPRING_PORT="$TCP_PORT"
-        ;;
-
-    primalspring_primal|primalspring)
-        ARGS+=(--mode server)
-        add_standard_flags
         ;;
 
     sweetgrass)
