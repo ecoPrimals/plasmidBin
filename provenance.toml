@@ -1,5 +1,5 @@
 # plasmidBin provenance — build traceability
-generated = "2026-06-06T19:03:02Z"
+generated = "2026-06-06T19:44:32Z"
 builder = "pop-os"
 target = "x86_64-unknown-linux-musl"
 rustc = "rustc 1.94.0 (4a4ef493e 2026-03-02)"
@@ -31,12 +31,12 @@ source = "primals/loamSpine"
 
 [nestgate]
 version = "version.workspace = true"
-commit = "9f9731a9"
+commit = "a3568dd6"
 source = "primals/nestGate"
 
 [petaltongue]
 version = "version.workspace = true"
-commit = "e3d6589"
+commit = "9fd58fa"
 source = "primals/petalTongue"
 
 [rhizocrypt]
@@ -51,7 +51,7 @@ source = "primals/skunkBat"
 
 [songbird]
 version = "0.2.1"
-commit = "dece3ae7"
+commit = "14148d7d"
 source = "primals/songBird"
 
 [squirrel]

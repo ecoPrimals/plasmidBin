@@ -1,5 +1,5 @@
 # plasmidBin checksums — BLAKE3
-# Generated: 2026-06-06T19:02:50Z
+# Generated: 2026-06-06T19:44:32Z
 # Target: x86_64-unknown-linux-musl
 
 [x86_64-unknown-linux-musl]
@@ -9,7 +9,7 @@ biomeos = { blake3 = "466733eb1086206c3b62813bd0b5b84665f8d8640c467ce10372a0be77
 coralreef = { blake3 = "1c6415f59756d81a9c19615b7cb705f650d4ccd46e528a8b522ad711b25f857c", size = 11088504 }
 loamspine = { blake3 = "e105852c61a7d6a26ac4da3a534d7fe5d8e1a2c36289216a0ea58a3517d09ea4", size = 4802752 }
 nestgate = { blake3 = "75f43fe9cdb92ae67cf49115a82ac6777f4b6c8401d91b2c620a3b4535b06c76", size = 8383920 }
-petaltongue = { blake3 = "008b7d7b5b528c51faebda12282149d6f6b6b3553c1dee5e76574f9c371415e7", size = 27836224 }
+petaltongue = { blake3 = "2073591efcaf47fc8784c245bc2acd987cd369f1e03abf54f4adf0d449a4c9c6", size = 28630880 }
 rhizocrypt = { blake3 = "93357fe10bce4e28610aef4201ee1399ef751b1f5da38f8a7390157a370fe193", size = 7204352 }
 skunkbat = { blake3 = "eaa320db11affaf18c91334095ba43957c6be1ab51df59454883c41a72f987fa", size = 2695392 }
 songbird = { blake3 = "3546e227d6ab3dda1b54566c170c2b9337a6e8c793450eeaae2ca62f34ad941e", size = 22690960 }
