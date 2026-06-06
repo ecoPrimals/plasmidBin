@@ -57,14 +57,13 @@ fn harvest_map(arch: Arch, root: &Path) -> Result<Vec<HarvestEntry>> {
     let sources = SourcesFile::load(root)?;
 
     let triple = arch.triple();
-    let short = arch.short();
 
     let mut entries: Vec<HarvestEntry> = sources
         .sources
         .iter()
         .map(|(id, entry)| {
             let bin = entry.binary_name(id);
-            let artifact = format!("{bin}-{short}-linux-musl");
+            let artifact = arch.asset_name(&bin);
             let dest = PathBuf::from(format!("primals/{triple}/{bin}"));
             HarvestEntry {
                 source_id: id.clone(),
@@ -125,9 +124,9 @@ pub fn run(args: HarvestArgs) -> Result<()> {
         None => Arch::detect()?,
     };
 
-    let source_dir = args.source.unwrap_or_else(|| {
-        PathBuf::from(format!("/tmp/primalspring-deploy/primals/{}", arch.short()))
-    });
+    let source_dir = args
+        .source
+        .unwrap_or_else(|| super::defaults::deploy_dir(arch.triple()));
 
     let root = &args.root;
     let primals_dir = root.join("primals").join(arch.triple());
@@ -172,16 +171,25 @@ pub fn run(args: HarvestArgs) -> Result<()> {
         let src = if src.exists() {
             src
         } else {
-            let plain = source_dir.join(&entry.binary_name);
-            if plain.exists() {
-                plain
+            let legacy = source_dir.join(format!(
+                "{}-{}-linux-musl",
+                entry.binary_name,
+                arch.short()
+            ));
+            if legacy.exists() {
+                legacy
             } else {
-                println!(
-                    "  [{}] SKIP  artifact not found: {} or {}",
-                    entry.binary_name, entry.artifact_name, entry.binary_name
-                );
-                skipped += 1;
-                continue;
+                let plain = source_dir.join(&entry.binary_name);
+                if plain.exists() {
+                    plain
+                } else {
+                    println!(
+                        "  [{}] SKIP  artifact not found: {} or {}",
+                        entry.binary_name, entry.artifact_name, entry.binary_name
+                    );
+                    skipped += 1;
+                    continue;
+                }
             }
         };
 

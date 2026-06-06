@@ -1,23 +1,19 @@
 #!/usr/bin/env bash
-# plasmidBin/harvest.sh — Publish local binaries to plasmidBin + GitHub Releases
+# plasmidBin/harvest.sh — DEPRECATED: use `plasmidbin harvest` (Rust CLI)
 #
-# Takes freshly built musl static binaries, validates them, computes checksums,
-# copies to local plasmidBin/{primals,springs}/, and optionally uploads to
-# GitHub Releases.
+# This bash script is superseded by the idiomatic Rust implementation in
+# crates/plasmidbin/src/cmd/harvest.rs. The Rust version:
+#   - Derives harvest map from sources.toml (no hardcoded list)
+#   - Uses Arch::asset_name() for consistent triple naming
+#   - Integrates sweetGrass provenance braids
+#   - Writes checksums.toml atomically via typed serde round-trip
 #
-# Usage:
-#   ./harvest.sh                              # Harvest x86_64 from default staging
-#   ./harvest.sh --arch aarch64               # Harvest aarch64 binaries
-#   ./harvest.sh --source /path/to/bins       # Harvest from custom dir
-#   ./harvest.sh --release v2026.03.27        # Also upload to GitHub Release
-#   ./harvest.sh --dry-run                    # Validate only, no file changes
-#   ./harvest.sh --primal beardog             # Harvest a single primal
+# Migration: `plasmidbin harvest --source /path/to/bins --arch x86_64`
+#
+# This file is retained for backward compatibility with existing CI and
+# manual workflows. It will be removed once all pipelines use the Rust CLI.
 #
 # Default source: /tmp/primalspring-deploy/primals/{arch}/
-#
-# Multi-arch layout:
-#   plasmidBin/primals/beardog              (x86_64 — default, backward compat)
-#   plasmidBin/primals/aarch64/beardog      (aarch64)
 #
 # Prerequisites:
 #   - b3sum (cargo install b3sum)
@@ -69,6 +65,8 @@ HARVEST_MAP_X86_64=(
     "skunkbat-x86_64-linux-musl:primals/skunkbat"
     # Coordination primal
     "primalspring_primal-x86_64-linux-musl:primals/primalspring_primal"
+    # Launcher
+    "nucleus_launcher-x86_64-linux-musl:primals/nucleus_launcher"
 )
 
 HARVEST_MAP_AARCH64=(
@@ -92,6 +90,8 @@ HARVEST_MAP_AARCH64=(
     "skunkbat-aarch64-linux-musl:primals/aarch64/skunkbat"
     # Coordination primal
     "primalspring_primal-aarch64-linux-musl:primals/aarch64/primalspring_primal"
+    # Launcher
+    "nucleus_launcher-aarch64-linux-musl:primals/aarch64/nucleus_launcher"
 )
 
 usage() {
@@ -131,9 +131,10 @@ detect_arch() {
 
 arch_to_triple() {
     case "$1" in
-        x86_64)  echo "x86_64-linux-musl" ;;
-        aarch64) echo "aarch64-linux-musl" ;;
-        *)       echo "$1-linux-musl" ;;
+        x86_64)  echo "x86_64-unknown-linux-musl" ;;
+        aarch64) echo "aarch64-unknown-linux-musl" ;;
+        armv7)   echo "armv7-unknown-linux-musleabihf" ;;
+        *)       echo "$1-unknown-linux-musl" ;;
     esac
 }
 

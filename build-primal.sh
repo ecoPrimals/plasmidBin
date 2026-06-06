@@ -182,7 +182,7 @@ build_one() {
     if [[ -n "$binary_name" ]]; then
         local src="$bin_dir/$binary_name"
         if [[ -f "$src" ]] && file "$src" | grep -q "ELF"; then
-            cp "$src" "$out_dir/${binary_name}-${ARCH}-linux-musl"
+            cp "$src" "$out_dir/${binary_name}-${TARGET}"
             ((copied++)) || true
         fi
     fi
@@ -196,7 +196,7 @@ build_one() {
             *.d|*.rlib|*.rmeta|*.so|build-script-*|*.a) continue ;;
         esac
         if file "$bin" | grep -q "ELF"; then
-            local dest_name="${bn}-${ARCH}-linux-musl"
+            local dest_name="${bn}-${TARGET}"
             if [[ ! -f "$out_dir/$dest_name" ]]; then
                 cp "$bin" "$out_dir/$dest_name"
                 ((copied++)) || true
@@ -245,7 +245,7 @@ fi
 if $DO_HARVEST && [[ $passed -gt 0 ]]; then
     echo ""
     echo "=== Harvesting ==="
-    HARVEST_ARGS=(--source "$STAGING/primals/$TARGET" --arch "$ARCH")
+    HARVEST_ARGS=(--source "$STAGING/primals/$TARGET" --arch "$TARGET")
     if [[ -n "$RELEASE_TAG" ]]; then
         HARVEST_ARGS+=(--release "$RELEASE_TAG")
     fi
