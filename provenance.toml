@@ -1,5 +1,5 @@
 # plasmidBin provenance — build traceability
-generated = "2026-06-06T19:44:32Z"
+generated = "2026-06-06T19:46:23Z"
 builder = "pop-os"
 target = "x86_64-unknown-linux-musl"
 rustc = "rustc 1.94.0 (4a4ef493e 2026-03-02)"
@@ -56,7 +56,7 @@ source = "primals/songBird"
 
 [squirrel]
 version = "0.1.0"
-commit = "5dea2cc6"
+commit = "de6aa4b0"
 source = "primals/squirrel"
 
 [sweetgrass]
