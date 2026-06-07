@@ -1,9 +1,9 @@
 # plasmidBin checksums — BLAKE3
-# Generated: 2026-06-07T17:05:59Z
+# Generated: 2026-06-07T19:23:51Z
 # Target: x86_64-unknown-linux-musl
 
 [x86_64-unknown-linux-musl]
-barracuda = { blake3 = "c04cedefdc27ab6eba31f7036b72e3e2058869883971e0337b32c6d88caa315e", size = 5798368 }
+barracuda = { blake3 = "09cf8bc5117d7b5fc03e61819302616a1eb5a5602b558753f3155cab0c046b6c", size = 11545120 }
 beardog = { blake3 = "4c705eed7f210ce73d2df89c35de6749f52d14b2811eb30755e0a1ec4854a83c", size = 12878032 }
 biomeos = { blake3 = "eaba00816d55da647defa5aaabb157a71eb8b6d0c487611e6dc6df7fd6cd8bcf", size = 20788560 }
 coralreef = { blake3 = "8028064a951bbcfeec34c5a7999f7e1fb5b7126a144487bbf45d138d48b166d6", size = 7322824 }
