@@ -1,11 +1,11 @@
 # plasmidBin provenance — build traceability
-generated = "2026-06-07T01:28:54Z"
+generated = "2026-06-07T15:37:30Z"
 builder = "unknown"
 target = "x86_64-unknown-linux-musl"
-rustc = "rustc 1.96.0 (ac68faa20 2026-05-25)"
+rustc = "rustc 1.92.0 (ded5c06cf 2025-12-08)"
 
 [barracuda]
-commit = "c5e905ac"
+commit = "126ea3e1"
 
 [beardog]
 version = "0.9.0"
@@ -13,9 +13,7 @@ commit = "6fb374752"
 source = "primals/bearDog"
 
 [biomeos]
-version = "0.1.0"
-commit = "2f895875"
-source = "primals/biomeOS"
+commit = "12b54493"
 
 [coralreef]
 version = "0.2.0"
@@ -23,9 +21,7 @@ commit = "98a4970"
 source = "primals/coralReef"
 
 [loamspine]
-version = "0.9.16"
-commit = "8ba8ed4"
-source = "primals/loamSpine"
+commit = "26bbb420"
 
 [nestgate]
 version = "version.workspace = true"
@@ -33,9 +29,7 @@ commit = "a3568dd6"
 source = "primals/nestGate"
 
 [petaltongue]
-version = "version.workspace = true"
-commit = "9fd58fa"
-source = "primals/petalTongue"
+commit = "62123005"
 
 [rhizocrypt]
 version = "0.14.2"
@@ -46,9 +40,7 @@ source = "primals/rhizoCrypt"
 commit = "a214e4ce"
 
 [songbird]
-version = "0.2.1"
-commit = "14148d7d"
-source = "primals/songBird"
+commit = "0a09354b"
 
 [squirrel]
 commit = "de6aa4b0"
