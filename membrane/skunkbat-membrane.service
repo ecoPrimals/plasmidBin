@@ -24,7 +24,7 @@ StartLimitBurst=5
 [Service]
 Type=simple
 ExecStart=/opt/membrane/skunkbat server \
-    --bind 127.0.0.1 --port 9140
+    --socket /run/membrane/skunkbat.sock
 
 Environment=SKUNKBAT_SOCKET_MODE=0660
 Environment=SKUNKBAT_LOG_LEVEL=info
