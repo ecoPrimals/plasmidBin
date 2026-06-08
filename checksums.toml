@@ -1,8 +1,11 @@
 # plasmidBin checksums — BLAKE3
-# Generated: 2026-06-08T14:46:00Z
-# Target: x86_64-unknown-linux-musl
+# Generated: 2026-06-08T15:35:00Z
+# Targets: x86_64-unknown-linux-musl, aarch64-linux-android
 
 [x86_64-unknown-linux-musl]
 beardog = { blake3 = "a92733f8d056fa3da00d80db3810ec4a35ac139af67f460a9204bcdf42485a80", size = 12775664 }
 songbird = { blake3 = "09ffbca1e3131c3aab09ed43fa568bf356a1c66000c31b0b993b8936a40a354e", size = 17414304 }
-sourdough = { blake3 = "63904df32fcd9bc68b88d3b2d547d3fa2b9c5cac923e329971c84067b469d6be", size = 3004864 }
+sourdough = { blake3 = "fdacb2b7a53ce631679e5c9c32d13c862b41bc86f41cf7ae6c5e5fd69b167eba", size = 3045824 }
+
+[aarch64-linux-android]
+sourdough = { blake3 = "140dd020446b456719fd962da65569214cb1a5f46328adf080a8087e4d311fb7", size = 2498232 }
