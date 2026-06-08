@@ -1,7 +1,7 @@
 # plasmidBin provenance — build traceability
-generated = "2026-06-08T13:15:00Z"
-builder = "unknown"
-target = "x86_64-unknown-linux-musl"
+generated = "2026-06-08T14:04:00Z"
+builder = "eastGate"
+targets = ["x86_64-unknown-linux-musl", "aarch64-linux-android"]
 rustc = "rustc 1.94.0 (4a4ef493e 2026-03-02)"
 
 [barracuda]
@@ -41,6 +41,12 @@ commit = "a214e4ce"
 
 [songbird]
 commit = "64af0da3"
+
+[sourdough]
+version = "0.3.1"
+commit = "8a42d30d"
+source = "primals/sourDough"
+targets = ["x86_64-unknown-linux-musl", "aarch64-linux-android"]
 
 [squirrel]
 commit = "de6aa4b0"

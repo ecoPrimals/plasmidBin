@@ -1,6 +1,6 @@
 # plasmidBin checksums — BLAKE3
-# Generated: 2026-06-08T13:15:00Z
-# Target: x86_64-unknown-linux-musl
+# Generated: 2026-06-08T14:04:00Z
+# Targets: x86_64-unknown-linux-musl, aarch64-linux-android
 
 [x86_64-unknown-linux-musl]
 barracuda = { blake3 = "c04cedefdc27ab6eba31f7036b72e3e2058869883971e0337b32c6d88caa315e", size = 5798368 }
@@ -15,4 +15,8 @@ skunkbat = { blake3 = "c01f9c1c0366916035bff547dede27fd0b3b81f07f2876d5fd60d0bf2
 songbird = { blake3 = "0692c4f5faf93fe5bb58ab70c366b0de5ed73d87b67f579c9ed25da9e505889a", size = 22723776 }
 squirrel = { blake3 = "1f13ddbe07b991233c69002ec9f3f2fd2589461f4e949fe4e830745ae69e6fe0", size = 3654016 }
 sweetgrass = { blake3 = "356d35f65a74a597e99dc61aa5cfa09129ae2a76387af2371c097fd4ec42b65c", size = 12222896 }
+sourdough = { blake3 = "5b154878db210fd28398f92f5dee640c97a98e6864b06aace345c3009b95d718", size = 3025400 }
 toadstool = { blake3 = "6359d3423db4b7e67a6d8c22959bfa1bdf6a9faf07f2b91baee35053c05b21a5", size = 15470832 }
+
+[aarch64-linux-android]
+sourdough = { blake3 = "140dd020446b456719fd962da65569214cb1a5f46328adf080a8087e4d311fb7", size = 2498232 }
