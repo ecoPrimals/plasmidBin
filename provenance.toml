@@ -1,5 +1,5 @@
 # plasmidBin provenance — build traceability
-generated = "2026-06-07T19:36:09Z"
+generated = "2026-06-08T13:15:00Z"
 builder = "unknown"
 target = "x86_64-unknown-linux-musl"
 rustc = "rustc 1.94.0 (4a4ef493e 2026-03-02)"
@@ -9,7 +9,7 @@ commit = "dae80170"
 
 [beardog]
 version = "0.9.0"
-commit = "6fb374752"
+commit = "3f138317e"
 source = "primals/bearDog"
 
 [biomeos]
@@ -40,7 +40,7 @@ source = "primals/rhizoCrypt"
 commit = "a214e4ce"
 
 [songbird]
-commit = "4b8ef78f"
+commit = "64af0da3"
 
 [squirrel]
 commit = "de6aa4b0"
