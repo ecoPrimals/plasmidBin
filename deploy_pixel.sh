@@ -28,7 +28,11 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 source "$SCRIPT_DIR/ports.env"
 
 AARCH64_DIR="$SCRIPT_DIR/primals/aarch64-unknown-linux-musl"
-# Fall back to legacy layout if target-triple dir is empty/missing
+# Try aarch64-linux-android (Pixel/GrapheneOS NDK target)
+if [[ ! -d "$AARCH64_DIR" ]] || [[ -z "$(ls -A "$AARCH64_DIR" 2>/dev/null)" ]]; then
+    AARCH64_DIR="$SCRIPT_DIR/primals/aarch64-linux-android"
+fi
+# Fall back to legacy layout
 if [[ ! -d "$AARCH64_DIR" ]] || [[ -z "$(ls -A "$AARCH64_DIR" 2>/dev/null)" ]]; then
     AARCH64_DIR="$SCRIPT_DIR/primals/aarch64"
 fi
@@ -296,12 +300,97 @@ sleep 2
         biomeos)
             STARTUP+="
 echo \"Starting biomeOS (TCP $PORT)...\"
-$REMOTE_PRIMALS/biomeos api \\
+$REMOTE_PRIMALS/biomeos neural-api \\
     --port $PORT \\
-    --bind 0.0.0.0 \\
     > /data/local/tmp/biomeos.log 2>&1 &
 echo \"  PID: \$!\"
 sleep 2
+"
+            ;;
+        barracuda)
+            STARTUP+="
+echo \"Starting barracuda (TCP $PORT)...\"
+export BARRACUDA_FAMILY_ID=\"\$FAMILY_ID\"
+export BARRACUDA_NODE_ID=\"\$NODE_ID\"
+$REMOTE_PRIMALS/barracuda server \\
+    --port $PORT \\
+    > /data/local/tmp/barracuda.log 2>&1 &
+echo \"  PID: \$!\"
+sleep 1
+"
+            ;;
+        coralreef)
+            STARTUP+="
+echo \"Starting coralreef (TCP $PORT)...\"
+export CORALREEF_FAMILY_ID=\"\$FAMILY_ID\"
+$REMOTE_PRIMALS/coralreef server \\
+    --port $PORT \\
+    > /data/local/tmp/coralreef.log 2>&1 &
+echo \"  PID: \$!\"
+sleep 1
+"
+            ;;
+        rhizocrypt)
+            STARTUP+="
+echo \"Starting rhizocrypt (TCP $PORT)...\"
+export RHIZOCRYPT_FAMILY_ID=\"\$FAMILY_ID\"
+$REMOTE_PRIMALS/rhizocrypt server \\
+    --port $PORT \\
+    > /data/local/tmp/rhizocrypt.log 2>&1 &
+echo \"  PID: \$!\"
+sleep 1
+"
+            ;;
+        loamspine)
+            STARTUP+="
+echo \"Starting loamspine (TCP $PORT)...\"
+$REMOTE_PRIMALS/loamspine server \\
+    --port $PORT \\
+    > /data/local/tmp/loamspine.log 2>&1 &
+echo \"  PID: \$!\"
+sleep 1
+"
+            ;;
+        sweetgrass)
+            STARTUP+="
+echo \"Starting sweetgrass (TCP $PORT)...\"
+$REMOTE_PRIMALS/sweetgrass server \\
+    --port $PORT \\
+    > /data/local/tmp/sweetgrass.log 2>&1 &
+echo \"  PID: \$!\"
+sleep 1
+"
+            ;;
+        skunkbat)
+            STARTUP+="
+echo \"Starting skunkbat (TCP $PORT)...\"
+export BEARDOG_HOST=\"127.0.0.1\"
+export BEARDOG_PORT=\"$BEARDOG_PORT\"
+$REMOTE_PRIMALS/skunkbat server \\
+    --port $PORT \\
+    > /data/local/tmp/skunkbat.log 2>&1 &
+echo \"  PID: \$!\"
+sleep 1
+"
+            ;;
+        petaltongue)
+            STARTUP+="
+echo \"Starting petaltongue (TCP $PORT)...\"
+$REMOTE_PRIMALS/petaltongue server \\
+    --port $PORT \\
+    > /data/local/tmp/petaltongue.log 2>&1 &
+echo \"  PID: \$!\"
+sleep 1
+"
+            ;;
+        *)
+            STARTUP+="
+echo \"Starting $p (TCP $PORT — generic handler)...\"
+$REMOTE_PRIMALS/$p server \\
+    --port $PORT \\
+    > /data/local/tmp/$p.log 2>&1 &
+echo \"  PID: \$!\"
+sleep 1
 "
             ;;
     esac
