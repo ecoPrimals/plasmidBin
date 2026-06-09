@@ -215,6 +215,16 @@ mkdir -p $REMOTE_RUNTIME $REMOTE_RUNTIME/biomeos $REMOTE_RUNTIME/pid
 cd $REMOTE_RUNTIME
 "
 
+if [[ -n "$BEACON_SEED" && -f "$BEACON_SEED" ]]; then
+    STARTUP+="export FAMILY_SEED=\$(cat $REMOTE_DIR/.beacon.seed)
+export BEARDOG_FAMILY_SEED=\$(cat $REMOTE_DIR/.beacon.seed)
+"
+else
+    STARTUP+="export FAMILY_SEED=\"\$FAMILY_ID\"
+export BEARDOG_FAMILY_SEED=\"\$FAMILY_ID\"
+"
+fi
+
 if $DARK_FOREST; then
     STARTUP+="export SONGBIRD_DARK_FOREST=true
 export SONGBIRD_AUTO_DISCOVERY=true
