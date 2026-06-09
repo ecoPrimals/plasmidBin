@@ -1,8 +1,8 @@
 # plasmidBin provenance — build traceability
-generated = "2026-06-09T13:48:32Z"
+generated = "2026-06-09T17:47:05Z"
 builder = "unknown"
 target = "x86_64-unknown-linux-musl"
-rustc = "rustc 1.96.0 (ac68faa20 2026-05-25)"
+rustc = "rustc 1.94.0 (4a4ef493e 2026-03-02)"
 
 [barracuda]
 commit = "9b9cbed3"
@@ -32,7 +32,7 @@ commit = "fcc2221f"
 commit = "1b2f6963"
 
 [songbird]
-commit = "aebe271f"
+commit = "aecbebdc"
 
 [sourdough]
 commit = "bbc4821"
