@@ -271,9 +271,10 @@ evolution = "composed"
 particle_profile = "balanced"
 proto_nucleate = "wetspring_lifescience_proto_nucleate"
 required_atomics = ["node", "nest", "meta_tier"]
-tests = 1962
+tests = 2098
 barracuda_depth = "composed"
-note = "V168: barraCuda 0.3.12→0.4.0, coralReef v0.1.0 declared, LTEE B7 mutation accumulation, plasmidBin deployment re-verified."
+transport_injection = true
+note = "V198: NUCLEUS deployment elevation — TransportEndpoint, health.ping, IPC service unit, graph cleanup. 2,098 tests, 0 clippy warnings."
 
 [springs.airspring]
 name = "airSpring"

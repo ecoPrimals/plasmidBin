@@ -29,7 +29,7 @@ spring = "wetspring"
 graph = "wetspring_cell.toml"
 domain = "biology"
 binary = "wetspring"
-requires = ["beardog", "songbird", "toadstool", "barracuda", "coralreef", "nestgate", "rhizocrypt", "loamspine", "sweetgrass", "petaltongue"]
+requires = ["beardog", "songbird", "skunkbat", "toadstool", "barracuda", "coralreef", "nestgate", "rhizocrypt", "loamspine", "sweetgrass", "biomeos", "squirrel", "petaltongue"]
 petaltongue_mode = "live"
 
 [[cell]]

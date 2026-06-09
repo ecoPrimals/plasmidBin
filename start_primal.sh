@@ -259,6 +259,13 @@ case "$PRIMAL" in
         [[ -n "$FAMILY_ID" ]] && export SKUNKBAT_FAMILY_ID="$FAMILY_ID"
         ;;
 
+    wetspring)
+        ARGS+=(serve)
+        [[ -n "$SOCKET_PATH" ]] && ARGS+=(--socket "$SOCKET_PATH")
+        [[ -n "$TCP_PORT" ]] && ARGS+=(--port "$TCP_PORT")
+        [[ -n "$FAMILY_ID" ]] && ARGS+=(--family-id "$FAMILY_ID")
+        ;;
+
     *)
         echo "WARNING: Unknown primal: $PRIMAL — attempting generic start"
         echo "  Trying: $PRIMAL_BIN server --socket/--port"
