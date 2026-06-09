@@ -211,7 +211,12 @@ export NODE_ID=\"$NODE_ID\"
 export ECOPRIMALS_PLASMID_BIN=\"$REMOTE_DIR\"
 export HOME=\"$REMOTE_RUNTIME\"
 export TMPDIR=\"$REMOTE_RUNTIME\"
-mkdir -p $REMOTE_RUNTIME $REMOTE_RUNTIME/biomeos $REMOTE_RUNTIME/pid
+export XDG_RUNTIME_DIR=\"$REMOTE_RUNTIME\"
+export BIOMEOS_SOCKET_DIR=\"$REMOTE_RUNTIME/sockets\"
+export NESTGATE_SOCKET=\"$REMOTE_RUNTIME/sockets/nestgate-\$FAMILY_ID.sock\"
+export BIOMEOS_API_SOCKET_PATH=\"$REMOTE_RUNTIME/sockets/biomeos-api-\$FAMILY_ID.sock\"
+export NEURAL_API_SOCKET=\"$REMOTE_RUNTIME/sockets/neural-api-\$FAMILY_ID.sock\"
+mkdir -p $REMOTE_RUNTIME $REMOTE_RUNTIME/biomeos $REMOTE_RUNTIME/pid $REMOTE_RUNTIME/sockets
 cd $REMOTE_RUNTIME
 "
 
@@ -274,11 +279,14 @@ sleep 2
             ;;
         nestgate)
             STARTUP+="
-echo \"Starting nestgate (TCP $PORT)...\"
+echo \"Starting nestgate (TCP $PORT + abstract socket — Android SELinux)...\"
 export NESTGATE_FAMILY_ID=\"\$FAMILY_ID\"
 export NESTGATE_JWT_SECRET=\"plasmidbin-pixel-\$FAMILY_ID\"
-$REMOTE_PRIMALS/nestgate daemon \\
-    --socket-only --dev \\
+$REMOTE_PRIMALS/nestgate server \\
+    --dev \\
+    --abstract \\
+    --port $PORT \\
+    --family-id \$FAMILY_ID \\
     > /data/local/tmp/nestgate.log 2>&1 &
 echo \"  PID: \$!\"
 sleep 2
@@ -286,13 +294,16 @@ sleep 2
             ;;
         toadstool)
             STARTUP+="
-echo \"Starting toadstool (capabilities mode)...\"
+echo \"Starting toadstool (TCP $PORT)...\"
 export TOADSTOOL_FAMILY_ID=\"\$FAMILY_ID\"
 export TOADSTOOL_NODE_ID=\"\$NODE_ID\"
 export TOADSTOOL_SECURITY_WARNING_ACKNOWLEDGED=1
-echo \"  ToadStool capabilities:\"
-$REMOTE_PRIMALS/toadstool capabilities 2>/dev/null | head -5 || echo \"  (check unavailable)\"
-echo \"  NOTE: ToadStool requires biome.yaml for full server mode.\"
+export TOADSTOOL_SOCKET=\"\$BIOMEOS_SOCKET_DIR/compute-\$FAMILY_ID.sock\"
+$REMOTE_PRIMALS/toadstool server \\
+    --port $PORT \\
+    > /data/local/tmp/toadstool.log 2>&1 &
+echo \"  PID: \$!\"
+sleep 2
 "
             ;;
         squirrel)
@@ -309,9 +320,12 @@ sleep 2
             ;;
         biomeos)
             STARTUP+="
-echo \"Starting biomeOS (TCP $PORT)...\"
+echo \"Starting biomeOS (TCP $PORT — Android SELinux, skip UDS)...\"
+export BIOMEOS_BTSP_ENFORCE=0
 $REMOTE_PRIMALS/biomeos neural-api \\
     --port $PORT \\
+    --bind 0.0.0.0 \\
+    --btsp-optional \\
     > /data/local/tmp/biomeos.log 2>&1 &
 echo \"  PID: \$!\"
 sleep 2
@@ -319,11 +333,12 @@ sleep 2
             ;;
         barracuda)
             STARTUP+="
-echo \"Starting barracuda (TCP $PORT)...\"
+echo \"Starting barracuda (TCP $PORT, no UDS — Android SELinux)...\"
 export BARRACUDA_FAMILY_ID=\"\$FAMILY_ID\"
 export BARRACUDA_NODE_ID=\"\$NODE_ID\"
 $REMOTE_PRIMALS/barracuda server \\
     --port $PORT \\
+    --no-unix \\
     > /data/local/tmp/barracuda.log 2>&1 &
 echo \"  PID: \$!\"
 sleep 1
@@ -331,11 +346,13 @@ sleep 1
             ;;
         coralreef)
             STARTUP+="
-echo \"Starting coralreef (TCP $PORT)...\"
+echo \"Starting coralreef (TCP $PORT only — Android SELinux)...\"
 export CORALREEF_FAMILY_ID=\"\$FAMILY_ID\"
+export TRANSPORT_ENDPOINT='{\"transport\":\"tcp\",\"host\":\"0.0.0.0\",\"port\":$PORT}'
 $REMOTE_PRIMALS/coralreef server \\
-    --port $PORT \\
+    --rpc-bind 0.0.0.0:$PORT \\
     > /data/local/tmp/coralreef.log 2>&1 &
+unset TRANSPORT_ENDPOINT
 echo \"  PID: \$!\"
 sleep 1
 "
@@ -373,11 +390,12 @@ sleep 1
             ;;
         skunkbat)
             STARTUP+="
-echo \"Starting skunkbat (TCP $PORT)...\"
+echo \"Starting skunkbat (TCP $PORT, no UDS — Android SELinux)...\"
 export BEARDOG_HOST=\"127.0.0.1\"
 export BEARDOG_PORT=\"$BEARDOG_PORT\"
 $REMOTE_PRIMALS/skunkbat server \\
     --port $PORT \\
+    --no-uds \\
     > /data/local/tmp/skunkbat.log 2>&1 &
 echo \"  PID: \$!\"
 sleep 1
@@ -385,10 +403,13 @@ sleep 1
             ;;
         petaltongue)
             STARTUP+="
-echo \"Starting petaltongue (TCP $PORT)...\"
+echo \"Starting petaltongue (TCP $PORT — Android SELinux, skip UDS)...\"
+export TRANSPORT_ENDPOINT='{\"transport\":\"tcp\",\"host\":\"0.0.0.0\",\"port\":$PORT}'
 $REMOTE_PRIMALS/petaltongue server \\
     --port $PORT \\
+    --bind 0.0.0.0 \\
     > /data/local/tmp/petaltongue.log 2>&1 &
+unset TRANSPORT_ENDPOINT
 echo \"  PID: \$!\"
 sleep 1
 "
