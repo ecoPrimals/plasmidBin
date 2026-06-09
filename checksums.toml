@@ -1,5 +1,5 @@
 [checksums]
-generated = "2026-06-09T13:12:56Z"
+generated = "2026-06-09T13:39:24Z"
 builder = "strandGate"
 target = "x86_64-unknown-linux-musl"
 
@@ -12,8 +12,8 @@ blake3 = "df8aa1bed36f244c53f0714ec1012be72532cbd0f8aa365a142e2f92e8e57758"
 size = 12984720
 
 [biomeos]
-blake3 = "eaba00816d55da647defa5aaabb157a71eb8b6d0c487611e6dc6df7fd6cd8bcf"
-size = 20788560
+blake3 = "bb372c62fd46625ddb8ddafa86e34b24c58541276dc28c891f58ab7a9174718b"
+size = 20779360
 
 [coralreef]
 blake3 = "fb23a63b27a0b4ce76a2aea0f938eef2a17e6e320dcd31feca691d32edee0a1d"
