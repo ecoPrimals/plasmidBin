@@ -1,59 +1,48 @@
 # plasmidBin provenance — build traceability
-# Harvested: 2026-06-08T16:26:00Z
-# Source: eastGate local depot (pre-cascade binaries, post-cascade commits)
-# NOTE: Some binaries predate their primal's latest commit (stale).
-#   Primals with new evolution since last build are marked stale=true.
-#   VPS peptidoglycan layer should rebuild stale primals on next cycle.
-generated = "2026-06-08T16:26:00Z"
-builder = "eastGate"
+generated = "2026-06-09T13:03:50Z"
+builder = "unknown"
 target = "x86_64-unknown-linux-musl"
-rustc = "rustc 1.87.0 (17067e9ac 2025-05-09)"
+rustc = "rustc 1.96.0 (ac68faa20 2026-05-25)"
 
 [barracuda]
-commit = "a0762d26"
-stale = true
+commit = "9b9cbed3"
 
 [beardog]
-commit = "694a2f50"
-stale = true
+commit = "d3a8eb7b"
 
 [biomeos]
-commit = "12b54493"
+commit = "a459ec58"
 
 [coralreef]
-commit = "cd53c7f1"
-stale = true
+commit = "4c417a95"
 
 [loamspine]
-commit = "4398765e"
-stale = true
+commit = "d74342d5"
 
 [nestgate]
-commit = "a3568dd6"
+commit = "4258ce46"
 
 [petaltongue]
-commit = "62123005"
+commit = "6ea64799"
 
 [rhizocrypt]
-commit = "b63e52e5"
-stale = true
+commit = "133dd23c"
 
 [skunkbat]
-commit = "a214e4ce"
+commit = "7ae3c82c"
 
 [songbird]
-commit = "bcde6679"
-stale = true
+commit = "aebe271f"
 
 [sourdough]
 commit = "bbc4821"
 
 [squirrel]
-commit = "de6aa4b0"
+commit = "ac8ef9c8"
 
 [sweetgrass]
-commit = "c4e4fe3"
-stale = true
+commit = "85397dd3"
 
 [toadstool]
 commit = "ad0c81ca1"
+
