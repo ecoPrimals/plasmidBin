@@ -1,0 +1,87 @@
+# NUCLEUS Complete — Full 13-primal composition
+# Used by biomeOS composition.deploy for graph-driven orchestration
+
+[graph]
+id = "nucleus_complete"
+version = "1.0.0"
+description = "Full NUCLEUS deployment — all 13 primals"
+
+[[nodes]]
+id = "beardog"
+binary = "beardog"
+tier = "tower"
+required = true
+
+[[nodes]]
+id = "songbird"
+binary = "songbird"
+tier = "tower"
+depends_on = ["beardog"]
+required = true
+
+[[nodes]]
+id = "skunkbat"
+binary = "skunkbat"
+tier = "tower"
+depends_on = ["beardog"]
+
+[[nodes]]
+id = "biomeos"
+binary = "biomeos"
+tier = "orchestration"
+depends_on = ["beardog", "songbird"]
+args = ["neural-api"]
+
+[[nodes]]
+id = "toadstool"
+binary = "toadstool"
+tier = "node"
+depends_on = ["songbird"]
+
+[[nodes]]
+id = "barracuda"
+binary = "barracuda"
+tier = "node"
+depends_on = ["songbird"]
+
+[[nodes]]
+id = "coralreef"
+binary = "coralreef"
+tier = "node"
+depends_on = ["songbird"]
+
+[[nodes]]
+id = "nestgate"
+binary = "nestgate"
+tier = "nest"
+depends_on = ["songbird"]
+
+[[nodes]]
+id = "rhizocrypt"
+binary = "rhizocrypt"
+tier = "nest"
+depends_on = ["songbird"]
+
+[[nodes]]
+id = "loamspine"
+binary = "loamspine"
+tier = "nest"
+depends_on = ["songbird"]
+
+[[nodes]]
+id = "sweetgrass"
+binary = "sweetgrass"
+tier = "nest"
+depends_on = ["songbird"]
+
+[[nodes]]
+id = "squirrel"
+binary = "squirrel"
+tier = "agent"
+depends_on = ["songbird"]
+
+[[nodes]]
+id = "petaltongue"
+binary = "petaltongue"
+tier = "agent"
+depends_on = ["songbird"]
