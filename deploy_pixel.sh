@@ -216,6 +216,7 @@ export BIOMEOS_SOCKET_DIR=\"$REMOTE_RUNTIME/sockets\"
 export NESTGATE_SOCKET=\"$REMOTE_RUNTIME/sockets/nestgate-\$FAMILY_ID.sock\"
 export BIOMEOS_API_SOCKET_PATH=\"$REMOTE_RUNTIME/sockets/biomeos-api-\$FAMILY_ID.sock\"
 export NEURAL_API_SOCKET=\"$REMOTE_RUNTIME/sockets/neural-api-\$FAMILY_ID.sock\"
+export PRIMAL_BIND_MODE=\"fallback\"
 mkdir -p $REMOTE_RUNTIME $REMOTE_RUNTIME/biomeos $REMOTE_RUNTIME/pid $REMOTE_RUNTIME/sockets
 cd $REMOTE_RUNTIME
 "
