@@ -1,10 +1,10 @@
 # plasmidBin checksums — BLAKE3
-# Generated: 2026-06-10T02:28:25Z
+# Generated: 2026-06-10T21:23:43Z
 
 [aarch64-unknown-linux-musl]
 barracuda = { blake3 = "64c2435a87a8965126702d64877914ab6adcb7e8b5d67714d65c4237a54e8749", size = 13840880 }
 beardog = { blake3 = "f0591353ff36a1e3599cf755cb727a6eac14561744897d656215ca50d4edd412", size = 8871480 }
-biomeos = { blake3 = "7fdc9f5eb0e570eec89f59207399970a785dd4f021ff3db0494d72cc46664044", size = 18524640 }
+biomeos = { blake3 = "46a3d80695a7b6304d0e903303874cc968db9e77042b367836c06dc721e2f28d", size = 18541304 }
 coralreef = { blake3 = "8e38308400d542717ee352f91ae100f5937cfb9fb873f070b2bb875cba7917a9", size = 10880328 }
 loamspine = { blake3 = "09c6e67d27683ccca98a30b31a0734414a791d5d8c13d8db7e5ad19967f39e75", size = 3946168 }
 nestgate = { blake3 = "3cd7608b55a9e5e9ae1c1f632927eb2de973e6db97fdb05b960cb476c95d6d5f", size = 7257680 }
