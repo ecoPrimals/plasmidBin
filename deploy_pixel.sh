@@ -280,15 +280,22 @@ sleep 2
             ;;
         nestgate)
             STARTUP+="
-echo \"Starting nestgate (TCP $PORT + abstract socket — Android SELinux)...\"
+echo \"Starting nestgate (TCP $PORT only — Android SELinux)...\"
 export NESTGATE_FAMILY_ID=\"\$FAMILY_ID\"
 export NESTGATE_JWT_SECRET=\"plasmidbin-pixel-\$FAMILY_ID\"
+export PRIMAL_BIND_MODE=\"tcp_only\"
+export NESTGATE_SOCKET=\"\"
+export NESTGATE_JSONRPC_TCP=1
+export NESTGATE_PORT=$PORT
+export NESTGATE_BIND_ADDRESS=\"0.0.0.0\"
 $REMOTE_PRIMALS/nestgate server \\
     --dev \\
-    --abstract \\
-    --port $PORT \\
+    --enable-http \\
+    --listen 0.0.0.0:$PORT \\
     --family-id \$FAMILY_ID \\
     > /data/local/tmp/nestgate.log 2>&1 &
+unset NESTGATE_SOCKET
+export PRIMAL_BIND_MODE=\"fallback\"
 echo \"  PID: \$!\"
 sleep 2
 "
@@ -321,13 +328,17 @@ sleep 2
             ;;
         biomeos)
             STARTUP+="
-echo \"Starting biomeOS (TCP $PORT — Android SELinux, skip UDS)...\"
+echo \"Starting biomeOS (TCP $PORT only — Android SELinux, skip UDS)...\"
 export BIOMEOS_BTSP_ENFORCE=0
+export PRIMAL_BIND_MODE=\"tcp_only\"
+export TRANSPORT_ENDPOINT='{\"transport\":\"tcp\",\"host\":\"0.0.0.0\",\"port\":$PORT}'
 $REMOTE_PRIMALS/biomeos neural-api \\
     --port $PORT \\
     --bind 0.0.0.0 \\
     --btsp-optional \\
     > /data/local/tmp/biomeos.log 2>&1 &
+unset TRANSPORT_ENDPOINT
+export PRIMAL_BIND_MODE=\"fallback\"
 echo \"  PID: \$!\"
 sleep 2
 "
@@ -349,11 +360,13 @@ sleep 1
             STARTUP+="
 echo \"Starting coralreef (TCP $PORT only — Android SELinux)...\"
 export CORALREEF_FAMILY_ID=\"\$FAMILY_ID\"
+export PRIMAL_BIND_MODE=\"tcp_only\"
 export TRANSPORT_ENDPOINT='{\"transport\":\"tcp\",\"host\":\"0.0.0.0\",\"port\":$PORT}'
 $REMOTE_PRIMALS/coralreef server \\
     --rpc-bind 0.0.0.0:$PORT \\
     > /data/local/tmp/coralreef.log 2>&1 &
 unset TRANSPORT_ENDPOINT
+export PRIMAL_BIND_MODE=\"fallback\"
 echo \"  PID: \$!\"
 sleep 1
 "
