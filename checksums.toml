@@ -1,21 +1,21 @@
 # plasmidBin checksums — BLAKE3
-# Generated: 2026-06-10T21:55:07Z
+# Generated: 2026-06-11T00:58:00Z (Wave 108 rebuild: all bind-mode fixes baked in)
 
 [aarch64-unknown-linux-musl]
-barracuda = { blake3 = "42119d24cd392432b06f5bf3acdc916ff5dcde90c23e49abedcd3592effa8f6f", size = 13899160 }
-beardog = { blake3 = "bce9b537dd718d3e72c14ab84d2ff536a7a8db20b1ef28f39cb97f9e671bc767", size = 8871480 }
-biomeos = { blake3 = "46a3d80695a7b6304d0e903303874cc968db9e77042b367836c06dc721e2f28d", size = 18541304 }
-coralreef = { blake3 = "7b70e909739db92dae3d06694434a4d47426cbcfd27aaeabf55e57ded6e230e8", size = 10878992 }
-loamspine = { blake3 = "09c6e67d27683ccca98a30b31a0734414a791d5d8c13d8db7e5ad19967f39e75", size = 3946168 }
-nestgate = { blake3 = "6babbfbc83d25a38c24b6159344752daa00e86ef915dfa36981119e637ee2fee", size = 7249512 }
-petaltongue = { blake3 = "a5f15f65d2a642885837b9cfb7507888dce9a8f1f2b6a17f857fc784547e1791", size = 37602336 }
-rhizocrypt = { blake3 = "abd715291bbfdd4afeb94217d6c3662934839098cee11dae920815148ac9c8dc", size = 6283616 }
-skunkbat = { blake3 = "7866581c980844f90e07c4323209371c9b29107e38ea30c6771976078675421c", size = 2326224 }
-songbird = { blake3 = "e734d8086829b1297b9b88f9ed192be3117885fc68f24f524a3e1466baccfef8", size = 20802336 }
-sourdough = { blake3 = "38e7f7f42f4caa1a0d5d5cb242f3386f2a47d2327dcec8f06aab796e4a0daf97", size = 2496424 }
-squirrel = { blake3 = "832f1fa8158143df58af42d00a9681df1b292bfeb4a06b0b53d067a7fcfbc550", size = 8341168 }
-sweetgrass = { blake3 = "b18ccbd684a0a89397ff7192756cc9d04a4dd59793ebeb7351478bd83112854d", size = 13764488 }
-toadstool = { blake3 = "753bad6a6391313be5008148ebae378441fc60e47b5a757c418b9456555c5f2b", size = 10116376 }
+barracuda = { blake3 = "e446a5cded502402395c098e0571f75cf2d8005e71e18cd2ef271988ce825885", size = 13848256 }
+beardog = { blake3 = "4436e8ce379111997a68d0252be2ef51f64fedc58e8b578a4b50c04ab4b468ca", size = 8945216 }
+biomeos = { blake3 = "ea4c45e8796e5a02bbea2b1ae1d4cdeecd0973a0c8b1e910dde9c7900d12958a", size = 18126472 }
+coralreef = { blake3 = "4f0fcd0debb9fd2dc4844261d40576fda7e05af3120241e6e6112dd8a277507e", size = 6714760 }
+loamspine = { blake3 = "e05b656a4095ee8975cfb3718f2c5aad07bee4b8d876a7b0b21d4ec12af6adbb", size = 3974848 }
+nestgate = { blake3 = "8406ac85f829a7e89849ad2386e4cd7d4fe9f3b4518f03ccac8569b977c8861b", size = 7298688 }
+petaltongue = { blake3 = "eff3526e4888c8ffb1377289c615838a6ea2125ac3bd6440fb825eec4bad5545", size = 37685968 }
+rhizocrypt = { blake3 = "f4151b4df2e348282424d6d8d4430b64fa01ca9833efb403f55147b5f7a7dad1", size = 6295912 }
+skunkbat = { blake3 = "803c791eb6959c5b2b65196164e9504af797faa76859a2bb5de5e336434d14bc", size = 2318040 }
+songbird = { blake3 = "d936ad7c5f6d55951a35d89492cf51ccd9b7b54577cfb57121429ddaa1039c17", size = 20545608 }
+sourdough = { blake3 = "a043d8d2809feae5fad01176647949cc37cbdbd7d26b5fb69dde9e2d44c1d1d6", size = 2656160 }
+squirrel = { blake3 = "e4093fcd7b0222b29625ccc93d18bc884b9380fdaa44dcd68df599ab2e3d38f2", size = 8373088 }
+sweetgrass = { blake3 = "be9c70b544e2b49eddac5abb24c0f4c4d92a8ae2b61f76d064aecca3abcc9d87", size = 13740880 }
+toadstool = { blake3 = "efbed95660020a6f041c72ce233c4c76332b2e2b3f0ce4a7c32048a89fec42b9", size = 10145048 }
 
 [x86_64-unknown-linux-musl]
 barracuda = { blake3 = "9c27118c7725016a6188e4d3083212c93e36dfb117fbee00196f4000d196d9c0", size = 11627136 }
@@ -31,4 +31,3 @@ songbird = { blake3 = "86fd34e1a056035b3f3dcf8fd1f2739d8531c5d2130172117aff616ce
 squirrel = { blake3 = "257fb76ffa2e8e48b7592a0b3d3a68ab5fa3c47102a1e4cfb7143475b6046666", size = 6939840 }
 sweetgrass = { blake3 = "690c9b05c6b25326dbdc6a8c8c3233b1c13463fd01159c8006f5c78f89016ed8", size = 11167168 }
 toadstool = { blake3 = "fd73e30ea4baf32cb2356cd3018e7a9a05ec45212805fe1f2793990702827b04", size = 13569888 }
-
