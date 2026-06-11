@@ -1,5 +1,5 @@
 # plasmidBin checksums — BLAKE3
-# Generated: 2026-06-11T00:58:00Z (Wave 108 rebuild: all bind-mode fixes baked in)
+# Generated: 2026-06-11T19:48:19Z
 
 [aarch64-unknown-linux-musl]
 barracuda = { blake3 = "e446a5cded502402395c098e0571f75cf2d8005e71e18cd2ef271988ce825885", size = 13848256 }
@@ -19,7 +19,7 @@ toadstool = { blake3 = "efbed95660020a6f041c72ce233c4c76332b2e2b3f0ce4a7c32048a8
 
 [x86_64-unknown-linux-musl]
 barracuda = { blake3 = "9c27118c7725016a6188e4d3083212c93e36dfb117fbee00196f4000d196d9c0", size = 11627136 }
-beardog = { blake3 = "b8d7781137a81d0eaef9042c614d3db8d4bcd6efd6b37b95eca14b471e9cb1f6", size = 11124864 }
+beardog = { blake3 = "9c351408127094a24665a80348cf1229037430890daeb34ef54789e52b316796", size = 11137248 }
 biomeos = { blake3 = "b18cb2e7856453fe9d747eef4f16f484931ff6a2cbd2f209d6d794ef0c6277ca", size = 16709504 }
 coralreef = { blake3 = "e2b52b8d2897a04afe4a2d653b3082431ef34f415fa382c8c88c6a97df8f452e", size = 9295776 }
 loamspine = { blake3 = "f4e591a929bc182f496e95657bb145c3ce67b5dd23cdc22e8131b4062ab991b9", size = 4765920 }
@@ -31,3 +31,4 @@ songbird = { blake3 = "86fd34e1a056035b3f3dcf8fd1f2739d8531c5d2130172117aff616ce
 squirrel = { blake3 = "257fb76ffa2e8e48b7592a0b3d3a68ab5fa3c47102a1e4cfb7143475b6046666", size = 6939840 }
 sweetgrass = { blake3 = "690c9b05c6b25326dbdc6a8c8c3233b1c13463fd01159c8006f5c78f89016ed8", size = 11167168 }
 toadstool = { blake3 = "fd73e30ea4baf32cb2356cd3018e7a9a05ec45212805fe1f2793990702827b04", size = 13569888 }
+
