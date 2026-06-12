@@ -1,5 +1,5 @@
 # plasmidBin checksums — BLAKE3
-# Generated: 2026-06-11T19:58:49Z
+# Generated: 2026-06-12T12:32:58Z
 
 [aarch64-unknown-linux-musl]
 barracuda = { blake3 = "e446a5cded502402395c098e0571f75cf2d8005e71e18cd2ef271988ce825885", size = 13848256 }
@@ -20,14 +20,14 @@ toadstool = { blake3 = "efbed95660020a6f041c72ce233c4c76332b2e2b3f0ce4a7c32048a8
 [x86_64-unknown-linux-musl]
 barracuda = { blake3 = "3ad7a5499d644f52c952049733b96be1f1e6ebf73209d489fe1df528199b4120", size = 11635360 }
 beardog = { blake3 = "9c351408127094a24665a80348cf1229037430890daeb34ef54789e52b316796", size = 11137248 }
-biomeos = { blake3 = "9196cac0ef816c788850f9ed85d0676e2efdaa319c4f19d739b2f91e9c9ec56d", size = 16861088 }
+biomeos = { blake3 = "83bc9b19e2ad84a8a91b322fe321e1dc9284d382ceec21283e33c610139541d3", size = 16394336 }
 coralreef = { blake3 = "861e1f6343651a1518e6a9165ba203cd2bccdef951434a3d0c68c2d59cf8a569", size = 9308032 }
 loamspine = { blake3 = "f4e591a929bc182f496e95657bb145c3ce67b5dd23cdc22e8131b4062ab991b9", size = 4765920 }
 nestgate = { blake3 = "e021e0f2e87574ab682bdabd48fd96dda515d2def000090ac0dbb0e7cf6ca534", size = 8835168 }
 petaltongue = { blake3 = "b3ffa4ca500ed1e30726349762e4014d4714eff79727e2dd69fa2e9ded8033e9", size = 33390816 }
-rhizocrypt = { blake3 = "e421e9a3f85c4c7ceb4890f153d00a53de53b4a96981ac12806b9ed97e988953", size = 7852928 }
+rhizocrypt = { blake3 = "a39ef669d48b284745bde7f90547b4e7f71e40f51b828dab4726fb00f3ab32fb", size = 7848832 }
 skunkbat = { blake3 = "8dbdb0c2e87c277bfb1647de13a4d41da45fa2af82704511600be28d6c2a88fd", size = 2744672 }
-songbird = { blake3 = "4153be15a59447265c54defb69265f2b13a6c44a6303d8bcb10d129ff428c892", size = 17517056 }
+songbird = { blake3 = "3fc9436502c35bc78bf538306ad606a14499cca284fc8cbe0325677bea0c1f06", size = 17558048 }
 squirrel = { blake3 = "257fb76ffa2e8e48b7592a0b3d3a68ab5fa3c47102a1e4cfb7143475b6046666", size = 6939840 }
 sweetgrass = { blake3 = "36b3fc11728ef6dd2410116d51eb97cee53b0213413caa332e130c7fa6db2303", size = 11167168 }
 toadstool = { blake3 = "fd73e30ea4baf32cb2356cd3018e7a9a05ec45212805fe1f2793990702827b04", size = 13569888 }
