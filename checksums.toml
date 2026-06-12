@@ -1,5 +1,5 @@
 # plasmidBin checksums — BLAKE3
-# Generated: 2026-06-12T12:33:23Z
+# Generated: 2026-06-12T12:37:00Z
 
 [aarch64-unknown-linux-musl]
 barracuda = { blake3 = "e446a5cded502402395c098e0571f75cf2d8005e71e18cd2ef271988ce825885", size = 13848256 }
@@ -11,7 +11,7 @@ nestgate = { blake3 = "8406ac85f829a7e89849ad2386e4cd7d4fe9f3b4518f03ccac8569b97
 petaltongue = { blake3 = "eff3526e4888c8ffb1377289c615838a6ea2125ac3bd6440fb825eec4bad5545", size = 37685968 }
 rhizocrypt = { blake3 = "f4151b4df2e348282424d6d8d4430b64fa01ca9833efb403f55147b5f7a7dad1", size = 6295912 }
 skunkbat = { blake3 = "803c791eb6959c5b2b65196164e9504af797faa76859a2bb5de5e336434d14bc", size = 2318040 }
-songbird = { blake3 = "d936ad7c5f6d55951a35d89492cf51ccd9b7b54577cfb57121429ddaa1039c17", size = 20545608 }
+songbird = { blake3 = "f1086543af9b2885f092ab6c48fc0b47eedb03612589848b791382e99ecbf9ed", size = 20841120 }
 sourdough = { blake3 = "a043d8d2809feae5fad01176647949cc37cbdbd7d26b5fb69dde9e2d44c1d1d6", size = 2656160 }
 squirrel = { blake3 = "e4093fcd7b0222b29625ccc93d18bc884b9380fdaa44dcd68df599ab2e3d38f2", size = 8373088 }
 sweetgrass = { blake3 = "be9c70b544e2b49eddac5abb24c0f4c4d92a8ae2b61f76d064aecca3abcc9d87", size = 13740880 }

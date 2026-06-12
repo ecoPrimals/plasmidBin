@@ -1,5 +1,5 @@
 # plasmidBin provenance — build traceability
-generated = "2026-06-12T12:33:23Z"
+generated = "2026-06-12T12:37:00Z"
 builder = "unknown"
 target = "x86_64-unknown-linux-musl"
 rustc = "rustc 1.96.0 (ac68faa20 2026-05-25)"
