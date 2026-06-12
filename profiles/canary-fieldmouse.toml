@@ -1,0 +1,55 @@
+# Canary fieldMouse — Full NUCLEUS (13/13) on warm-standby VPS
+#
+# The "Glowplug" tier of the 3-tier diesel engine deployment model:
+# - Ember (sandbox): validates new builds before promotion
+# - Cylinder (main golgiBody): production, running HEAD
+# - Glowplug (this): warm standby running previous-good binaries
+#
+# This profile runs N-1 binaries (one wave behind main). When main is
+# refreshed, its outgoing binaries become this canary's incoming binaries.
+# Auto-rebuild is disabled — canary ONLY receives explicit promotions.
+
+[profile]
+name = "canary-fieldmouse"
+description = "Canary fieldMouse — full NUCLEUS warm standby (13/13, previous-good)"
+extends = "full"
+role = "canary"
+auto_rebuild = false
+
+[provider]
+type = "digitalocean"
+region = "nyc1"
+size = "s-1vcpu-2gb"
+image = "debian-12-x64"
+
+[primals]
+beardog = { required = true, role = "crypto-spine" }
+songbird = { required = true, role = "discovery-mesh" }
+skunkbat = { required = true, role = "threat-defense" }
+toadstool = { required = true, role = "compute-dispatch" }
+barracuda = { required = true, role = "gpu-math" }
+coralreef = { required = true, role = "shader-compile" }
+nestgate = { required = true, role = "storage-transport" }
+rhizocrypt = { required = true, role = "ephemeral-dag" }
+loamspine = { required = true, role = "permanent-ledger" }
+sweetgrass = { required = true, role = "attribution" }
+biomeos = { required = true, role = "orchestration" }
+squirrel = { required = true, role = "ai-coordination" }
+petaltongue = { required = true, role = "multi-modal-ui" }
+
+[health]
+min_healthy = 10
+critical = ["beardog", "toadstool", "nestgate", "biomeos"]
+
+[launch]
+order = [
+    "beardog", "songbird", "skunkbat",
+    "coralreef", "barracuda", "toadstool",
+    "nestgate", "rhizocrypt", "loamspine", "sweetgrass",
+    "biomeos", "squirrel", "petaltongue",
+]
+parallel_after = "beardog"
+
+[mesh]
+peers = ["157.230.3.183:7700"]
+federation_enabled = true
