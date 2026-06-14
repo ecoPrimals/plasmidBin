@@ -1,0 +1,58 @@
+# flockGate WAN NUCLEUS — Full 13/13 with WAN federation
+#
+# Desktop gate behind NAT. Connects OUTBOUND to VPS hub (golgiBody).
+# Validates WAN mesh federation, riboCipher signalling, and cross-network
+# health probes over residential internet.
+#
+# Hardware: i9-13900K, 64GB DDR5, NVMe, residential fiber (NAT)
+# Role: WAN federation validation, development, content publication
+
+[profile]
+name = "flockgate-wan"
+description = "flockGate WAN NUCLEUS (13/13, outbound federation to VPS hub)"
+extends = "full"
+
+[primals]
+beardog = { required = true, role = "crypto-spine" }
+songbird = { required = true, role = "discovery-mesh" }
+skunkbat = { required = true, role = "threat-defense" }
+toadstool = { required = true, role = "compute-dispatch" }
+barracuda = { required = true, role = "gpu-math" }
+coralreef = { required = true, role = "shader-compile" }
+nestgate = { required = true, role = "storage-transport" }
+rhizocrypt = { required = true, role = "ephemeral-dag" }
+loamspine = { required = true, role = "permanent-ledger" }
+sweetgrass = { required = true, role = "attribution" }
+biomeos = { required = true, role = "orchestration" }
+squirrel = { required = true, role = "ai-coordination" }
+petaltongue = { required = true, role = "multi-modal-ui" }
+
+[mesh]
+node_id = "flockGate"
+gate_name = "flockGate"
+federation_enabled = true
+federation_port = 7700
+bind_address = "0.0.0.0"
+peers = [
+    "golgiBody@157.230.3.183:7700",
+]
+
+[health]
+min_healthy = 10
+critical = ["beardog", "songbird", "nestgate", "biomeos"]
+
+[launch]
+order = [
+    "beardog", "songbird", "skunkbat",
+    "coralreef", "barracuda", "toadstool",
+    "nestgate", "rhizocrypt", "loamspine", "sweetgrass",
+    "biomeos", "squirrel", "petaltongue",
+]
+parallel_after = "beardog"
+
+[wan]
+nat_traversal = "outbound-only"
+hub_peer = "golgiBody@157.230.3.183:7700"
+ribocipher_tier = 1
+connect_timeout_s = 15
+io_timeout_s = 30
