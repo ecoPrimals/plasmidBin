@@ -1,48 +1,48 @@
 # plasmidBin provenance — build traceability
-generated = "2026-06-12T12:37:00Z"
+generated = "2026-06-15T11:59:36Z"
 builder = "unknown"
 target = "x86_64-unknown-linux-musl"
 rustc = "rustc 1.96.0 (ac68faa20 2026-05-25)"
 
 [barracuda]
-commit = "5f0e55e5"
+commit = "8a09bd26"
 
 [beardog]
-commit = "945de60f"
+commit = "173d41e2"
 
 [biomeos]
-commit = "4648ffd1"
+commit = "1ce2a4c5"
 
 [coralreef]
 commit = "7bc90e53"
 
 [loamspine]
-commit = "a3c481cf"
+commit = "26f41b2e"
 
 [nestgate]
-commit = "66126899"
+commit = "17baed59"
 
 [petaltongue]
-commit = "2dba46ff"
+commit = "cdcb1ee6"
 
 [rhizocrypt]
-commit = "0e2b0313"
+commit = "f8afe25b"
 
 [skunkbat]
-commit = "00b3436f"
+commit = "6962d04f"
 
 [songbird]
-commit = "32a8d700"
+commit = "78c14667"
 
 [sourdough]
 commit = "bbc4821"
 
 [squirrel]
-commit = "a8c2e7cc"
+commit = "0648bd66"
 
 [sweetgrass]
-commit = "a675425e"
+commit = "e8805233"
 
 [toadstool]
-commit = "02a0db2c"
+commit = "d1faa877"
 
