@@ -57,11 +57,13 @@ assets = ["toadstool"]
 repo = "ecoPrimals/barraCuda"
 tag_pattern = "v{version}"
 assets = ["barracuda"]
+gpu = true
 
 [sources.coralreef]
 repo = "ecoPrimals/coralReef"
 tag_pattern = "v{version}"
 assets = ["coralreef"]
+gpu = true
 
 # =============================================================================
 # PRIMALS — Nest Atomic additions (neutron: storage + provenance)
