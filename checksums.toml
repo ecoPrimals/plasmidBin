@@ -1,10 +1,19 @@
-# plasmidBin checksums — BLAKE3
-# Generated: 2026-07-15T02:14:34Z
+# ecoPrimals Depot Checksums — regenerated 2026-07-15T14:33:45Z
+# BLAKE3 checksums for all depot binaries across architectures
 
 [aarch64-linux-android]
-beardog = { blake3 = "b6e515d555f5a26086fe554126167f2e06e8080f77f682e9f613a5864e4e33e9", size = 9531360 }
+barracuda = { blake3 = "a732c534333fd6c8ffea2eadf00709617ac83b9fb1f5b64303fd21cb10465313", size = 4527096 }
+beardog = { blake3 = "841863860df15c70355211d7b334e952676e9f629b72d090b85b03dc54c9a336", size = 9538536 }
+biomeos = { blake3 = "ced144395c6b946988fce19ec4c3e7ccf8302c2408fbdeb71ecbbe13d9742109", size = 19004496 }
+coralreef = { blake3 = "8de4805218e4f91117f467624cabf2950456e7e3905d3985ab1d629120f04455", size = 6842448 }
+loamspine = { blake3 = "c809c482cbdc027d9ce87fd2af957b76a9702b7f4d6a7c1f73127d2775673cc6", size = 3947280 }
+nestgate = { blake3 = "c38696b3ea33606c961327833032ba0fdd1040c9f1334b1c0b7d342ca6836fdc", size = 8017000 }
 nucleus_launcher = { blake3 = "3c27dd958d626cf23455a89ebd6217c4c17f7f71aaa4f16b387e600cbf4e6070", size = 3488744 }
-songbird = { blake3 = "1743ef0056ac1d57e5b61d38e4f2fb5f4e3c5024074e70013cce9875e7e44f61", size = 21005968 }
+rhizocrypt = { blake3 = "cc9c166ef6a493136bcf87d96b84f3820823d8103574f8def26915ee90be7d56", size = 6378016 }
+skunkbat = { blake3 = "285b35994de603b12e269264e019fdce1ed39c95ab4222e386a29f1e37d45eec", size = 2512280 }
+songbird = { blake3 = "7dbb70dae29240cf7e04fb6637a9e24835977fef6f4d346ff353eb83e229e0e0", size = 21174976 }
+squirrel = { blake3 = "6d851f67132af222f4ddfdaecde0e1a76fb4a5d540dcf80db6e9fe1ffed4d6a2", size = 3733824 }
+sweetgrass = { blake3 = "f0e39a74d4601aa8ad871fbf1e2f4a64fc7c136bab4ada070e332de3e89acc1c", size = 11194192 }
 
 [aarch64-unknown-linux-musl]
 barracuda = { blake3 = "b5422e8ff112112a51721eeb5282382b9be74501ca2f2f99f19077839d2d100a", size = 4421704 }
@@ -25,7 +34,7 @@ sweetgrass = { blake3 = "aa3500a57ab6eb370deee56616b9c143a7f5fb33c74394b00db70c8
 toadstool = { blake3 = "4ea94666d1d75b225f8e4f89034ad0d974c16358e5d8846048820501efd2be45", size = 10132688 }
 
 [x86_64-pc-windows-gnu]
-songbird.exe = { blake3 = "89dd31cabd34f9e3a8000f5cad4203e768075b98e649f2f00d575e1d230bc985", size = 14993408 }
+songbird.exe = { blake3 = "bf241a2f753b10c0cb21754c9545e1a11724e422e5322c98a78bd84c0c239684", size = 19887251 }
 
 [x86_64-unknown-linux-musl]
 barracuda = { blake3 = "b17c2e21f2dad4d9140844f1221e9b9e0ec83ffdec3033bbf38b7d7301054da3", size = 5630560 }
@@ -33,14 +42,14 @@ beardog = { blake3 = "df16fe78d3d567faa1eb33d29e15903b80861ff387d5a80381fde54937
 biomeos = { blake3 = "5ff64741e25b967b1dbc883c557a25146a3396ddc9958ea6946d4016569b20e3", size = 15485016 }
 coralreef = { blake3 = "9c5ca661c80c76b99769e195ccb9ef4b935852b0af96cd869c30a26914581e3e", size = 7837392 }
 loamspine = { blake3 = "8165915b74d510d946b8a473725712f685400f9c9fec233bec9d23a1aa519b23", size = 4630168 }
-membrane = { blake3 = "560f1cd6e586991511588c8f30a51032ba89fc70f39ef1f8ce3a7fc900bc96b2", size = 12062736 }
+membrane = { blake3 = "68d9ce889ca7cff48ae60d09ac04d8e8a6bd0597910f1d7f3715b482a0ff3f3d", size = 12066896 }
 nestgate = { blake3 = "eae799dcd4e5873bd6893ad22293dff063a9e83f424ca0514a31a5b1eb9da720", size = 8765840 }
 nucleus_launcher = { blake3 = "3d148ec216d3d3a216834b46663f0655ada0b6de804f13d23e427b3f1db9e914", size = 4328960 }
 petaltongue = { blake3 = "56d79458735528b6df9cd30be2d5e3eae932c1c2e0ed70382a3f31ca8e9531da", size = 28934848 }
 rhizocrypt = { blake3 = "8cdc62752a3119f87254746c338d8035333bf3464474fb4b6f94decb5780b0fe", size = 7816320 }
 skunkbat = { blake3 = "94db2cf49729c6106d6480a73897c96e5822eb04a4c7dbdb23b5dd39daa9f4f7", size = 2921080 }
 songbird = { blake3 = "ad2e8af4a43749c353f539f11c4166610a34a5da95a6612a35f4b16a6907b43d", size = 18087712 }
-sourdough = { blake3 = "e9cab9d87b87c70d8daa2e751cec18d736594b6b6f7c6cae0cac2d1b74ef6ace", size = 3144000 }
+sourdough = { blake3 = "12a5e01dd5523357161298c5e72af474abcf156d729077bd7316c20eaadb1aef", size = 3144000 }
 squirrel = { blake3 = "fbae5f09ffddcd25d5077c0d41eef3fc512ca30b5a25fe2ed1535c78c6cd7d46", size = 4496128 }
 sweetgrass = { blake3 = "505b29c9ea1b5d791ef29af71ec31fdbd34f4997a6e60dc490460e07710a38f5", size = 7970328 }
 toadstool = { blake3 = "dcaf7939e38cb5e42f39af44650a0e245b4b1367024333320f08f5bf2efa1504", size = 13565696 }
