@@ -1,0 +1,7 @@
+[[signatures]]
+algorithm = "ed25519"
+public_key = "6cf29a813a35abcf0d841c520d345a6a0a7f9c9150e9c0e3fa4d2304a61b2ad9"
+checksums_blake3 = "cf28f7796667b3e48dade069279d7558662828fa9abf8c1ed04dae5da6763014"
+signature = "2bc6e32c7f69aba9c3352432f5b3c8cca2ee6fec15bdc64f6a927ce10816232f509bb1bde03defe936590dc2030dc7f1133552bc923c9a049215010ac1860b04"
+signer_gate = "sporeGate"
+signed_at = "2026-07-15T02:14:34Z"
