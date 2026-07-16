@@ -1,7 +1,7 @@
 [[signatures]]
 algorithm = "ed25519"
 public_key = "6cf29a813a35abcf0d841c520d345a6a0a7f9c9150e9c0e3fa4d2304a61b2ad9"
-checksums_blake3 = "b13a0c0de2d9dee4ec9175eca0765172b0dfd3442f9b0091fa1084a23e4fa6a3"
-signature = "a6e4862652639ff63e9820033422ab675e4e2910eb49d6e6374e0fa798b5cb52b937560924b7d6ff7c09e849cd21b6928a316c1258d2dadb6d82fe993a017600"
+checksums_blake3 = "8ca9de99ead812d508f8c0136ec233508c9adddea3b245abe6b36c4b03430244"
+signature = "62d1c1747bed235f2efb1fb7087ac1dd6f6660cc9fea88443855140da7a4cf4455fb81bf92a1e3b8fcdc5ed77fb180f5ed1e1dfabbcaf99d22cb501f0e75bf07"
 signer_gate = "sporeGate"
-signed_at = "2026-07-16T00:21:36Z"
+signed_at = "2026-07-16T12:56:14Z"
