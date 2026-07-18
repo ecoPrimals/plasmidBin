@@ -405,12 +405,14 @@ name = "Esoteric Webb"
 org = "sporeGarden"
 repo = "sporeGarden/esotericWebb"
 description = "Cross-evolution CRPG substrate — bounded narrative, infinite exploration"
-latest = "V4"
-primals_consumed = ["beardog", "songbird", "toadstool", "barracuda", "coralreef", "nestgate", "rhizocrypt", "loamspine", "sweetgrass", "squirrel", "petaltongue"]
+latest = "V17"
+primals_consumed = ["beardog", "songbird", "toadstool", "nestgate", "rhizocrypt", "loamspine", "sweetgrass", "squirrel", "petaltongue"]
 composition_model = "pure"
-bridge_methods = 23
-tests = 166
+bridge_methods = 32
+tests = 472
 gen = 4
+binary = "esotericwebb"
+listen_port = 8090
 
 # [sporegarden.helixvision]
 # name = "helixVision"
