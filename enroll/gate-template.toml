@@ -1,0 +1,13 @@
+# Gate Enrollment Template
+# =======================
+# Fill in before running gate-usb-bootstrap.sh, or the script will prompt.
+#
+# gate_name: the canonical name from ecosystem_manifest.toml (e.g. "southGate")
+# wg_ip:     assigned mesh IP from the manifest (10.13.37.0/24 subnet)
+# composition: which primal set to deploy — tower|node|nest|nucleus|full
+# family_id: ecosystem family identifier (from MitoBeacon)
+
+gate_name = ""
+wg_ip = ""
+composition = "full"
+family_id = "ecoPrimals"

@@ -10,6 +10,7 @@
 #   ./stage_usb.sh --dest /tmp/usb --composition nucleus   # Only NUCLEUS (9 primals)
 #   ./stage_usb.sh --dest /tmp/usb --verify                # Re-verify checksums after copy
 #   ./stage_usb.sh --dest /tmp/usb --dry-run               # Show what would be staged
+#   ./stage_usb.sh --dest /tmp/usb --enroll                # Include enrollment bundle
 #
 # Output layout (genomeBin canonical):
 #   <dest>/
@@ -20,7 +21,15 @@
 #   │   ├── beardog
 #   │   ├── songbird
 #   │   └── ... (all primals in composition)
-#   └── VERSION
+#   ├── VERSION
+#   └── (with --enroll):
+#       ├── enroll/
+#       │   ├── gate-template.toml
+#       │   ├── hub-peer.conf
+#       │   ├── RELAY_MANUAL.md
+#       │   └── rustdesk/
+#       │       └── rustdesk.toml
+#       └── gate-usb-bootstrap.sh
 #
 # Prerequisites:
 #   - b3sum (optional, for --verify)
@@ -39,6 +48,7 @@ ARCH=""
 COMPOSITION="full"
 DRY_RUN=false
 VERIFY=false
+ENROLL=false
 
 STAGED=0
 SKIPPED=0
@@ -54,6 +64,7 @@ usage() {
     echo "                       tower, node, nest, nucleus, meta, full,"
     echo "                       or niche-<spring>"
     echo "  --verify             Re-verify BLAKE3 checksums after copy"
+    echo "  --enroll             Include enrollment bundle (enroll/ + bootstrap script)"
     echo "  --dry-run            Show what would be staged, don't write"
     echo "  --help               Show this help"
     echo ""
@@ -67,6 +78,7 @@ while [[ $# -gt 0 ]]; do
         --arch)          ARCH="$2"; shift 2 ;;
         --composition)   COMPOSITION="$2"; shift 2 ;;
         --verify)        VERIFY=true; shift ;;
+        --enroll)        ENROLL=true; shift ;;
         --dry-run)       DRY_RUN=true; shift ;;
         --help)          usage; exit 0 ;;
         -*)              echo "Unknown option: $1"; usage; exit 1 ;;
@@ -302,10 +314,39 @@ composition = "$COMPOSITION"
 primal_count = $STAGED
 total_size_mb = $TOTAL_MB
 staged_by = "stage_usb.sh"
+enroll = $ENROLL
 EOF
     echo "  [metadata] VERSION"
 else
     echo "  [dry-run] Would copy: manifest.toml, checksums.toml, ports.env, VERSION"
+fi
+
+# ── Enrollment bundle ────────────────────────────────────────────────
+if $ENROLL; then
+    echo ""
+    ENROLL_SRC="$SCRIPT_DIR/enroll"
+    BOOTSTRAP_SRC="$SCRIPT_DIR/gate-usb-bootstrap.sh"
+
+    if [[ ! -d "$ENROLL_SRC" ]]; then
+        echo "  [enroll] ERROR: enroll/ directory not found at $ENROLL_SRC"
+        FAILED=$((FAILED + 1))
+    elif $DRY_RUN; then
+        echo "  [enroll] STAGE  enroll/ -> $DEST/enroll/"
+        echo "  [enroll] STAGE  gate-usb-bootstrap.sh -> $DEST/gate-usb-bootstrap.sh"
+    else
+        cp -r "$ENROLL_SRC" "$DEST/enroll"
+        echo "  [enroll] enroll/ directory"
+
+        if [[ -f "$BOOTSTRAP_SRC" ]]; then
+            cp "$BOOTSTRAP_SRC" "$DEST/gate-usb-bootstrap.sh"
+            chmod +x "$DEST/gate-usb-bootstrap.sh"
+            echo "  [enroll] gate-usb-bootstrap.sh"
+        else
+            echo "  [enroll] WARNING: gate-usb-bootstrap.sh not found"
+        fi
+
+        echo "  [enroll] Enrollment bundle staged"
+    fi
 fi
 
 echo ""

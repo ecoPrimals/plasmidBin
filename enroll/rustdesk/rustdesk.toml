@@ -1,0 +1,6 @@
+# RustDesk client configuration for ecoPrimals gates
+# Points at the self-hosted relay on golgiBody (remote.primals.eco)
+
+rendezvous_server = "157.230.3.183"
+relay-server = "157.230.3.183"
+key = "utlNOAWUDdV+Q+ifG3zHrQ5HU0FtQnOTHiAnu6prV7Q="
