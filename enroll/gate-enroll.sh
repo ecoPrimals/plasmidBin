@@ -170,23 +170,18 @@ REQUEST_BODY=$(jq -n \
     --argjson proof "$PROOF_JSON" \
     --arg comp "$COMPOSITION" \
     '{
-        jsonrpc: "2.0",
-        method: "mesh.gate_enroll",
-        params: {
-            gate_name: $gate,
-            wg_public_key: $wg_key,
-            ssh_public_key: $ssh_key,
-            physical_proof: $proof,
-            composition: $comp
-        },
-        id: 1
+        gate_name: $gate,
+        wg_public_key: $wg_key,
+        ssh_public_key: $ssh_key,
+        physical_proof: $proof,
+        composition: $comp
     }')
 
 RESPONSE=$(curl -s -m 30 \
     -X POST \
     -H "Content-Type: application/json" \
     -d "$REQUEST_BODY" \
-    "http://${HUB_HOST}:${HUB_PORT}/enroll" 2>&1) || {
+    "http://${HUB_HOST}:${HUB_PORT}/enroll/mesh.gate_enroll" 2>&1) || {
     fail "Cannot reach enrollment endpoint at ${HUB_HOST}:${HUB_PORT}"
     echo "  Response: $RESPONSE"
     echo ""
