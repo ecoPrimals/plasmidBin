@@ -1,0 +1,31 @@
+# Tower Builder — Distributed Build Node
+# Extends Tower Atomic with build authority role.
+#
+# blueGate pattern: Tower Atomic workhouse + cargo build --release
+# under sporeGate foreman. Media/gaming services are application-layer.
+
+[profile]
+name = "tower-builder"
+description = "Tower trust boundary + distributed build authority"
+particle = "electron"
+extends = "tower"
+
+[primals]
+beardog = { required = true, role = "crypto-spine" }
+songbird = { required = true, role = "discovery-mesh" }
+skunkbat = { required = true, role = "threat-defense" }
+
+[health]
+min_healthy = 2
+critical = ["beardog"]
+
+[launch]
+order = ["beardog", "songbird", "skunkbat"]
+parallel_after = "beardog"
+
+[build]
+authority = true
+foreman = "sporeGate"
+toolchain = ["rust", "musl-tools", "git"]
+depot_push = true
+provenance_tag = true

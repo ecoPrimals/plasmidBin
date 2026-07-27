@@ -35,13 +35,38 @@ generated = "2026-05-27T00:00:00Z"
 checksum_algorithm = "blake3"
 # mirror_url = "https://bins.ecoprimals.dev/latest/"
 
-# genomeBin target matrix (ecoBin Architecture Standard):
-#   Tier 1 MUST:   x86_64-unknown-linux-musl, aarch64-unknown-linux-musl, armv7-unknown-linux-musleabihf
-#   Tier 2 SHOULD: x86_64-pc-windows-gnu, aarch64-linux-android, x86_64-apple-darwin (check-only), aarch64-apple-darwin (check-only)
-#   Tier 3 NICE:   riscv64gc-unknown-linux-musl, wasm32-wasip1 (check-only)
+# genomeBin target matrix — silicon-deistic deployment.
 #
-# "check-only" = cargo check passes (proves pure Rust), but no linker available for cross-build from Linux.
-# Layout: primals/{target-triple}/{binary}
+# OS is an abstraction layer. Tower Atomic (bearDog + songBird + skunkBat) is the
+# universal platform layer. Just as songBird abstracts ports and mesh topology,
+# Tower Atomic abstracts OS differences: UDS vs named pipes vs TCP, systemd vs
+# Windows Service vs launchd, /opt/membrane vs %APPDATA%. The primal detects its
+# platform at runtime and uses the best available mechanism. `bind_mode`, `target`,
+# and other OS-specific manifest fields are transitional — they document what the
+# primals auto-detect internally. Goal: a gate enrolls with only name + composition
+# + physical proof. Everything else is intrinsic.
+#
+# Pure Rust (zero C deps on critical path) makes this possible across all silicon.
+# Depot is golgiBody — sole WAN depot, serves all architectures via Caddy TLS.
+# No local depots. Gates fetch genomeBins on enrollment and cascade refresh.
+#
+# genomeBin targets — every OS with a deployed gate is Tier 1.
+#   Tier 1 genomeBin (MUST — deployed gates exist):
+#     x86_64-unknown-linux-musl     (eastGate, sporeGate, ironGate, strandGate, westGate, southGate)
+#     aarch64-unknown-linux-musl    (ARM Linux gates, Pixel)
+#     x86_64-pc-windows-gnu         (northGate, blueGate, swiftGate)
+#     aarch64-linux-android          (grapheneGate)
+#     armv7-unknown-linux-musleabihf (IoT/embedded, Raspberry Pi)
+#   Tier 2 genomeBin (SHOULD — deployment imminent or check-pass proven):
+#     x86_64-apple-darwin            (macOS Intel — iosGate lineage)
+#     aarch64-apple-darwin           (macOS Apple Silicon — iosGate lineage)
+#   Tier 3 PROVEN (compiled, no deployed gate yet — Wave 140a AAR):
+#     riscv64gc-unknown-linux-gnu, powerpc64le-unknown-linux-gnu, s390x-unknown-linux-gnu,
+#     sparc64-unknown-linux-gnu, i686-unknown-linux-gnu, arm-unknown-linux-gnueabihf
+#   Tier 4 FUTURE: wasm32-wasip1, loongarch64-unknown-linux-gnu, x86_64-unknown-freebsd,
+#                  x86_64-unknown-illumos, x86_64-unknown-redox
+#
+# Layout: primals/{target-triple}/{binary}  (golgiBody: /opt/ecoPrimals/depot/primals/)
 # Backward-compat symlinks: primals/{binary} -> x86_64-unknown-linux-musl/{binary}
 
 # =============================================================================

@@ -46,6 +46,7 @@ VALIDATE_TOPOLOGY=""
 SYSTEMD=false
 UDS_ONLY=false
 REMOTE_INSTALL_DIR="/opt/membrane"
+BUILD_AUTHORITY=false
 
 usage() {
     echo "Usage: $0 <user@host> [OPTIONS]"
@@ -77,6 +78,7 @@ usage() {
     echo "  --dark-forest        Enable Dark Forest beacon mode"
     echo "  --beacon-seed PATH   .beacon.seed file for BirdSong discovery"
     echo "  --systemd            Install systemd units (production mode, restart-on-failure)"
+    echo "  --build-authority    Set MEMBRANE_BUILD_AUTHORITY=1 (harvest/build role)"
     echo "  --uds-only           UDS-only: no TCP port binding (VPS standard)"
     echo "  --install-dir DIR    Remote binary directory (default: /opt/membrane)"
     echo "  --local-validate     Run benchScale Docker validation before deploying"
@@ -98,6 +100,7 @@ while [[ $# -gt 0 ]]; do
         --systemd)      SYSTEMD=true; shift ;;
         --uds-only)     UDS_ONLY=true; shift ;;
         --install-dir)  REMOTE_INSTALL_DIR="$2"; shift 2 ;;
+        --build-authority) BUILD_AUTHORITY=true; shift ;;
         --local-validate) LOCAL_VALIDATE=true; shift ;;
         --topology)     VALIDATE_TOPOLOGY="$2"; shift 2 ;;
         --dry-run)      DRY_RUN=true; shift ;;
@@ -414,6 +417,11 @@ if $SYSTEMD; then
 
         run_ssh "mkdir -p $REMOTE_INSTALL_DIR /run/membrane"
 
+        BUILD_AUTH_LINE=""
+        if $BUILD_AUTHORITY; then
+            BUILD_AUTH_LINE="MEMBRANE_BUILD_AUTHORITY=1"
+        fi
+
         if [[ -n "$SEED_VALUE" ]]; then
             run_ssh "cat > $REMOTE_INSTALL_DIR/tower.env << 'TENV'
 MEMBRANE_ROLE=$COMPOSITION
@@ -424,6 +432,7 @@ FAMILY_SEED=$SEED_VALUE
 NODE_ID=$NODE_ID
 BEARDOG_NODE_ID=$NODE_ID
 SONGBIRD_NODE_ID=$NODE_ID
+$BUILD_AUTH_LINE
 TENV
 chmod 600 $REMOTE_INSTALL_DIR/tower.env"
         else
@@ -435,6 +444,7 @@ BEARDOG_FAMILY_SEED=\$(head -c 32 /dev/urandom | xxd -p -c 64)
 NODE_ID=$NODE_ID
 BEARDOG_NODE_ID=$NODE_ID
 SONGBIRD_NODE_ID=$NODE_ID
+$BUILD_AUTH_LINE
 TENV
 chmod 600 $REMOTE_INSTALL_DIR/tower.env"
         fi

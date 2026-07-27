@@ -20,9 +20,9 @@ case "$GATE_NAME" in
     southGate)  COMPOSE="full" ;;
     strandGate) COMPOSE="compute" ;;
     westGate)   COMPOSE="nest" ;;
-    blueGate)   COMPOSE="tower" ;;
-    swiftGate)  COMPOSE="full" ;;
-    *) echo "Unknown gate: $GATE_NAME"; exit 1 ;;
+    blueGate)   COMPOSE="tower"; echo "NOTE: blueGate is Windows — use gate-enroll.ps1 instead"; exit 1 ;;
+    swiftGate)  COMPOSE="full";  echo "NOTE: swiftGate is Windows — use gate-enroll.ps1 instead"; exit 1 ;;
+    *) COMPOSE="${2:-tower}"; echo "Self-registering gate: $GATE_NAME (composition: $COMPOSE)" ;;
 esac
 
 echo "=== Fleet Enrollment: $GATE_NAME (composition: $COMPOSE) ==="
