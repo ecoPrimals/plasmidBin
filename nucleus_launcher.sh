@@ -298,7 +298,12 @@ if ! $SEED_ONLY; then
         EXTRA_FLAGS=""
         if [[ "$p" == "songbird" ]]; then
             BD_SOCK="$SOCKET_DIR/beardog-${FAMILY_ID}.sock"
-            [[ -S "$BD_SOCK" ]] && EXTRA_FLAGS="--beardog-socket $BD_SOCK"
+            # Always pass beardog socket path — songBird will wait/retry internally.
+            # The old [[ -S "$BD_SOCK" ]] guard raced with bearDog startup.
+            EXTRA_FLAGS="--beardog-socket $BD_SOCK"
+            export BEARDOG_SOCKET="$BD_SOCK"
+            export BEARDOG_MODE=direct
+            export SONGBIRD_SECURITY_PROVIDER=beardog
             if [[ -n "${SONGBIRD_FEDERATION_PORT:-}" ]]; then
                 export SONGBIRD_HTTP_PORT="$SONGBIRD_FEDERATION_PORT"
             fi
