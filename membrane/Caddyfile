@@ -1,96 +1,245 @@
-# SPDX-License-Identifier: AGPL-3.0-or-later
-#
-# Membrane Channel 3 — Caddy TLS Surface
-#
-# Version-controlled source of truth for /etc/membrane/Caddyfile on VPS.
-# Deploy via: deploy_membrane.sh deploy <user@host> --channel3
-#
-# Domains:
-#   membrane.primals.eco  — sovereign surface (sporePrint cache, health, status)
-#   lab.primals.eco       — static lab pages on VPS, interactive hub stays on gate
-#   git.primals.eco       — golgiBody periplasmic Forgejo (sovereign git forge)
-#
-# Transitional: Caddy handles TLS termination until Songbird absorbs it.
-
+# Membrane Channel 3 — Caddy TLS Surface (Wave 150d — Subdomain Standard)
 {
 	email ops@primals.eco
+	storage file_system /caddy
 }
 
-# Primary sovereign surface
-membrane.primals.eco {
-	handle /health {
-		respond "membrane-relay TLS active" 200
-	}
-
-	handle /status {
-		respond "Channel 3 — sovereign TLS operational" 200
-	}
-
-	handle /hooks/* {
-		reverse_proxy unix//run/membrane/nestgate.sock
-	}
-
-	handle {
-		root * /var/cache/membrane/nestgate
-		file_server
-		try_files {path} {path}/ /index.html
+# Common security headers
+(security_headers) {
+	header {
+		Strict-Transport-Security "max-age=63072000; includeSubDomains; preload"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		X-XSS-Protection "0"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		Permissions-Policy "camera=(), microphone=(), geolocation=(), interest-cohort=()"
+		-Server
 	}
 }
 
-# Lab static surface (intra layer — VPS-hosted dashboard)
-# Interactive paths (JupyterHub) remain gate-local until BTSP relay is wired.
-# Static lab content served from pappusCast rsync target.
-lab.primals.eco {
-	handle /hub/* {
-		respond "JupyterHub is gate-local. Connect via LAN or BTSP relay (pending)." 503
-	}
+(csp_static) {
+	header Content-Security-Policy "default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; form-action 'none'; frame-ancestors 'none'; base-uri 'self'; manifest-src 'self'"
+}
 
-	handle /user/* {
-		respond "JupyterHub is gate-local. Connect via LAN or BTSP relay (pending)." 503
-	}
+(csp_proxy) {
+	header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' wss:; frame-ancestors 'none'"
+}
 
-	handle /api/* {
-		respond "JupyterHub is gate-local. Connect via LAN or BTSP relay (pending)." 503
-	}
-
-	handle /services/* {
-		respond "JupyterHub is gate-local. Connect via LAN or BTSP relay (pending)." 503
-	}
-
-	handle {
-		root * /var/cache/membrane/lab
-		file_server
-		try_files {path} {path}/ /index.html
+(access_log) {
+	log {
+		output file /var/log/caddy/access.log {
+			roll_size 50MiB
+			roll_keep 5
+			roll_keep_for 720h
+		}
+		format json
 	}
 }
 
-# Sovereign public surface — primals.eco
-# Replaces GitHub Pages as the primary face (S3 sovereignty cutover).
-# sporePrint Zola site + pseudoSpore gallery.
+# === ROOT DOMAIN — redirect to sporePrint ===
 primals.eco {
-	# pseudoSpore gallery — browsable computation artifacts
-	handle /lab/spores/* {
-		root * /opt/ecoPrimals/sporePrint/spores
-		file_server browse
-		try_files {path} {path}/ {path}/index.html
-	}
+	import security_headers
+	import access_log
 
-	# sporePrint static site (Zola build output)
+	handle /enroll* {
+		reverse_proxy 127.0.0.1:7780
+	}
 	handle {
-		root * /opt/ecoPrimals/sporePrint/public
-		file_server
-		try_files {path} {path}/ /index.html
+		redir https://sporeprint.primals.eco{uri} permanent
 	}
 }
 
 www.primals.eco {
-	redir https://primals.eco{uri} permanent
+	redir https://sporeprint.primals.eco{uri} permanent
 }
 
-# golgiBody — Periplasmic Forgejo (sovereign git forge)
-# Packages, routes, and modifies git traffic between gate cytoplasms
-# and the extracellular GitHub trailing mirror.
-# Phase A: Caddy reverse-proxies to local Forgejo on :3000.
+# === sporePrint — ecosystem docs (302 pages, pseudoSpore gallery) ===
+sporeprint.primals.eco {
+	import security_headers
+	import csp_static
+	import access_log
+	encode gzip
+
+	handle /lab/spores/* {
+		root * /opt/ecoPrimals/sporePrint/spores
+		file_server browse
+	}
+	handle {
+		try_files {path} {path}/index.html /index.html
+		root * /opt/ecoPrimals/sporePrint/public
+		file_server
+	}
+	handle_errors {
+		rewrite * /404.html
+		root * /opt/ecoPrimals/sporePrint/public
+		file_server
+	}
+}
+
+# === footPrint — sovereign GIS composition on sporeGate ===
+footprint.primals.eco {
+	import security_headers
+	import access_log
+	encode gzip
+
+	header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://*.tile.openstreetmap.org https://*.arcgisonline.com https://services1.arcgis.com https://services2.arcgis.com; font-src 'self'; connect-src 'self' wss:; frame-ancestors 'none'"
+
+	reverse_proxy 10.13.37.2:8090 {
+		header_up Host {host}
+		header_up X-Real-IP {remote_host}
+		header_up X-Forwarded-For {remote_host}
+		header_up X-Forwarded-Proto {scheme}
+	}
+}
+
+# === esotericWebb — cross-evolution CRPG on flockGate ===
+webb.primals.eco {
+	import security_headers
+	import csp_proxy
+	import access_log
+	encode gzip
+
+	reverse_proxy 10.13.37.7:8090 {
+		header_up Host {host}
+		header_up X-Real-IP {remote_host}
+		header_up X-Forwarded-For {remote_host}
+		header_up X-Forwarded-Proto {scheme}
+	}
+}
+
+# === membrane — depot, hooks, status ===
+membrane.primals.eco {
+	import security_headers
+	import csp_static
+	import access_log
+	encode gzip
+
+	handle /depot/* {
+		uri strip_prefix /depot
+		root * /opt/ecoPrimals/depot/primals
+		file_server browse
+	}
+	handle /health {
+		respond "membrane-relay TLS active" 200
+	}
+	handle /status {
+		respond "Channel 3 — sovereign TLS operational" 200
+	}
+	handle /hooks/* {
+		reverse_proxy unix//run/membrane/nestgate.sock
+	}
+	handle {
+		root * /var/cache/membrane/nestgate
+		file_server
+	}
+}
+
+# === lab — JupyterHub on ironGate via songBird drawbridge ===
+lab.primals.eco {
+	import security_headers
+	import csp_proxy
+	import access_log
+
+	basicauth {
+		sporegate $2a$14$KwLRiUi3o8OLAsPPDIugg.Zr5WshQVfCWFxjXBF.q2lry6SGy23UC
+	}
+
+	reverse_proxy 10.13.37.2:7780 {
+		header_up Host {host}
+		header_up X-Real-IP {remote_host}
+		header_up X-Forwarded-For {remote_host}
+		header_up X-Forwarded-Proto {scheme}
+		header_down -Content-Security-Policy
+	}
+}
+
+# === git — Forgejo ===
 git.primals.eco {
+	import security_headers
+	import csp_proxy
+	import access_log
+
+	handle /webhook {
+		reverse_proxy unix//run/membrane/webhook.sock
+	}
 	reverse_proxy localhost:3000
+}
+
+# === live — petalTongue TOPO-VIS dashboard on sporeGate ===
+live.primals.eco {
+	import security_headers
+	import csp_proxy
+	import access_log
+
+	reverse_proxy 10.13.37.2:9900 {
+		header_up Host {host}
+		header_up X-Real-IP {remote_host}
+		header_up X-Forwarded-For {remote_host}
+		header_up X-Forwarded-Proto {scheme}
+	}
+}
+
+# === ca — ecoPrimals SSH Certificate Authority (step-ca) ===
+ca.primals.eco {
+	import security_headers
+	import access_log
+
+	reverse_proxy localhost:9443 {
+		transport http {
+			tls_insecure_skip_verify
+		}
+	}
+}
+
+# === depot — ecosystem binary depot (peptidoglycan) ===
+depot.primals.eco {
+	import security_headers
+	import access_log
+	encode gzip
+
+	handle /health {
+		respond "depot operational" 200
+	}
+
+	handle /depot/* {
+		uri strip_prefix /depot
+		root * /opt/ecoPrimals/depot/primals
+		file_server browse
+	}
+
+	handle {
+		root * /opt/ecoPrimals/depot
+		file_server browse
+	}
+}
+
+# === relay — RustDesk outer membrane MitoBeacon ===
+relay.primals.eco {
+	import security_headers
+	import access_log
+
+	basicauth {
+		relay $2a$14$e/bteuaCgvInNDsEuzoxauf.E7cknJ8tCtvFXl/gZTfEOKpZiHgHu
+	}
+
+	root * /opt/membrane/relay-page
+	file_server
+}
+
+# === nestgate.io — peptidoglycan layer (petalTongue on sporeGate via WG mesh) ===
+nestgate.io {
+	import security_headers
+	import access_log
+
+
+	reverse_proxy 10.13.37.2:8190 {
+		header_up Host {upstream_hostport}
+		header_up X-Real-IP {remote_host}
+		header_up X-Forwarded-For {remote_host}
+		header_up X-Forwarded-Proto {scheme}
+	}
+}
+
+www.nestgate.io {
+	redir https://nestgate.io{uri} permanent
 }
