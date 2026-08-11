@@ -34,7 +34,7 @@ federation_enabled = true
 federation_port = 7700
 bind_address = "0.0.0.0"
 peers = [
-    "golgiBody@157.230.3.183:7700",
+    "golgiBody@mesh.primals.eco:7700",
 ]
 
 [health]
@@ -52,7 +52,7 @@ parallel_after = "beardog"
 
 [wan]
 nat_traversal = "outbound-only"
-hub_peer = "golgiBody@157.230.3.183:7700"
+hub_peer = "golgiBody@mesh.primals.eco:7700"
 ribocipher_tier = 1
 connect_timeout_s = 15
 io_timeout_s = 30

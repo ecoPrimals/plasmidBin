@@ -51,5 +51,5 @@ order = [
 parallel_after = "beardog"
 
 [mesh]
-peers = ["157.230.3.183:7700"]
+peers = ["mesh.primals.eco:7700"]
 federation_enabled = true
