@@ -53,25 +53,37 @@ www.primals.eco {
 	redir https://sporeprint.primals.eco{uri} permanent
 }
 
-# === sporePrint — ecosystem docs (302 pages, pseudoSpore gallery) ===
+# === sporePrint — ecosystem docs (340 pages, pseudoSpore gallery) ===
 sporeprint.primals.eco {
 	import security_headers
 	import csp_static
 	import access_log
 	encode gzip
 
+	root * /opt/ecoPrimals/sporePrint/public
+
 	handle /lab/spores/* {
 		root * /opt/ecoPrimals/sporePrint/spores
 		file_server browse
 	}
+	handle /sitemap.xml {
+		file_server
+	}
+	handle /robots.txt {
+		file_server
+	}
+	handle /llms*.txt {
+		file_server
+	}
+	handle /identity.json {
+		file_server
+	}
 	handle {
 		try_files {path} {path}/index.html /index.html
-		root * /opt/ecoPrimals/sporePrint/public
 		file_server
 	}
 	handle_errors {
 		rewrite * /404.html
-		root * /opt/ecoPrimals/sporePrint/public
 		file_server
 	}
 }
@@ -84,15 +96,13 @@ footprint.primals.eco {
 
 	header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://*.tile.openstreetmap.org https://*.arcgisonline.com https://services1.arcgis.com https://services2.arcgis.com; font-src 'self'; connect-src 'self' wss:; frame-ancestors 'none'"
 
-	reverse_proxy 10.13.37.2:8090 {
+	reverse_proxy 10.13.37.7:3002 {
 		header_up Host {host}
 		header_up X-Real-IP {remote_host}
-		header_up X-Forwarded-For {remote_host}
-		header_up X-Forwarded-Proto {scheme}
 	}
 }
 
-# === esotericWebb — cross-evolution CRPG on flockGate ===
+# === esotericWebb — cross-evolution CRPG on ironGate ===
 webb.primals.eco {
 	import security_headers
 	import csp_proxy
@@ -102,8 +112,6 @@ webb.primals.eco {
 	reverse_proxy 10.13.37.7:8090 {
 		header_up Host {host}
 		header_up X-Real-IP {remote_host}
-		header_up X-Forwarded-For {remote_host}
-		header_up X-Forwarded-Proto {scheme}
 	}
 }
 
@@ -116,7 +124,7 @@ membrane.primals.eco {
 
 	handle /depot/* {
 		uri strip_prefix /depot
-		root * /opt/ecoPrimals/depot/primals
+		root * /opt/ecoPrimals/plasmidBin/primals
 		file_server browse
 	}
 	handle /health {
@@ -140,15 +148,13 @@ lab.primals.eco {
 	import csp_proxy
 	import access_log
 
-	basicauth {
+	basic_auth {
 		sporegate $2a$14$KwLRiUi3o8OLAsPPDIugg.Zr5WshQVfCWFxjXBF.q2lry6SGy23UC
 	}
 
 	reverse_proxy 10.13.37.2:7780 {
 		header_up Host {host}
 		header_up X-Real-IP {remote_host}
-		header_up X-Forwarded-For {remote_host}
-		header_up X-Forwarded-Proto {scheme}
 		header_down -Content-Security-Policy
 	}
 }
@@ -171,11 +177,9 @@ live.primals.eco {
 	import csp_proxy
 	import access_log
 
-	reverse_proxy 10.13.37.2:9900 {
+	reverse_proxy 10.13.37.2:8190 {
 		header_up Host {host}
 		header_up X-Real-IP {remote_host}
-		header_up X-Forwarded-For {remote_host}
-		header_up X-Forwarded-Proto {scheme}
 	}
 }
 
@@ -203,12 +207,12 @@ depot.primals.eco {
 
 	handle /depot/* {
 		uri strip_prefix /depot
-		root * /opt/ecoPrimals/depot/primals
+		root * /opt/ecoPrimals/plasmidBin/primals
 		file_server browse
 	}
 
 	handle {
-		root * /opt/ecoPrimals/depot
+		root * /opt/ecoPrimals/plasmidBin
 		file_server browse
 	}
 }
@@ -218,7 +222,7 @@ relay.primals.eco {
 	import security_headers
 	import access_log
 
-	basicauth {
+	basic_auth {
 		relay $2a$14$e/bteuaCgvInNDsEuzoxauf.E7cknJ8tCtvFXl/gZTfEOKpZiHgHu
 	}
 
@@ -231,15 +235,87 @@ nestgate.io {
 	import security_headers
 	import access_log
 
-
 	reverse_proxy 10.13.37.2:8190 {
 		header_up Host {upstream_hostport}
 		header_up X-Real-IP {remote_host}
-		header_up X-Forwarded-For {remote_host}
-		header_up X-Forwarded-Proto {scheme}
 	}
 }
 
 www.nestgate.io {
 	redir https://nestgate.io{uri} permanent
+}
+
+# === detroit — Cash for Kids 2 public evidence library (Wave 158) ===
+detroit.primals.eco {
+	root * /opt/ecoPrimals/detroit/public
+	encode gzip
+
+	handle /sitemap.xml {
+		file_server
+	}
+	handle /robots.txt {
+		file_server
+	}
+
+	handle /evidence/ {
+		try_files /evidence/index.html
+		file_server
+	}
+
+	handle /evidence/* {
+		uri strip_prefix /evidence
+		root * /opt/ecoPrimals/detroit/evidence
+		file_server browse
+	}
+
+	handle {
+		try_files {path} {path}/index.html /index.html
+		file_server
+	}
+
+	handle_errors {
+		@404 expression `{http.error.status_code} == 404`
+		rewrite @404 /404.html
+		file_server
+	}
+
+	header {
+		Strict-Transport-Security "max-age=63072000; includeSubDomains; preload"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		Permissions-Policy "camera=(), microphone=(), geolocation=(), interest-cohort=()"
+	}
+}
+
+# === guerillaGorilla — Accountability Infrastructure (Wave 158) ===
+gorilla.primals.eco, guerillagorilla.primals.eco {
+	root * /opt/ecoPrimals/guerillaGorilla/site/public
+	encode gzip
+
+	handle /sitemap.xml {
+		file_server
+	}
+	handle /robots.txt {
+		file_server
+	}
+
+	handle {
+		try_files {path} {path}/index.html /index.html
+		file_server
+	}
+
+	handle_errors {
+		@404 expression `{http.error.status_code} == 404`
+		rewrite @404 /index.html
+		file_server
+	}
+
+	header {
+		Strict-Transport-Security "max-age=63072000; includeSubDomains; preload"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		Permissions-Policy "camera=(), microphone=(), geolocation=(), interest-cohort=()"
+	}
 }
