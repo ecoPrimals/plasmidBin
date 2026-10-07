@@ -319,3 +319,67 @@ gorilla.primals.eco, guerillagorilla.primals.eco {
 		Permissions-Policy "camera=(), microphone=(), geolocation=(), interest-cohort=()"
 	}
 }
+
+# === Signal — Defense Billboard (Wave 165g) ===
+signal.primals.eco {
+	root * /opt/ecoPrimals/signal/site/public
+	encode gzip
+
+	handle /sitemap.xml {
+		file_server
+	}
+	handle /robots.txt {
+		file_server
+	}
+
+	handle {
+		try_files {path} {path}/index.html /index.html
+		file_server
+	}
+
+	handle_errors {
+		@404 expression `{http.error.status_code} == 404`
+		rewrite @404 /index.html
+		file_server
+	}
+
+	header {
+		Strict-Transport-Security "max-age=63072000; includeSubDomains; preload"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		Permissions-Policy "camera=(), microphone=(), geolocation=(), interest-cohort=()"
+	}
+}
+
+# === Tuebor — Cross-Protection Surface (Wave 165g) ===
+tuebor.primals.eco {
+	root * /opt/ecoPrimals/tuebor/site/public
+	encode gzip
+
+	handle /sitemap.xml {
+		file_server
+	}
+	handle /robots.txt {
+		file_server
+	}
+
+	handle {
+		try_files {path} {path}/index.html /index.html
+		file_server
+	}
+
+	handle_errors {
+		@404 expression `{http.error.status_code} == 404`
+		rewrite @404 /index.html
+		file_server
+	}
+
+	header {
+		Strict-Transport-Security "max-age=63072000; includeSubDomains; preload"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		Permissions-Policy "camera=(), microphone=(), geolocation=(), interest-cohort=()"
+	}
+}
