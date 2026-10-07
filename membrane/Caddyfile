@@ -165,6 +165,9 @@ git.primals.eco {
 	import csp_proxy
 	import access_log
 
+	# ~~FLEET_PRESSURE_START~~
+	# ~~FLEET_PRESSURE_END~~
+
 	handle /webhook {
 		reverse_proxy unix//run/membrane/webhook.sock
 	}
