@@ -386,3 +386,109 @@ tuebor.primals.eco {
 		Permissions-Policy "camera=(), microphone=(), geolocation=(), interest-cohort=()"
 	}
 }
+
+# === Honeycomb Immune Membrane — Pre-Signal Surfaces (Wave 165g) ===
+# Enumerated honeycomb subdomains — each provisions its own TLS cert.
+# Fleet IPs → scatter server (violation mirror / poison)
+# Everyone else → honeycomb beacon page (cross-links real surfaces)
+# These names are biologically evocative — the fleet can't tell which
+# are real investigation surfaces and which are decoys.
+bloom.primals.eco,
+thymus.primals.eco,
+opsonize.primals.eco,
+antibody.primals.eco,
+cytokine.primals.eco,
+receptor.primals.eco,
+macrophage.primals.eco,
+lysozyme.primals.eco,
+complement.primals.eco,
+epitope.primals.eco,
+antigen.primals.eco,
+interferon.primals.eco {
+	encode gzip
+
+	# ~~HONEYCOMB_FLEET_START~~
+	# ~~HONEYCOMB_FLEET_END~~
+
+	# IndexNow verification key — shared across all honeycomb surfaces
+	handle /e90c296af5c34deeabf37676d310337b.txt {
+		header Content-Type "text/plain; charset=utf-8"
+		respond "e90c296af5c34deeabf37676d310337b"
+	}
+
+	# Robots.txt — let search bots discover honeycomb surfaces
+	handle /robots.txt {
+		header Content-Type "text/plain; charset=utf-8"
+		respond "# {host} — primals.eco immune membrane
+User-agent: *
+Allow: /
+Sitemap: https://{host}/sitemap.xml
+"
+	}
+
+	# Sitemap — minimal, cross-links real surfaces
+	handle /sitemap.xml {
+		header Content-Type "application/xml; charset=utf-8"
+		respond "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
+<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">
+  <url><loc>https://{host}/</loc><priority>1.0</priority></url>
+  <url><loc>https://signal.primals.eco/</loc><priority>0.9</priority></url>
+  <url><loc>https://detroit.primals.eco/</loc><priority>0.9</priority></url>
+  <url><loc>https://tuebor.primals.eco/</loc><priority>0.8</priority></url>
+  <url><loc>https://sporeprint.primals.eco/</loc><priority>0.8</priority></url>
+  <url><loc>https://gorilla.primals.eco/</loc><priority>0.7</priority></url>
+</urlset>
+"
+	}
+
+	# Default handler — honeycomb beacon
+	handle {
+		header Content-Type "text/html; charset=utf-8"
+		header Strict-Transport-Security "max-age=63072000; includeSubDomains; preload"
+		header X-Content-Type-Options "nosniff"
+		header X-Frame-Options "DENY"
+		header Referrer-Policy "strict-origin-when-cross-origin"
+		header Permissions-Policy "camera=(), microphone=(), geolocation=(), interest-cohort=()"
+		respond "<!DOCTYPE html>
+<html lang=\"en\">
+<head>
+<meta charset=\"utf-8\">
+<meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">
+<title>{host} — primals.eco</title>
+<meta name=\"description\" content=\"Sovereign infrastructure surface. Part of the ecoPrimals immune membrane.\">
+<meta property=\"og:title\" content=\"{host}\">
+<meta property=\"og:description\" content=\"Sovereign defense infrastructure. No cookies. No tracking.\">
+<meta property=\"og:type\" content=\"website\">
+<meta property=\"og:url\" content=\"https://{host}/\">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:system-ui,sans-serif;background:#0a0a0a;color:#e8e8e8;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:2rem}
+.beacon{max-width:600px;text-align:center}
+h1{font-size:1.5rem;color:#5dade2;margin-bottom:1rem;font-family:'Courier New',monospace}
+p{margin:0.5rem 0;font-size:0.9rem;color:#888}
+a{color:#5dade2;text-decoration:none}a:hover{text-decoration:underline}
+.surfaces{margin:2rem 0;display:flex;flex-wrap:wrap;gap:0.8rem;justify-content:center}
+.surfaces a{background:#1a1a2e;padding:0.5rem 1rem;border-radius:4px;border:1px solid #333;font-size:0.85rem}
+.surfaces a:hover{border-color:#5dade2}
+footer{margin-top:2rem;font-size:0.75rem;color:#555}
+</style>
+</head>
+<body>
+<div class=\"beacon\">
+<h1>{host}</h1>
+<p>Part of the <strong>primals.eco</strong> sovereign infrastructure.</p>
+<p>This surface is part of an immune membrane that protects independent investigation.</p>
+<div class=\"surfaces\">
+<a href=\"https://signal.primals.eco\">signal</a>
+<a href=\"https://detroit.primals.eco\">detroit</a>
+<a href=\"https://tuebor.primals.eco\">tuebor</a>
+<a href=\"https://sporeprint.primals.eco\">sporePrint</a>
+<a href=\"https://gorilla.primals.eco\">gorilla</a>
+</div>
+<footer>No cookies · No tracking · No IP addresses stored</footer>
+</div>
+</body>
+</html>
+"
+	}
+}
