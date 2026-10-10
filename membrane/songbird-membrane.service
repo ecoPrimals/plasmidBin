@@ -1,0 +1,53 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+#
+# Membrane Tower: Songbird — Discovery, Federation, Mesh Hub
+#
+# Completes the Tower Atomic triad (BearDog + Songbird + SkunkBat).
+# Dual-mode: UDS for inter-primal IPC + TCP :7700 for cross-gate federation.
+# VPS operates as the ecosystem mesh hub — all gates seed this as a permanent
+# peer. LAN gates connect directly; WAN gates use the TURN relay (:3478).
+#
+# Dark Forest mode enabled: all beacons encrypted via BearDog crypto.
+#
+# See: wateringHole/MEMBRANE_CHANNEL_ARCHITECTURE.md (Tower on Membrane)
+# See: wateringHole/birdsong/DARK_FOREST_BEACON_GENETICS_STANDARD.md
+
+[Unit]
+Description=Songbird Discovery + Federation (Membrane Tower — Mesh Hub)
+Documentation=https://primals.eco
+After=network-online.target beardog-membrane.service
+Wants=network-online.target
+Requires=beardog-membrane.service
+StartLimitIntervalSec=60
+StartLimitBurst=5
+
+[Service]
+Type=simple
+ExecStartPre=-/bin/rm -f /run/membrane/songbird.sock
+ExecStart=/opt/membrane/songbird server \
+    --socket /run/membrane/songbird.sock \
+    --security-socket /run/membrane/beardog.sock \
+    --federation-port 7700 \
+    --bind 0.0.0.0 \
+    --dark-forest \
+    --pid-dir /run/membrane
+ExecStartPost=/bin/bash -c "sleep 5 && echo "id":1 | socat - UNIX-CONNECT:/run/membrane/songbird.sock || true"
+
+Environment=SONGBIRD_NODE_ID=golgiBody
+Environment=SONGBIRD_LOG_LEVEL=info
+Environment=SONGBIRD_DARK_FOREST=true
+Environment=SONGBIRD_SECURITY_PROVIDER=beardog
+Environment=BEARDOG_SOCKET=/run/membrane/beardog.sock
+Environment=SONGBIRD_PID_DIR=/run/membrane
+Environment=SONGBIRD_FEDERATION_PORT=7700
+Environment=SONGBIRD_FEDERATION_ENABLED=true
+Environment=SONGBIRD_PEERS=10.13.37.2:7700
+EnvironmentFile=-/opt/membrane/tower.env
+
+Restart=always
+RestartSec=5
+MemoryMax=128M
+CPUQuota=50%
+
+[Install]
+WantedBy=multi-user.target
