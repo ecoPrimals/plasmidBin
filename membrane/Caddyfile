@@ -935,6 +935,18 @@ hud.primals.eco, biomeos.primals.eco, os.primals.eco {
 		file_server
 	}
 
+	# ═══ PUBLIC MCP — membrane open for agents (Wave 176) ═══
+	handle /mcp {
+		reverse_proxy 127.0.0.1:8191 {
+			header_up X-Real-IP {remote_host}
+		}
+	}
+	handle /.well-known/mcp {
+		reverse_proxy 127.0.0.1:8191 {
+			header_up X-Real-IP {remote_host}
+		}
+	}
+
 	# Static HUD site (Zola output) — catch-all
 	handle {
 		root * /opt/ecoPrimals/hud/site/public
