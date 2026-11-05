@@ -140,3 +140,22 @@ repo = "sporeGarden/esotericWebb"
 tag_pattern = "v{version}"
 assets = ["esotericwebb"]
 binary_name = "esotericwebb"
+
+# =============================================================================
+# ENROLLED Nov 2026 — the 4 primals the forge did not track (17/17)
+# =============================================================================
+
+[sources.bingocube]
+repo = "ecoPrimals/bingoCube"
+tag_pattern = "v{version}"
+assets = ["bingocube"]
+
+[sources.swarmvine]
+repo = "ecoPrimals/swarmVine"
+tag_pattern = "v{version}"
+assets = ["swarmvine"]
+
+[sources.dromedary]
+repo = "ecoPrimals/dromedary"
+tag_pattern = "v{version}"
+assets = ["dromedary"]
